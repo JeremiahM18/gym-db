@@ -12,6 +12,9 @@ def write_json(gyms: list[Gym], path: Path):
             "confidence_score": g.confidence_score,
             "osm_refs": g.osm_refs,
             "tags": g.tags,
+
+            "inferred": g.inferred,
+            "inference_reasons": g.inference_reasons,
         }
         for g in gyms
     ]

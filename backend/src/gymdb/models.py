@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Any
 
 class Gym:
     def __init__(
@@ -17,3 +17,7 @@ class Gym:
         self.osm_refs = osm_refs
         self.tags = tags
         self.confidence_score: float | None = None
+
+        # inference outputs
+        self.inferred: Dict[str, Any] = {}
+        self.inference_reasons: Dict[str, List[str]] = {}

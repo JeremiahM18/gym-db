@@ -8,3 +8,8 @@ GymDB is a backend data pipeline that discovers gyms within a specified geograph
 
 There is no single authoritative database of gyms, and publicly available data often contains duplicate entries and inconsistencies. This project addresses those issues by combining geospatial querying with normalization and distance-based de-duplication.
 
+## Inference Logic
+
+This project distinguishes between:
+- Stored facts (explicit data from OpenStreetMap)
+- Infereed attributes (derived using domain rules)

@@ -6,6 +6,7 @@ from gymdb.overpass_client import fetch_gyms
 from gymdb.processing import deduplicate
 from gymdb.scoring import compute_confidence
 from gymdb.io_json import write_json
+from gymdb.inference import apply_inference
 
 def main():
     parser = argparse.ArgumentParser()
@@ -21,6 +22,7 @@ def main():
 
     for g in gyms:
         compute_confidence(g)
+        apply_inference(g)
 
     write_json(gyms, Path("data/gyms_raw.json"))
 
