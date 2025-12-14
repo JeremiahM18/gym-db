@@ -22,7 +22,7 @@ def main():
     for g in gyms:
         compute_confidence(g)
 
-    write_json(gyms, Path("backend/data/gyms_raw.json"))
+    write_json(gyms, Path("data/gyms_raw.json"))
 
     print(f"Processed {len(gyms)} gyms")
 
