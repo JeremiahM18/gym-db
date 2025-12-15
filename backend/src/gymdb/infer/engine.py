@@ -15,12 +15,8 @@ from gymdb.domain import (
 )
 
 from gymdb.infer.decisions import compute_premium_score
-from gymdb.inference import (
-    extract_features, 
-    infer_24_7, 
-    infer_lifter_friendly, 
-    infer_tier
-)
+from gymdb.features import extract_features
+from gymdb.rules import infer_24_7, infer_lifter_friendly, infer_tier 
 
 def run_inference(gym: Gym) -> None:
     """
@@ -28,7 +24,7 @@ def run_inference(gym: Gym) -> None:
     Mutates the gym in-place.
     """
     
-    # Extract normalized features
+    # Feature extraction 
     features = extract_features(gym.tags)
 
     capabilities = (
@@ -50,27 +46,45 @@ def run_inference(gym: Gym) -> None:
         "reasons": premium_reasons,
     }
 
+    # 24/7
+    is_24_7_value, is_24_7_reasons = infer_24_7(features)
+    is_24_7_result: InferenceResult = {
+        "value": is_24_7_value,
+        "reasons": is_24_7_reasons,
+    }
+
+    # Lifter friendly
+    lifter_value, lifter_reasons = infer_lifter_friendly(features)
+    lifter_result: InferenceResult = {
+        "value": lifter_value,
+        "reasons": lifter_reasons,
+    }
+
+    # Tier
+    tier_value, tier_reasons = infer_tier(premium_value, is_24_7_value)
+    tier_result: InferenceResult = {
+        "value": tier_value,
+        "reasons": tier_reasons,
+    }
+
     # Existing inferences (unchanged)
-    is_24_7, r_24_7 = infer_24_7(features)
-    lifter_friendly, r_lifter = infer_lifter_friendly(features)
-    tier, r_tier = infer_tier(premium_value, is_24_7)
+    # is_24_7, r_24_7 = infer_24_7(features)
+    # lifter_friendly, r_lifter = infer_lifter_friendly(features)
+    # tier, r_tier = infer_tier(premium_value, is_24_7)
 
-    # New structured inference
-    gym.inferred[PREMIUM_SCORE] = premium_result
-
-    # Compatibility (temporary)
-    gym.inference_reasons[PREMIUM_SCORE] = premium_reasons
-
+   
     # Write inferred values
     gym.inferred.update({
-        IS_24_7: is_24_7,
-        LIFTER_FRIENDLY: lifter_friendly,
-        TIER: tier,
+        PREMIUM_SCORE: premium_result,
+        IS_24_7: is_24_7_result,
+        LIFTER_FRIENDLY: lifter_result,
+        TIER: tier_result,
     })
 
     # Write reasons (merged, explainable)
     gym.inference_reasons.update({
-        IS_24_7: r_24_7,
-        LIFTER_FRIENDLY: r_lifter,
-        TIER: r_tier,
+        PREMIUM_SCORE: premium_reasons,
+        IS_24_7: is_24_7_reasons,
+        LIFTER_FRIENDLY: lifter_reasons,
+        TIER: tier_reasons,
     })
