@@ -98,4 +98,15 @@ The format is designed for direct consumption by:
 
 ```bash
 python main.py --lat 36.1627 --lon -86.7816 --radius-miles 30
+```
 
+### Inference Versioning
+
+GYMDB uses a deterministic, rule-based inference engine. 
+Each dataset includes inference metadata to ensure auditability and reproducibility:
+
+- `schema_version` - JSON structure version
+- `inference_meta.version` - inference ruleset version
+- `inference_meta.engine` - inference engine type
+
+This allows inference behavior to evolve without silently changing historical datasets.

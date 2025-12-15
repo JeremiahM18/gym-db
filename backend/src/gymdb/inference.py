@@ -1,6 +1,8 @@
 import re
 from gymdb.models import Gym
-from gymdb.domain import (INFERRED, INFERENCE_REASONS, IS_24_7, PREMIUM_SCORE, LIFTER_FRIENDLY, TIER, TIER_PREMIUM, TIER_MID, TIER_BASIC)
+from gymdb.domain import (INFERRED, INFERENCE_REASONS, IS_24_7, PREMIUM_SCORE, LIFTER_FRIENDLY, TIER, TIER_PREMIUM, TIER_MID, TIER_BASIC, INFERENCE_META, INFERENCE_ENGINE, INFERENCE_VERSION, ENGINE_RULE_BASED)
+
+RULESET_VERSION ="1.0.0"
 
 # Helper functions
 
@@ -171,4 +173,9 @@ def apply_inference(gym: Gym) -> None:
         PREMIUM_SCORE: r2,
         LIFTER_FRIENDLY: r3,
         TIER: r4,
+    })
+
+    gym.inference_meta.update({
+        INFERENCE_ENGINE: ENGINE_RULE_BASED,
+        INFERENCE_VERSION: RULESET_VERSION,
     })

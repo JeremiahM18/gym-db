@@ -22,3 +22,5 @@ class Gym:
         # inference outputs
         self.inferred: Dict[str, Any] = {}
         self.inference_reasons: Dict[str, List[str]] = {}
+        # inference metadata
+        self.inference_meta: Dict[str, Any] = {}

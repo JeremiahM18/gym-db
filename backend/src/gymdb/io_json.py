@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 from gymdb.models import Gym
 
-SCHEMA_VERSION = "1.1"
+SCHEMA_VERSION = "1.2"
 
 def write_json(gyms: list[Gym], path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -12,6 +12,7 @@ def write_json(gyms: list[Gym], path: Path):
         "schema_version": SCHEMA_VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "count": len(gyms),
+        "inference_meta": (gyms[0].inference_meta if gyms else {}),
         "results": [
             {
                 "id": g.id,
@@ -23,6 +24,7 @@ def write_json(gyms: list[Gym], path: Path):
                 "tags": g.tags,
                 "inferred": g.inferred,
                 "inference_reasons": g.inference_reasons,
+                "inference_meta": g.inference_meta,
             }
             for g in gyms
         ],

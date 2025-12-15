@@ -16,3 +16,8 @@ TIER_BASIC = "basic"
 TIER_MID = "mid"
 TIER_PREMIUM = "premium"
 
+# --- Inference metadata ---
+INFERENCE_META = "inference_meta"
+INFERENCE_ENGINE =  "engine"
+INFERENCE_VERSION = "version"
+ENGINE_RULE_BASED = "rule_based"
