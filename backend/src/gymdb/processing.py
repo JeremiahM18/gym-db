@@ -7,7 +7,7 @@ def normalize_name(name: str) -> str:
     # Remove extra whitespace, newlines, etc.
     name = name.lower()
     name = re.sub(r"[^a-z0-9\s]", " ", name)
-    name = re.sub(r"\s+", " ", name).strip()
+    name = re.sub(r"\s+", "_", name).strip("_")
     return name
 
 def haversine_meters(lat1, lon1, lat2, lon2) -> float:
