@@ -1,6 +1,14 @@
 import re
+
 from gymdb.models import Gym
-from gymdb.domain import (INFERRED, INFERENCE_REASONS, IS_24_7, PREMIUM_SCORE, LIFTER_FRIENDLY, TIER, TIER_PREMIUM, TIER_MID, TIER_BASIC, INFERENCE_META, INFERENCE_ENGINE, INFERENCE_VERSION, ENGINE_RULE_BASED)
+from gymdb.domain import (
+    INFERRED, INFERENCE_REASONS, IS_24_7, 
+    PREMIUM_SCORE, LIFTER_FRIENDLY, TIER, 
+    TIER_PREMIUM, TIER_MID, TIER_BASIC, 
+    INFERENCE_META, INFERENCE_ENGINE, 
+    INFERENCE_VERSION, ENGINE_RULE_BASED)
+
+from gymdb.infer.engine import run_inference
 
 RULESET_VERSION ="1.0.0"
 
@@ -155,6 +163,7 @@ def infer_tier(premium_score: int, is_24_7: bool) -> tuple[str, list[str]]:
 
 def apply_inference(gym: Gym) -> None:
     features = extract_features(gym.tags)
+    run_inference(gym)
 
     is_24_7, r1 = infer_24_7(features)
     premium_score, r2 = infer_premium_score(features)

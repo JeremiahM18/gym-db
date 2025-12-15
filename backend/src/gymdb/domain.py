@@ -1,3 +1,24 @@
+from typing import TypedDict, List, Union
+
+
+InferenceValue = Union[bool, int, str]
+
+class InferenceResult(TypedDict):
+    """
+    Structured result of an inference decision
+
+    value:
+        The inferred value (bool, int, or str)
+
+    reasons:
+        Explanations describing why the value was inferred
+    """
+    value: InferenceValue
+    reasons: List[str]
+
+
+
+
 # --- Dataset schema keys ---
 
 CONFIDENCE_SCORE = "confidence_score"

@@ -14,13 +14,18 @@ from gymdb.domain import (
 )
 
 from gymdb.infer.decisions import compute_premium_score
-from gymdb.inference import extract_features, infer_24_7, infer_lifter_friendly, infer_tier
+from gymdb.inference import (
+    extract_features, 
+    infer_24_7, 
+    infer_lifter_friendly, 
+    infer_tier
+)
 
 def run_inference(gym: Gym) -> None:
     """
-      Run all inference logic for a single gym.
-      Mutates the gym in-place
-      """
+    Run all inference logic for a single gym.
+    Mutates the gym in-place.
+    """
     
     # Extract normalized features
     features = extract_features(gym.tags)
