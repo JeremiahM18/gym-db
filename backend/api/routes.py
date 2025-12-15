@@ -6,6 +6,8 @@ from api.store import GymStore
 from src.gymdb.domain import TIER_BASIC, TIER_MID, TIER_PREMIUM, INFERRED
 from api.registry import DatasetRegistry
 
+from src.gymdb.observe.summaries import summarize_inference
+
 
 router = APIRouter()
 
@@ -56,6 +58,7 @@ def list_gyms(
     lon: float | None = None,
     radius_m: float | None = None,
     include_reasons: bool = False,
+    include_summary: bool = False,
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
@@ -78,6 +81,10 @@ def list_gyms(
     for g in gyms:
         out = dict(g)
         out["inference"] = _serialize_inference(g, include_reasons)
+
+        if include_summary:
+            out["inference_summary"] = summarize_inference(g.get(INFERRED, {}))
+
         out.pop(INFERRED, None)
         results.append(out)
 
@@ -91,7 +98,8 @@ def list_gyms(
 def get_gym(
     gym_id: str, 
     region: str | None = None, 
-    include_reasons: bool = False
+    include_reasons: bool = False,
+    include_summary: bool = False,
 ):
     region = region or registry.default_region
 
@@ -101,6 +109,9 @@ def get_gym(
 
     out = dict(gym)
     out["inference"] = _serialize_inference(gym, include_reasons)
-    out.pop(INFERRED, None)
 
+    if include_summary:
+        out["inference_summary"] = summarize_inference(gym.get(INFERRED, {}))
+    
+    out.pop(INFERRED, None)
     return out
