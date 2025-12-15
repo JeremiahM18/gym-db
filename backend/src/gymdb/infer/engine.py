@@ -7,6 +7,7 @@ deterministic, explainable inferred attributes.
 
 from gymdb.models import Gym
 from gymdb.domain import (
+    InferenceResult,
     IS_24_7,
     PREMIUM_SCORE,
     LIFTER_FRIENDLY,
@@ -39,19 +40,29 @@ def run_inference(gym: Gym) -> None:
     attributes = features["attributes"]
 
     # Premium score
-    premium_score, premium_reasons = compute_premium_score(
+    premium_value, premium_reasons = compute_premium_score(
         capabilities=capabilities,
         attributes=attributes,
     )
 
+    premium_result: InferenceResult = {
+        "value": premium_value,
+        "reasons": premium_reasons,
+    }
+
     # Existing inferences (unchanged)
     is_24_7, r_24_7 = infer_24_7(features)
     lifter_friendly, r_lifter = infer_lifter_friendly(features)
-    tier, r_tier = infer_tier(premium_score, is_24_7)
+    tier, r_tier = infer_tier(premium_value, is_24_7)
+
+    # New structured inference
+    gym.inferred[PREMIUM_SCORE] = premium_result
+
+    # Compatibility (temporary)
+    gym.inference_reasons[PREMIUM_SCORE] = premium_reasons
 
     # Write inferred values
     gym.inferred.update({
-        PREMIUM_SCORE: premium_score,
         IS_24_7: is_24_7,
         LIFTER_FRIENDLY: lifter_friendly,
         TIER: tier,
@@ -59,7 +70,6 @@ def run_inference(gym: Gym) -> None:
 
     # Write reasons (merged, explainable)
     gym.inference_reasons.update({
-        PREMIUM_SCORE: premium_reasons,
         IS_24_7: r_24_7,
         LIFTER_FRIENDLY: r_lifter,
         TIER: r_tier,
