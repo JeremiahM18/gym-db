@@ -4,6 +4,7 @@ from api.deps import registry, store
 from src.gymdb.domain import INFERRED
 from src.gymdb.observe.summaries import summarize_inference
 from src.gymdb.observe.audit import diff_inference
+from src.gymdb.observe.metrics import snapshot_metrics
 
 router = APIRouter(prefix="/debug")
 
@@ -39,3 +40,7 @@ def debug_inference_diff(payload: dict) -> dict:
     return {
         "diff": diff_inference(before, after)
     }
+
+@router.get("/metrics")
+def debug_metrics():
+    return{"inference_hits": snapshot_metrics()}

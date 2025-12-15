@@ -3,7 +3,7 @@ from fastapi import APIRouter, Query, HTTPException
 from src.gymdb.domain import INFERRED, TIER_BASIC, TIER_MID, TIER_PREMIUM
 from api.deps import registry, store
 from src.gymdb.observe.summaries import summarize_inference
-
+from src.gymdb.observe.metrics import record_inference_hits
 
 router = APIRouter()
 
@@ -100,6 +100,8 @@ def get_gym(
 
     if include_summary:
         out["inference_summary"] = summarize_inference(gym.get(INFERRED, {}))
+
+    record_inference_hits(g.get(INFERRED, {}))
     
     out.pop(INFERRED, None)
     return out
