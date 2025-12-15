@@ -1,0 +1,12 @@
+certifi==2025.11.12
+charset-normalizer==3.4.4
+colorama==0.4.6
+-e git+https://github.com/JeremiahM18/gym-db.git@7c2b0e0230b4896672fb41431eb599fd491cc30f#egg=gymdb&subdirectory=backend
+idna==3.11
+iniconfig==2.3.0
+packaging==25.0
+pluggy==1.6.0
+Pygments==2.19.2
+pytest==9.0.2
+requests==2.32.5
+urllib3==2.6.2
