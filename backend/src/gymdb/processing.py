@@ -1,5 +1,6 @@
 import math
 import re
+import hashlib
 from gymdb.models import Gym
 from gymdb.config import DEDUP_DISTANCE_METERS
 
@@ -33,6 +34,10 @@ def extract_lat_lon(el: dict):
         lat = center.get("lat")
         lon = center.get("lon")
     return lat, lon
+
+def compute_gym_id(norm_name: str, lat: float, lon: float) -> str:
+    raw = f"{norm_name}|{lat:.6f}|{lon:.6f}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 def deduplicate(elements: list[dict]) -> list[Gym]:
     gyms: list[Gym] = []

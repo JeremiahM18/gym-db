@@ -10,6 +10,7 @@ class Gym:
             osm_refs: List[Dict],
             tags: Dict,
     ):
+        self.id: str | None = None
         self.name = name
         self.norm_name = norm_name
         self.lat = lat

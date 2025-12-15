@@ -1,5 +1,6 @@
 import re
 from gymdb.models import Gym
+from gymdb.domain import (INFERRED, INFERENCE_REASONS, IS_24_7, PREMIUM_SCORE, LIFTER_FRIENDLY, TIER, TIER_PREMIUM, TIER_MID, TIER_BASIC)
 
 # Helper functions
 
@@ -145,10 +146,10 @@ def infer_tier(premium_score: int, is_24_7: bool) -> tuple[str, list[str]]:
         reasons.append("24/7 access adds value")
 
     if premium_score >= 7:
-        return "premium", reasons
+        return TIER_PREMIUM, reasons
     if premium_score >= 3:
-        return "mid", reasons
-    return "basic", reasons
+        return TIER_MID, reasons
+    return TIER_BASIC, reasons
 
 def apply_inference(gym: Gym) -> None:
     features = extract_features(gym.tags)
@@ -159,15 +160,15 @@ def apply_inference(gym: Gym) -> None:
     tier, r4 = infer_tier(premium_score, is_24_7)
 
     gym.inferred.update({
-        "is_24_7": is_24_7,
-        "premium_score": premium_score,
-        "lifter_friendly": lifter_friendly,
-        "tier": tier,
+        IS_24_7: is_24_7,
+        PREMIUM_SCORE: premium_score,
+        LIFTER_FRIENDLY: lifter_friendly,
+        TIER: tier,
     })
 
     gym.inference_reasons.update({
-        "is_24_7": r1,
-        "premium_score": r2,
-        "lifter_friendly": r3,
-        "tier": r4,
+        IS_24_7: r1,
+        PREMIUM_SCORE: r2,
+        LIFTER_FRIENDLY: r3,
+        TIER: r4,
     })

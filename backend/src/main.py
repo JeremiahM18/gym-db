@@ -7,6 +7,7 @@ from gymdb.processing import deduplicate
 from gymdb.scoring import compute_confidence
 from gymdb.io_json import write_json
 from gymdb.inference import apply_inference
+from gymdb.processing import compute_gym_id
 
 def main():
     parser = argparse.ArgumentParser()
@@ -21,6 +22,7 @@ def main():
     gyms = deduplicate(elements)
 
     for g in gyms:
+        g.id =  compute_gym_id(g.norm_name, g.lat, g.lon)
         compute_confidence(g)
         apply_inference(g)
 
