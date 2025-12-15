@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import List, Dict, Any
+from gymdb.processing import haversine_meters
 from gymdb.domain import CONFIDENCE_SCORE, INFERRED
 
 DATA_PATH = Path("data/gyms_raw.json")
@@ -16,7 +17,9 @@ class GymStore:
                 f"Dataset not found at {self.path}. "
                 "Please run the GymDB pipeline first."
             )
-        self._gyms = json.loads(self.path.read_text(encoding="utf-8"))
+        
+        data = json.loads(self.path.read_text(encoding="utf-8"))
+        self._gyms = data["results"]
         return self
     
     def get_by_id(self, gym_id: str) -> Dict[str, Any] | None:
@@ -34,9 +37,12 @@ class GymStore:
         tier: str | None = None,
         lifter_friendly: bool | None = None,
         is_24_7: bool | None = None,
+        lat: float | None = None,
+        lon: float | None = None,
+        radius_m: float | None = None,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> List[dict]:
         gyms = self._gyms
 
         if min_conf is not None:
@@ -61,6 +67,12 @@ class GymStore:
             gyms = [
                 g for g in gyms
                 if g.get(INFERRED, {}).get("is_24_7") is is_24_7
+            ]
+
+        if lat is not None and lon is not None and radius_m is not None:
+            gyms = [
+                g for g in gyms
+                if haversine_meters(lat, lon, g["lat"], g["lon"]) <= radius_m
             ]
 
         return gyms[offset : offset + limit]
