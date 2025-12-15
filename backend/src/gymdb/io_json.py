@@ -6,6 +6,7 @@ def write_json(gyms: list[Gym], path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
     data = [
         {
+            "id": g.id,
             "name": g.name,
             "lat": g.lat,
             "lon": g.lon,

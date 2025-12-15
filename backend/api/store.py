@@ -19,6 +19,12 @@ class GymStore:
         self._gyms = json.loads(self.path.read_text(encoding="utf-8"))
         return self
     
+    def get_by_id(self, gym_id: str) -> Dict[str, Any] | None:
+        for g in self._gyms:
+            if g.get("id") == gym_id:
+                return g
+        return None
+    
     def all(self) -> List[Dict[str, Any]]:
         return self._gyms
 

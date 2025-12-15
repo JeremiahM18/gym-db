@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException
 from api.store import GymStore
 from gymdb.domain import TIER_BASIC, TIER_MID, TIER_PREMIUM
 
@@ -33,3 +33,14 @@ def list_gyms(
         "count": len(gyms),
         "results": gyms,
 }
+
+@router.get("/gyms/{gym_id}")
+def get_gym(gym_id: str, include_reasons: bool = False):
+    gym = store.get_by_id(gym_id)
+    if gym is None:
+        raise HTTPException(status_code=404, detail="Gym not found")
+
+    if not include_reasons:
+        gym.pop("inference_reasons", None)
+
+    return gym

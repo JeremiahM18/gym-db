@@ -2,6 +2,7 @@ LICENSE
 pyproject.toml
 src/gymdb/__init__.py
 src/gymdb/config.py
+src/gymdb/domain.py
 src/gymdb/inference.py
 src/gymdb/io_json.py
 src/gymdb/models.py
@@ -12,6 +13,7 @@ src/gymdb.egg-info/PKG-INFO
 src/gymdb.egg-info/SOURCES.txt
 src/gymdb.egg-info/dependency_links.txt
 src/gymdb.egg-info/top_level.txt
+tests/test_api_smoke.py
 tests/test_deduplication.py
 tests/test_inference.py
 tests/test_normalization.py
