@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException
 from api.deps import registry, store
 from src.gymdb.domain import INFERRED
 from src.gymdb.observe.summaries import summarize_inference
+from src.gymdb.observe.audit import diff_inference
 
 router = APIRouter(prefix="/debug")
 
@@ -21,7 +22,20 @@ def debug_gym_inference(
 
     return {
         "gym_id": gym_id,
+        "region": region,
         "inference": inferred,
         "summary": summarize_inference(inferred),
         "meta": gym.get("inference_meta", {}),
+    }
+
+@router.post("/inference/diff")
+def debug_inference_diff(payload: dict) -> dict:
+    """
+    Compare two inference objects and return changed values.
+    """
+    before = payload.get("before", {}) or {}
+    after = payload.get("after", {}) or {}
+
+    return {
+        "diff": diff_inference(before, after)
     }
