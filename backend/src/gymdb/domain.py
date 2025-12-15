@@ -1,11 +1,11 @@
-from typing import TypedDict, List, Union
+from typing import TypedDict, Union
 
 
 InferenceValue = Union[bool, int, str]
 
 class InferenceResult(TypedDict):
     """
-    Structured result of an inference decision
+    Structured result of an inference decision.
 
     value:
         The inferred value (bool, int, or str)
@@ -14,8 +14,7 @@ class InferenceResult(TypedDict):
         Explanations describing why the value was inferred
     """
     value: InferenceValue
-    reasons: List[str]
-
+    reasons: list[str]
 
 
 
@@ -23,7 +22,6 @@ class InferenceResult(TypedDict):
 
 CONFIDENCE_SCORE = "confidence_score"
 INFERRED = "inferred"
-INFERENCE_REASONS = "inference_reasons"
 
 # --- Inferred field names ---
 

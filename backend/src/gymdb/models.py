@@ -1,4 +1,5 @@
-from typing import Dict, List, Any
+from typing import Any
+from gymdb.domain import InferenceResult
 
 class Gym:
     def __init__(
@@ -7,8 +8,8 @@ class Gym:
             norm_name: str,
             lat: float,
             lon: float,
-            osm_refs: List[Dict],
-            tags: Dict,
+            osm_refs: list[dict],
+            tags: dict,
     ):
         self.id: str | None = None
         self.name = name
@@ -20,7 +21,6 @@ class Gym:
         self.confidence_score: float | None = None
 
         # inference outputs
-        self.inferred: Dict[str, Any] = {}
-        self.inference_reasons: Dict[str, List[str]] = {}
+        self.inferred: dict[str, InferenceResult] = {}
         # inference metadata
-        self.inference_meta: Dict[str, Any] = {}
+        self.inference_meta: dict[str, str] = {}

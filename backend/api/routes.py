@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 
 from api.store import GymStore
-from src.gymdb.domain import TIER_BASIC, TIER_MID, TIER_PREMIUM
+from src.gymdb.domain import TIER_BASIC, TIER_MID, TIER_PREMIUM, INFERRED
 from api.registry import DatasetRegistry
 
 
@@ -25,6 +25,21 @@ def list_regions():
     return {
         "default": registry.default_region,
         "regions": registry.regions(),
+    }
+
+def _serialize_inference(gym: dict, include_reasons: bool) -> dict:
+    """
+    Serialize structured inference for API output.
+    """
+    inferred = gym.get(INFERRED, {})
+
+    if include_reasons:
+        return inferred
+    
+    # Strip reasons, expose only values
+    return {
+        key: value["value"]
+        for key, value in inferred.items()
     }
 
 @router.get("/gyms")
@@ -59,9 +74,12 @@ def list_gyms(
         offset=offset,
     )
 
-    if not include_reasons:
-        for g in gyms:
-            g.pop("inference_reasons", None)
+    results = []
+    for g in gyms:
+        out = dict(g)
+        out["inference"] = _serialize_inference(g, include_reasons)
+        out.pop(INFERRED, None)
+        results.append(out)
 
     return {
         "region": region,
@@ -81,7 +99,8 @@ def get_gym(
     if gym is None:
         raise HTTPException(status_code=404, detail="Gym not found")
 
-    if not include_reasons:
-        gym.pop("inference_reasons", None)
+    out = dict(gym)
+    out["inference"] = _serialize_inference(gym, include_reasons)
+    out.pop(INFERRED, None)
 
-    return gym
+    return out

@@ -1,9 +1,13 @@
 import json
 from pathlib import Path
 from typing import List, Dict, Any
+
 from api.registry import DatasetRegistry
-from gymdb.processing import haversine_meters
-from gymdb.domain import CONFIDENCE_SCORE, INFERRED
+from src.gymdb.processing import haversine_meters
+from src.gymdb.domain import (
+    CONFIDENCE_SCORE, INFERRED, IS_24_7, 
+    LIFTER_FRIENDLY, TIER
+)
 
 class GymStore:
     def __init__(self, registry: DatasetRegistry):
@@ -28,6 +32,15 @@ class GymStore:
             if g.get("id") == gym_id:
                 return g
         return None
+    
+    def _infer_value(self, gym: dict, key: str):
+        """
+        Safely extract the inferred value for a given key.
+        """
+        return (
+            gym.get(INFERRED, {})
+            .get(key, {}).get("value")
+        )
 
     def filter(
         self,
@@ -53,19 +66,19 @@ class GymStore:
         if tier is not None:
             gyms = [
                 g for g in gyms
-                if g.get(INFERRED, {}).get("tier") == tier
+                if self._infer_value(g, TIER) == tier
             ]
 
         if lifter_friendly is not None:
             gyms = [
                 g for g in gyms
-                if g.get(INFERRED, {}).get("lifter_friendly") is lifter_friendly
+                if self._infer_value(g, LIFTER_FRIENDLY) is lifter_friendly
             ]
 
         if is_24_7 is not None:
             gyms = [
                 g for g in gyms
-                if g.get(INFERRED, {}).get("is_24_7") is is_24_7
+                if self._infer_value(g, IS_24_7) is is_24_7
             ]
 
         if lat is not None and lon is not None and radius_m is not None:

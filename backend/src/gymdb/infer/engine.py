@@ -67,11 +67,6 @@ def run_inference(gym: Gym) -> None:
         "reasons": tier_reasons,
     }
 
-    # Existing inferences (unchanged)
-    # is_24_7, r_24_7 = infer_24_7(features)
-    # lifter_friendly, r_lifter = infer_lifter_friendly(features)
-    # tier, r_tier = infer_tier(premium_value, is_24_7)
-
    
     # Write inferred values
     gym.inferred.update({
@@ -79,12 +74,4 @@ def run_inference(gym: Gym) -> None:
         IS_24_7: is_24_7_result,
         LIFTER_FRIENDLY: lifter_result,
         TIER: tier_result,
-    })
-
-    # Write reasons (merged, explainable)
-    gym.inference_reasons.update({
-        PREMIUM_SCORE: premium_reasons,
-        IS_24_7: is_24_7_reasons,
-        LIFTER_FRIENDLY: lifter_reasons,
-        TIER: tier_reasons,
     })
