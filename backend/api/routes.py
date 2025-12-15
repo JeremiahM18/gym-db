@@ -1,37 +1,15 @@
 from fastapi import APIRouter, Query, HTTPException
-from pathlib import Path
-import os
 
-from api.store import GymStore
-from src.gymdb.domain import TIER_BASIC, TIER_MID, TIER_PREMIUM, INFERRED
-from api.registry import DatasetRegistry
-
+from src.gymdb.domain import INFERRED, TIER_BASIC, TIER_MID, TIER_PREMIUM
+from api.deps import registry, store
 from src.gymdb.observe.summaries import summarize_inference
 
 
 router = APIRouter()
 
-# --- Configuration ---
-REGISTRY_PATH = Path(
-    os.getenv("GYMDB_REGISTRY", "data/registry.json")
-)
-
-# Load registry once
-registry = DatasetRegistry(REGISTRY_PATH).load()
-store = GymStore(registry)
-
-# --- Routes ---
-
-@router.get("/regions")
-def list_regions():
-    return {
-        "default": registry.default_region,
-        "regions": registry.regions(),
-    }
-
 def _serialize_inference(gym: dict, include_reasons: bool) -> dict:
     """
-    Serialize structured inference for API output.
+    Serialize structured inference for API responses.
     """
     inferred = gym.get(INFERRED, {})
 
@@ -42,6 +20,16 @@ def _serialize_inference(gym: dict, include_reasons: bool) -> dict:
     return {
         key: value["value"]
         for key, value in inferred.items()
+        if isinstance(value, dict)
+    }
+
+# --- Routes ---
+
+@router.get("/regions")
+def list_regions():
+    return {
+        "default": registry.default_region,
+        "regions": registry.regions(),
     }
 
 @router.get("/gyms")
@@ -90,8 +78,8 @@ def list_gyms(
 
     return {
         "region": region,
-        "count": len(gyms),
-        "results": gyms,
+        "count": len(results),
+        "results": results,
 }
 
 @router.get("/gyms/{gym_id}")
