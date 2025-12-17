@@ -5,7 +5,7 @@ from gymdb.models import Gym
 
 SCHEMA_VERSION = "1.2"
 
-def write_json(gyms: list[Gym], path: Path):
+def write_json(gyms: list[Gym], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
     payload = {
@@ -23,7 +23,6 @@ def write_json(gyms: list[Gym], path: Path):
                 "osm_refs": g.osm_refs,
                 "tags": g.tags,
                 "inferred": g.inferred,
-                "inference_reasons": g.inference_reasons,
                 "inference_meta": g.inference_meta,
             }
             for g in gyms

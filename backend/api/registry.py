@@ -33,4 +33,5 @@ class DatasetRegistry:
         if region not in datasets:
             raise KeyError(f"Unknown region: '{region}'")
         
-        return Path("data") / datasets[region]["file"]
+        base_dir = self.path.parent # directory containing registry.json
+        return base_dir / datasets[region]["file"]

@@ -7,7 +7,12 @@ from api.observability import request_logging_middleware
 app = FastAPI(
     title="GymDB API",
     version="1.0.0",
-    description="Gym intelligence built on OpenStreetMap"
+    description="Gym intelligence built on OpenStreetMap",
+    response_model_exclude_none=True,
+    openapi_tags=[
+        {"name": "gyms", "description": "Gym discovery and filtering"},
+        {"name": "debug", "description": "Inference inspection and audits"},
+    ],
 )
 
 logging.basicConfig(level=logging.INFO)

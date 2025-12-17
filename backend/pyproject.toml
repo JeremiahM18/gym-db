@@ -14,4 +14,7 @@ where = ["src"]
 include = ["gymdb*"]
 
 [tool.pytest.ini_options]
+env = [
+    "GYMDB_REGISTRY=data/registry_test.json"
+]
 pythonpath = ["."]

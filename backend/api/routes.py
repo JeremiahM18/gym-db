@@ -4,35 +4,39 @@ from src.gymdb.domain import INFERRED, TIER_BASIC, TIER_MID, TIER_PREMIUM
 from api.deps import registry, store
 from src.gymdb.observe.summaries import summarize_inference
 from src.gymdb.observe.metrics import record_inference_hits
+from api.schemas import RegionsResponse, GymsListResponse, GymOut
 
 router = APIRouter()
 
 def _serialize_inference(gym: dict, include_reasons: bool) -> dict:
     """
     Serialize structured inference for API responses.
+    Always returns { key: { value, reasons? } }.
     """
     inferred = gym.get(INFERRED, {})
 
-    if include_reasons:
-        return inferred
-    
-    # Strip reasons, expose only values
-    return {
-        key: value["value"]
-        for key, value in inferred.items()
-        if isinstance(value, dict)
-    }
+    out: dict = {}
+    for key, result in inferred.items():
+        if not isinstance(result, dict):
+            continue
+
+        out[key] = {
+            "value": result.get("value"),
+            "reasons": result.get("reasons") if include_reasons else None,
+        }
+
+    return out
 
 # --- Routes ---
 
-@router.get("/regions")
+@router.get("/regions", response_model=RegionsResponse, tags=["gyms"])
 def list_regions():
     return {
         "default": registry.default_region,
         "regions": registry.regions(),
     }
 
-@router.get("/gyms")
+@router.get("/gyms", response_model=GymsListResponse, tags=["gyms"])
 def list_gyms(
     region: str | None = None,
     min_conf: float | None = Query(None, ge=0.0, le=1.0),
@@ -73,6 +77,8 @@ def list_gyms(
         if include_summary:
             out["inference_summary"] = summarize_inference(g.get(INFERRED, {}))
 
+        record_inference_hits(g.get(INFERRED, {}))
+
         out.pop(INFERRED, None)
         results.append(out)
 
@@ -82,7 +88,7 @@ def list_gyms(
         "results": results,
 }
 
-@router.get("/gyms/{gym_id}")
+@router.get("/gyms/{gym_id}", response_model=GymOut, tags=["gyms"])
 def get_gym(
     gym_id: str, 
     region: str | None = None, 
@@ -101,7 +107,7 @@ def get_gym(
     if include_summary:
         out["inference_summary"] = summarize_inference(gym.get(INFERRED, {}))
 
-    record_inference_hits(g.get(INFERRED, {}))
+    record_inference_hits(gym.get(INFERRED, {}))
     
     out.pop(INFERRED, None)
     return out
