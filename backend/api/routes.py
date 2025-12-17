@@ -4,7 +4,10 @@ from src.gymdb.domain import INFERRED, TIER_BASIC, TIER_MID, TIER_PREMIUM
 from api.deps import registry, store
 from src.gymdb.observe.summaries import summarize_inference
 from src.gymdb.observe.metrics import record_inference_hits
-from api.schemas import RegionsResponse, GymsListResponse, GymOut
+from api.schemas import (
+    RegionsResponseV1, GymsListResponseV1, GymOutV1,
+)
+
 
 router = APIRouter()
 
@@ -29,7 +32,7 @@ def _serialize_inference(gym: dict, include_reasons: bool) -> dict:
 
 # --- Routes ---
 
-@router.get("/regions", response_model=RegionsResponse, tags=["gyms"])
+@router.get("/regions", response_model=RegionsResponseV1, tags=["gyms"])
 def list_regions():
     return {
         "api_version": "v1",
@@ -37,7 +40,7 @@ def list_regions():
         "regions": registry.regions(),
     }
 
-@router.get("/gyms", response_model=GymsListResponse, tags=["gyms"])
+@router.get("/gyms", response_model=GymsListResponseV1, tags=["gyms"])
 def list_gyms(
     region: str | None = None,
     min_conf: float | None = Query(None, ge=0.0, le=1.0),
@@ -90,7 +93,7 @@ def list_gyms(
         "results": results,
 }
 
-@router.get("/gyms/{gym_id}", response_model=GymOut, tags=["gyms"])
+@router.get("/gyms/{gym_id}", response_model=GymOutV1, tags=["gyms"])
 def get_gym(
     gym_id: str, 
     region: str | None = None, 
@@ -112,4 +115,7 @@ def get_gym(
     record_inference_hits(gym.get(INFERRED, {}))
     
     out.pop(INFERRED, None)
-    return out
+    return {
+        "api_version": "v1",
+        **out,
+    }

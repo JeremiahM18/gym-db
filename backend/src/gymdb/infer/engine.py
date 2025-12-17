@@ -41,9 +41,12 @@ def run_inference(gym: Gym) -> None:
         attributes=attributes,
     )
 
+    premium_confidence = round(min(premium_value / 10.0, 1.0), 2)
+
     premium_result: InferenceResult = {
         "value": premium_value,
         "reasons": premium_reasons,
+        "confidence": premium_confidence,
     }
 
     # 24/7
@@ -51,6 +54,7 @@ def run_inference(gym: Gym) -> None:
     is_24_7_result: InferenceResult = {
         "value": is_24_7_value,
         "reasons": is_24_7_reasons,
+        "confidence": 1.0 if is_24_7_value else 0.6,
     }
 
     # Lifter friendly
@@ -58,17 +62,23 @@ def run_inference(gym: Gym) -> None:
     lifter_result: InferenceResult = {
         "value": lifter_value,
         "reasons": lifter_reasons,
+        # Confidence intentionally omitted
     }
 
     # Tier
-    tier_value, tier_reasons = infer_tier(premium_value, is_24_7_value)
+    tier_value, tier_reasons = infer_tier(
+        premium_score=premium_value, 
+        is_24_7=is_24_7_value,
+    )
+
     tier_result: InferenceResult = {
         "value": tier_value,
         "reasons": tier_reasons,
+        # Confidence can be added later if needed
     }
 
    
-    # Write inferred values
+    # Persist inferred results
     gym.inferred.update({
         PREMIUM_SCORE: premium_result,
         IS_24_7: is_24_7_result,

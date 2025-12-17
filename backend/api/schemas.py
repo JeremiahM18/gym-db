@@ -33,6 +33,7 @@ class RegionsResponseV1(BaseModel):
 
 
 class GymsListResponseV1(BaseModel):
+    api_version: str
     region: str
     count: int
     results: list[GymOutV1]

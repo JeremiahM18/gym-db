@@ -3,7 +3,7 @@ from typing import TypedDict, Union
 
 InferenceValue = Union[bool, int, str]
 
-class InferenceResult(TypedDict):
+class InferenceResult(TypedDict, total=False):
     """
     Structured result of an inference decision.
 
@@ -15,6 +15,7 @@ class InferenceResult(TypedDict):
     """
     value: InferenceValue
     reasons: list[str]
+    confidence: float | None
 
 
 
