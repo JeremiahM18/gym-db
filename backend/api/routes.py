@@ -32,6 +32,7 @@ def _serialize_inference(gym: dict, include_reasons: bool) -> dict:
 @router.get("/regions", response_model=RegionsResponse, tags=["gyms"])
 def list_regions():
     return {
+        "api_version": "v1",
         "default": registry.default_region,
         "regions": registry.regions(),
     }
@@ -83,6 +84,7 @@ def list_gyms(
         results.append(out)
 
     return {
+        "api_version": "v1",
         "region": region,
         "count": len(results),
         "results": results,

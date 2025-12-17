@@ -9,7 +9,7 @@ class InferenceResultOut(BaseModel):
     reasons: list[str] | None = None
 
 
-class GymOut(BaseModel):
+class GymOutV1(BaseModel):
     id: str
     name: str
     norm_name: str
@@ -27,12 +27,12 @@ class GymOut(BaseModel):
     inference_meta: dict[str, Any] | None = None
 
 
-class RegionsResponse(BaseModel):
+class RegionsResponseV1(BaseModel):
     default: str
     regions: list[str]
 
 
-class GymsListResponse(BaseModel):
+class GymsListResponseV1(BaseModel):
     region: str
     count: int
-    results: list[GymOut]
+    results: list[GymOutV1]

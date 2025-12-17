@@ -21,6 +21,28 @@ GymDB addresses these issues by implementing a deterministic auditable data pipe
 
 The project is intentionally designed as a backend data foundation, not a UI-focused application.
 
+## Project Intent
+
+GymDB is a deliberately engineered, end-to-end learning system.
+
+The goal of this project is to design and build a **production-grade backend foundation** first-focusing on data quality, determinism, inference, and safe evolution-before layering on a frontend application with the same level of rigor.
+
+This approach mirrors how real-world platforms are developed:
+- Backend systems are designed for correctness, auditability, and long-term stability
+- Frontend applications are built on top of reliable, well-defined data contracts
+
+A central focus of GymDB is **rule-based inference**:
+- Translating noisy real-world data into structured, explainable attributes
+- Making inference decisions deterministic and auditable
+- Versioning inference logic independently from schemas and APIs
+
+By building each layer intentionally and in sequence, this project is used to gain hands-on experience with:
+- Data engineering pipelines
+- Inference system design
+- Backend API contracts
+- Versioning and backward compatibility
+- Frontend integration on top of evolving data systems
+
 ## Key Features
 
 ### Geospatial Gym Discovery
@@ -113,9 +135,41 @@ Each dataset includes inference metadata to ensure auditability and reproducibil
 
 This allows inference behavior to evolve over time without silently changing historical datasets.
 
+### API Compatibility Rules
+
+Non-breaking changes (allowed in v1):
+- Adding new fields
+- Adding new inference attributes
+- Adding optional query parameters
+- Improving inference logic without changing field meaning
+
+Breaking changes (require v2):
+- Removing fields
+- Renaming fields
+- Changing field types
+- Changing semantic meaning of inference values
+
+This forces long-term API discipline.
+
+## API Versioning
+
+GymDB uses explicit URL-based API versioning.
+
+- `/v1` is stable and backward compatible
+- Breaking changes require a new major version (`/v2`)
+- Non-breaking changes may be added to `/v1`
+
+Dataset schema versions, inference rule versions, and API versions evolve independently.
+
+Clients should rely on:
+- `api_version` for response contracts
+- `schema_version` for dataset structure
+- `inference_meta.version` for inference behavior
+
 ### Design Goals
 - Deterministic behavior
 - Explainable inference
 - Clean separation of concerns
 - Safe evolution over time
 - Backend-first architecture
+
