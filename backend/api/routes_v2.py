@@ -8,6 +8,9 @@ from api.schemas_v2 import (
 from src.gymdb.domain import INFERRED
 from src.gymdb.observe.summaries import summarize_inference
 
+from api.schemas_v2 import GymEmbeddingV2
+from api.embeddings_views import serialize_gym_embedding_v2
+
 
 router = APIRouter(prefix="/v2", tags=["gyms"])
 
@@ -45,6 +48,7 @@ def _serialize_inference_v2(gym: dict) -> dict:
 
     return out
 
+
 @router.get("/gyms", response_model=GymsListResponseV2)
 def list_gyms_v2(
     region: str | None = None,
@@ -76,6 +80,28 @@ def list_gyms_v2(
         "results": results,
     }
     
+@router.get(
+    "/gyms/embeddings",
+    response_model=list[GymEmbeddingV2],
+    tags=["embeddings"],
+)
+def list_gym_embeddings_v2(region: str | None = None):
+    region = region or registry.default_region
+
+    gyms = store.filter(region=region)
+
+    results = []
+    for g in gyms:
+        out = dict(g)
+        out["inference"] = _serialize_inference_v2(g)
+        out["inference_summary"] = summarize_inference(g.get(INFERRED, {}))
+        out.pop(INFERRED, None)
+        
+        results.append(
+            serialize_gym_embedding_v2(out, region=region)  
+        )
+
+    return results
 
 @router.get("/gyms/{gym_id}", response_model=GymResponseV2)
 def get_gym_v2(

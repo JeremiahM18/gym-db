@@ -32,6 +32,37 @@ class InferenceMetaV2(BaseModel):
     generated_at: str | None = None
 
 
+# Embedding Schemas (v2)
+class InferenceEmbeddingV2(BaseModel):
+    key: str
+    value: str
+    confidence: float
+    source: str
+
+class GymEmbeddingV2(BaseModel):
+    """
+    Embedding-ready representation of a gym.
+    Safe for vector databases and LLM pipelines.
+    """
+
+    id: str
+    name: str
+    region: str
+
+    # Primary text input for embedding
+    embedding_text: str = Field(
+        ...,
+        description="Determininstic text used for vector embeddings"
+    )
+
+    # Structured inference preserved
+    inference: list[InferenceEmbeddingV2]
+
+    # Metadata (filterable, not embedded)
+    confidence_score: float | None = None
+    lat: float | None = None
+    lon: float | None = None
+
 # Gym Output (v2)
 
 class GymOutV2(BaseModel):
