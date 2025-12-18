@@ -1,5 +1,17 @@
+# Python / venv
 .venv/
+**/.venv/
 __pychache__/
+**/__pycache__/
 *.pyc
-data/*.json
+
+# Test/cache/logs
+**/.pytest_cache/
+**/*.log
+
+# Env files / secrets
 .env
+**/.env
+
+# Data outputs
+data/*.json
