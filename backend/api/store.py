@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from pathlib import Path
 from typing import List, Dict, Any
@@ -10,11 +12,29 @@ from src.gymdb.domain import (
 )
 
 class GymStore:
+    """
+    Read-only access layer over precomputed gym datasets.
+    Responsible for filetering slicing and inference access.
+    """
     def __init__(self, registry: DatasetRegistry):
         self.registry = registry
         self._gyms_by_region: Dict[str, list[dict]] = {}
+        
+    # --- Properties ---
 
-    def load_region(self, region: str):
+    @property
+    def default_region(self) -> str:
+        """
+        Default region exposed for API consumers.
+        """
+        return self.registry.default_region
+    
+    # --- Loading --- 
+
+    def load_region(self, region: str) -> None:
+        """
+        Lazily load in a region dataset into memory.
+        """
         if region in self._gyms_by_region:
             return
         
@@ -27,6 +47,8 @@ class GymStore:
         self.load_region(region)
         return self._gyms_by_region[region]
     
+    # --- Access ---
+
     def get_by_id(self, region: str, gym_id: str) -> Dict[str, Any] | None:
         for g in self.gyms(region):
             if g.get("id") == gym_id:
@@ -41,6 +63,8 @@ class GymStore:
             gym.get(INFERRED, {})
             .get(key, {}).get("value")
         )
+    
+    # --- Filtering ---
 
     def filter(
         self,

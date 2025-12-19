@@ -1,29 +1,33 @@
-from fastapi import APIRouter, Query, HTTPException
+from __future__ import annotations
 
-from api.deps import registry, store
+from fastapi import APIRouter, Query, HTTPException, Depends
+
+from api.deps import get_store
+from api.store import GymStore
 from api.schemas_v2 import (
     GymResponseV2,
     GymsListResponseV2,
+    GymEmbeddingV2
 )
+from api.embeddings_views import serialize_gym_embedding_v2
+
 from src.gymdb.domain import INFERRED
 from src.gymdb.observe.summaries import summarize_inference
-
-from api.schemas_v2 import GymEmbeddingV2
-from api.embeddings_views import serialize_gym_embedding_v2
 
 
 router = APIRouter(prefix="/v2", tags=["gyms"])
 
+# --- Helpers ---
 
 def _serialize_inference_v2(gym: dict) -> dict:
     """
     v2 inference serialization.
-    Contract guarantee:
-    - inference is Never empty
-    - every entry has confidence
+
+    Contract:
+    - inference is never empty
+    - every entry has confidence + source
     """
     inferred = gym.get(INFERRED, {})
-
     out: dict = {}
 
     for key, result in inferred.items():
@@ -48,6 +52,7 @@ def _serialize_inference_v2(gym: dict) -> dict:
 
     return out
 
+# --- Routes ---
 
 @router.get("/gyms", response_model=GymsListResponseV2)
 def list_gyms_v2(
@@ -55,8 +60,9 @@ def list_gyms_v2(
     min_conf: float | None = Query(None, ge=0.0, le=1.0),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
+    store: GymStore = Depends(get_store)
 ):
-    region = region or registry.default_region
+    region = region or store.default_region
 
     gyms = store.filter(
         region=region,
@@ -85,8 +91,11 @@ def list_gyms_v2(
     response_model=list[GymEmbeddingV2],
     tags=["embeddings"],
 )
-def list_gym_embeddings_v2(region: str | None = None):
-    region = region or registry.default_region
+def list_gym_embeddings_v2(
+    region: str | None = None,
+    store: GymStore = Depends(get_store),
+):
+    region = region or store.default_region
 
     gyms = store.filter(region=region)
 
@@ -107,8 +116,9 @@ def list_gym_embeddings_v2(region: str | None = None):
 def get_gym_v2(
     gym_id: str,
     region: str | None = None,
+    store: GymStore = Depends(get_store),
 ):
-    region = region or registry.default_region
+    region = region or store.default_region
 
     gym = store.get_by_id(region, gym_id)
     if gym is None:
