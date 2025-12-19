@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 import logging
 
-from api.routes import router
 from api.debug_routes import router as debug_router
 from api.observability import request_logging_middleware
 from api.routes_v2 import router as v2_router
@@ -26,7 +25,6 @@ logging.basicConfig(level=logging.INFO)
 app.middleware("http")(request_logging_middleware)
 
 # API routes
-app.include_router(router, prefix="/v1")
 app.include_router(v2_router)
 app.include_router(nearby_router)
 

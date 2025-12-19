@@ -1,19 +1,24 @@
-from fastapi import APIRouter, HTTPException
+from __future__ import annotations
 
-from api.deps import registry, store
+from fastapi import APIRouter, HTTPException, Depends
+
+from api.deps import get_store
+from api.store import GymStore
+
 from src.gymdb.domain import INFERRED
 from src.gymdb.observe.summaries import summarize_inference
 from src.gymdb.observe.audit import diff_inference
 from src.gymdb.observe.metrics import snapshot_metrics
 
-router = APIRouter(prefix="/debug")
+router = APIRouter(prefix="/debug", tags=["debug"])
 
 @router.get("/gyms/{gym_id}/inference")
 def debug_gym_inference(
     gym_id: str,
     region: str | None = None,
+    store: GymStore = Depends(get_store),
 ):
-    region = region or registry.default_region
+    region = region or store.default_region
     gym = store.get_by_id(region, gym_id)
 
     if gym is None:
@@ -33,6 +38,7 @@ def debug_gym_inference(
 def debug_inference_diff(payload: dict) -> dict:
     """
     Compare two inference objects and return changed values.
+    Stateless by design (no store access).
     """
     before = payload.get("before", {}) or {}
     after = payload.get("after", {}) or {}
@@ -43,4 +49,8 @@ def debug_inference_diff(payload: dict) -> dict:
 
 @router.get("/metrics")
 def debug_metrics():
+    """
+    Snapshot inference metrics.
+    Safe to call without DB or dataset access.
+    """
     return{"inference_hits": snapshot_metrics()}
