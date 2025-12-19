@@ -7,17 +7,13 @@ from src.gymdb.db.errors import DatabaseError
 from src.gymdb.db.db_models import GymNearby
 
 from api.deps import db_error_to_http
-from api.schemas_v2 import GymResponseV2
+from api.schemas_v2 import GymsNearbyResponseV2
 
-router = APIRouter(
-    prefix="/v2/gyms",
-    tags=["gyms"],
-)
-
+router = APIRouter(prefix="/v2/gyms/geo", tags=["gyms"])
 
 @router.get(
     "/nearby",
-    response_model=GymResponseV2,
+    response_model=GymsNearbyResponseV2,
 )
 def nearby_gyms(
     lat: float = Query(..., ge=-90, le=90),
@@ -40,6 +36,7 @@ def nearby_gyms(
         raise db_error_to_http(exc)
     
     return {
+        "api_version": "v2",
         "count": len(gyms),
         "results": gyms,
     }
