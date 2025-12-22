@@ -1,5 +1,5 @@
 from typing import Any
-from gymdb.domain import InferenceResult
+from gymdb.infer.result import InferenceResult
 
 class Gym:
     def __init__(

@@ -1,5 +1,5 @@
 from collections import Counter
-from gymdb.domain import InferenceResult
+from gymdb.infer.result import InferenceResult
 
 _inference_hits = Counter()
 

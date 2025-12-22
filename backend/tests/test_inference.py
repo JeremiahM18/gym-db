@@ -20,9 +20,9 @@ def test_24_7_inference():
 
     result = gym.inferred[IS_24_7]
 
-    assert result["value"] is True
-    assert result["reasons"]
-    assert any("opening_hours" in r for r in result["reasons"])
+    assert result.value is True
+    assert result.reasons
+    assert any("opening_hours" in r for r in result.reasons)
 
 def test_lifter_friendly_by_name():
     gym = make_gym({"name": "Iron Barbell Club"})
@@ -30,8 +30,8 @@ def test_lifter_friendly_by_name():
 
     result = gym.inferred[LIFTER_FRIENDLY]
 
-    assert result["value"] is True
-    assert result["reasons"]
+    assert result.value is True
+    assert result.reasons
 
 def test_premium_score_with_pool_and_website():
     gym = make_gym({"swimming_pool": "yes", "website": "http://example.com"})
@@ -39,6 +39,6 @@ def test_premium_score_with_pool_and_website():
 
     result = gym.inferred[PREMIUM_SCORE]
 
-    assert result["value"] >= 3
-    assert result["reasons"]
+    assert result.value >= 3
+    assert result.reasons
     

@@ -1,3 +1,4 @@
+from gymdb.infer.result import InferenceResult
 from gymdb.domain import (
     IS_24_7,
     LIFTER_FRIENDLY,
@@ -5,7 +6,6 @@ from gymdb.domain import (
     TIER,
     TIER_PREMIUM,
     TIER_MID,
-    InferenceResult
 )
 
 def _value(inferred: dict[str, InferenceResult], key: str):

@@ -1,4 +1,4 @@
-from gymdb.domain import InferenceResult
+from gymdb.infer.result import InferenceResult
 
 
 def diff_inference(

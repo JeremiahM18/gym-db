@@ -1,8 +1,10 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Union, Literal
+
+InferenceValue = Union[bool, int, str]
 
 class InferenceResult(BaseModel):
-    value: bool | int | str
+    value: InferenceValue
     reasons: list[str]
-    confidence: float | None = None
-    source: str = "rule"
+    confidence: Optional[float] = None
+    source: Literal["rule"] = "rule"
