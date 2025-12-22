@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 from typing import Any, Literal
-from src.gymdb.db.db_models import GymNearby
 
 # Shared Primitives
 
@@ -95,6 +94,14 @@ class GymOutV2(BaseModel):
     inference_meta: InferenceMetaV2
 
 
+class GymNearbyOutV2(BaseModel):
+    id: str
+    name: str
+    lat: float
+    lon: float
+    distance_m: float
+
+
 # Collection Responses
 
 class GymsListResponseV2(BaseModel):
@@ -115,4 +122,4 @@ class RegionsResponseV2(BaseModel):
 class GymsNearbyResponseV2(BaseModel):
     api_version: str = Field(default="v2")
     count: int
-    results: list[GymNearby]
+    results: list[GymNearbyOutV2]

@@ -4,10 +4,9 @@ from fastapi import APIRouter, Query
 
 from src.gymdb.db.queries import get_nearby_gyms
 from src.gymdb.db.errors import DatabaseError
-from src.gymdb.db.db_models import GymNearby
 
 from api.deps import db_error_to_http
-from api.schemas_v2 import GymsNearbyResponseV2
+from api.schemas_v2 import GymsNearbyResponseV2, GymNearbyOutV2
 
 router = APIRouter(prefix="/v2/gyms/geo", tags=["gyms"])
 
@@ -35,8 +34,19 @@ def nearby_gyms(
     except DatabaseError as exc:
         raise db_error_to_http(exc)
     
+    api_results = [
+        GymNearbyOutV2(
+            id=g.id,
+            name=g.name,
+            lat=g.lat,
+            lon=g.lon,
+            distance_m=g.distance_m,
+        )
+        for g in gyms
+    ]
+    
     return {
         "api_version": "v2",
-        "count": len(gyms),
-        "results": gyms,
+        "count": len(api_results),
+        "results": api_results,
     }

@@ -5,8 +5,8 @@ from pydantic import BaseModel, Field, ConfigDict
 
 class GymNearby(BaseModel):
     """
-    Read-only projection for nearby gym queries.
-    Represents a computed view, not a persisted entity.
+    One row returned from a nearby geospatial query.
+    Contains only physical facts and computer geometry.
     """
 
     model_config = ConfigDict(
@@ -14,9 +14,8 @@ class GymNearby(BaseModel):
         extra="ignore",         # DB can add columns without breaking
     )
 
-    gym_id: str = Field(..., description="Stable gym identifier")
+    id: str = Field(..., description="Stable gym identifier")
     name: str = Field(..., description="Gym display name")
-    confidence_score: float = Field(
-        ..., ge=0.0, le=1.0, description="Inference confidence score"
-    )
+    lat: float = Field(..., description="Latitude")
+    lon: float = Field(..., description="Longitude")
     distance_m: float = Field(..., ge=0.0, description="Distance in meters")

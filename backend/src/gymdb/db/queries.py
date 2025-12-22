@@ -13,9 +13,11 @@ from src.gymdb.db.db_models import GymNearby
 
 SQL_NEARBY_GYMS = text("""
     SELECT 
-        g.gym_id,
+        g.id,
         g.name,
-        g.confidence_score,
+        g.normalized_name,
+        ST_Y(g.location::geometry) AS lat,
+        ST_X(g.location::geometry) AS lon,        
         ST_Distance(
             g.location,
             ST_MakePoint(:lon, :lat)::geography
