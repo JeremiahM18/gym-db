@@ -1,6 +1,11 @@
 from fastapi.testclient import TestClient
+
+from datetime import datetime, timezone
+import hashlib
+
 from api.main import app
 from api.deps import get_store
+from gymdb.infer.result import InferenceResult
 
 class FakeStore:
     default_region = "test"
@@ -14,12 +19,26 @@ class FakeStore:
             "lon": 0.0,
             "osm_refs": [{"type": "node", "id": 1}],
             "confidence_score": 1.0,
+
             "inference_meta": {
                 "engine": "test",
                 "version": "0.0"
             },
-            "inference": {},
-            "inference_summary": {},
+            "inferred": {
+                "is_24_7": InferenceResult(
+                    value=True,
+                    reasons=["fake text inference"],
+                    confidence=1.0,
+                    source="rule",
+                )
+            },
+
+            "inference_meta": {
+                "engine": "rule_based",
+                "version": "0.0",
+                "generated_at": datetime.now(timezone.utc),
+                "deterministic_hash": hashlib.sha256(b"fake").hexdigest(),
+            },
         }
 
     def filter(self, **kwargs):

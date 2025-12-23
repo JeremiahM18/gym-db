@@ -18,30 +18,49 @@ def debug_gym_inference(
     region: str | None = None,
     store: GymStore = Depends(get_store),
 ):
+    """
+    Debug view of raw inference artifacts.
+
+    This endpoint intentionally exposes internal structures.
+    It is NOT part of the public API contract.
+    """
     region = region or store.default_region
     gym = store.get_by_id(region, gym_id)
 
     if gym is None:
         raise HTTPException(status_code=404, detail="Gym not found")
     
-    inferred = gym.get(INFERRED, {})
+    inferred = gym.get(INFERRED)
+    if inferred is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Inference missing from gym record",
+        )
+    inference_meta = gym.get("inference_meta")
+    if inference_meta is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Inference metadata missing from gym record",
+        )
 
     return {
         "gym_id": gym_id,
         "region": region,
-        "inference": inferred,
+        "inference": inferred,      # typed InferenceResult objects
         "summary": summarize_inference(inferred),
-        "meta": gym.get("inference_meta", {}),
+        "meta": inference_meta,
     }
 
 @router.post("/inference/diff")
 def debug_inference_diff(payload: dict) -> dict:
     """
     Compare two inference objects and return changed values.
+
     Stateless by design (no store access).
+    Intended for debugging inference evolution.
     """
-    before = payload.get("before", {}) or {}
-    after = payload.get("after", {}) or {}
+    before = payload.get("before") or {}
+    after = payload.get("after") or {}
 
     return {
         "diff": diff_inference(before, after)

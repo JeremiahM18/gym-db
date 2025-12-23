@@ -10,47 +10,13 @@ from api.schemas_v2 import (
     GymEmbeddingV2
 )
 from api.embeddings_views import serialize_gym_embedding_v2
+from api.normalizers import normalize_inference_meta, normalize_inference
 
-from src.gymdb.domain import INFERRED
 from src.gymdb.observe.summaries import summarize_inference
 
 
 router = APIRouter(prefix="/v2", tags=["gyms"])
 
-# --- Helpers ---
-
-def _serialize_inference_v2(gym: dict) -> dict:
-    """
-    v2 inference serialization.
-
-    Contract:
-    - inference is never empty
-    - every entry has confidence + source
-    """
-    inferred = gym.get(INFERRED, {})
-    out: dict = {}
-
-    for key, result in inferred.items():
-        if not isinstance(result, dict):
-            continue
-
-        out[key] = {
-            "value": result.get("value"),
-            "confidence": result.get("confidence", 1.0),
-            "source": result.get("source", "rule"),
-            "reasons": result.get("reasons", []),
-        }
-
-    # Hard Contrace: Never empty
-    if not out:
-        out["unknown"] = {
-            "value": False,
-            "confidence": 0.0,
-            "source": "none",
-            "reasons": ["no inference rules applied"],
-        }
-
-    return out
 
 # --- Routes ---
 
@@ -74,9 +40,15 @@ def list_gyms_v2(
     results = []
     for g in gyms:
         out = dict(g)
-        out["inference"] = _serialize_inference_v2(g)
-        out["inference_summary"] = summarize_inference(g.get(INFERRED, {}))
-        out.pop(INFERRED, None)
+
+        raw = out.pop("inferred", None) or out.get("inference")
+        out["inference"] = normalize_inference(raw)
+
+        out["inference_meta"] = normalize_inference_meta(
+            g.get("inference_meta")
+        )
+
+        out["inference_summary"] = summarize_inference(out["inference"])
         results.append(out)
 
     return {
@@ -101,13 +73,18 @@ def list_gym_embeddings_v2(
 
     results = []
     for g in gyms:
+        inferred = normalize_inference(
+            g.get("inferred") or g.get("inference")
+        )
+
         out = dict(g)
-        out["inference"] = _serialize_inference_v2(g)
-        out["inference_summary"] = summarize_inference(g.get(INFERRED, {}))
-        out.pop(INFERRED, None)
-        
+        out["inference"] = inferred
+        out["inference_meta"] = normalize_inference_meta(
+            g.get("inference_meta")
+        )
+
         results.append(
-            serialize_gym_embedding_v2(out, region=region)  
+            serialize_gym_embedding_v2(out, region=region)
         )
 
     return results
@@ -125,9 +102,15 @@ def get_gym_v2(
         raise HTTPException(status_code=404, detail="Gym not found")
     
     out = dict(gym)
-    out["inference"] = _serialize_inference_v2(gym)
-    out["inference_summary"] = summarize_inference(gym.get(INFERRED, {}))
-    out.pop(INFERRED, None)
+
+    raw = out.pop("inferred", None) or out.get("inference")
+    out["inference"] = normalize_inference(raw)
+
+    out["inference_meta"] = normalize_inference_meta(
+        gym.get("inference_meta")
+    )
+
+    out["inference_summary"] = summarize_inference(out["inference"])
 
     return {
         "api_version": "v2",

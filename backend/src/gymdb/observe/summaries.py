@@ -11,12 +11,18 @@ from gymdb.domain import (
 def _value(inferred: dict[str, InferenceResult], key: str):
     """
     Safely extract inferred[key]["value"].
-    Returns None if missing.
+    Supports normalized inference dicts.
     """
     item = inferred.get(key)
     if not item:
         return None
-    return item.get("value")
+    
+    # Normalized inference (API-safe)
+    if isinstance(item, dict):
+        return item.get("value")
+    
+    # Raw InferenceResult (engine-internal)
+    return getattr(item, "value", None)
 
 def summarize_inference(
     inferred: dict[str, InferenceResult]

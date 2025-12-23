@@ -59,10 +59,8 @@ class GymStore:
         """
         Safely extract the inferred value for a given key.
         """
-        return (
-            gym.get(INFERRED, {})
-            .get(key, {}).get("value")
-        )
+        item = gym.get(INFERRED, {}).get(key)
+        return item.value if item else None
     
     # --- Filtering ---
 

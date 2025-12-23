@@ -7,9 +7,9 @@ def serialize_gym_embedding_v2(gym: dict, *, region: str) -> dict:
         "inference": [
             {
                 "key": k,
-                "value": str(v["value"]),
-                "confidence": v["confidence"],
-                "source": "rule",
+                "value": str(v.get("value")),
+                "confidence": v.get("confidence"),
+                "source": v.get("source"),
             }
             for k, v in gym["inference"].items()
         ],
@@ -33,10 +33,17 @@ def build_gym_embedding_test(gym: dict) -> str:
         parts.append(f"Overall confidence score: {gym['confidence_score']}")
 
     inferred = gym.get("inference", {})
-    for key, value in inferred.items():
+
+    for key, result in inferred.items():
+        readable_key = key.replace("_", " ")
+
+        value = result.get("value")
+        confidence = result.get("confidence")
+
+
         parts.append(
-            f"Inferred {key}: {value['value']} "
-            f"(confidence {value['confidence']})"
+            f"Inferred {readable_key}: {value} "
+            f"(confidence {confidence})"
         )
 
     if summary := gym.get("inference_summary"):
