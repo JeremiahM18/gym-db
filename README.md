@@ -1,10 +1,12 @@
 # GymDB
 
-GymDB is a local gym discovery and enrichment pipeline built on public OpenStreetMap (OSM) data. 
+GymDB is a backend data platform for discovering, normalizing, and enriching gym location data using deterministic geospatial querying and explainable rule-based inference. 
 
-GymDB is intentionally designed as a backend data foundation, not a UI-first product.
+GymDB is intentionally designed as a **backend-first system**, not a UI-first product.
 
-It provides a deterministic, auditable system for geospatial querying, normalization, de-duplication, confidence scoring, and explainable rule-based inference, producing clean, structured datasets and stable APIs for downstream systems such as analytics, search, and mobile applications.
+The primary goal is to produce clean, auditable, and stable datasets that downstream systems can trust.
+
+--- 
 
 ## Why GymDB Exists
 
@@ -15,30 +17,55 @@ Public datasets (including OpenStreetMap) often suffer from:
 - Inconsistent naming and tagging conventions
 - Missing or incomplete business metadata
 
-GymDB addresses these issues by building an end-to-end, deterministic pipeline that:
-1. Queries OpenStreetMap using explicit geospatial constraints
-2. Normalizes and de-duplicates gym entities
-3. Scores data quality and reliability
-4. Applies explainable inference rules to enrich each gym
-5. Exposes a structured, versioned dataset and API for downstream consumption
+GymDB exists to address these issues by building a deterministic, end-to-end pipeline that transforms noisy geospatial data into a reliable foundation for APIs, analytics, and client applications.
 
-Every transformation step is intentional, traceable, and testable.
+---
 
-## Project Intent
+## System Guarantees
 
-GymDB is an end-to-end learning system built to mirror real platform development:
-- Backend systems prioritize correctness, determinism, auditability, and long-term stability
-- Frontend applications are layered on top of stable versioned data contracts
-- APIs are treated as products with explicit compatibility rules
+GymDB is built around explicit, enforceable guarantees:
 
-A central focus of GymDB is **rule-based inference**:
-- Translating noisy real-world data into structured attributes
-- Making inference decisions deterministic and explainable
-- Versioning inference logic independently from API and dataset schemas
+- **Deterministic behavior**
+  Identical inputs always produce identical outputs.
 
-The project is built incrementally, with each layer added deliberately to gain experience with enterprise backend design, testing discipline, and API evolution.
+- **Explainable inference**
+  All inferred attributes include readable reasoning and confidence scoring.
 
-## Key Features
+- **Stable, versioned APIs**
+  API response shapes are treated as contracts; breaking changes require a new version.
+
+- **Read-only API layer**
+  The HTTP API never mutates database state.
+  All writes occur via ingestion or pipeline jobs.
+
+- **Geospatial correctness**
+  All spatial queries are backed by PostGIS with proper indexing and coordinate handling.
+
+These guarantees are enforced through code structure, testing, and documented contracts.
+
+### Contracts
+
+- Inference contract(frozen): `docs/inference.md`
+- API behavior is versioned; breaking changes require a new API version.
+
+---
+
+## Architecture Overview
+
+GymDB is intentionally backend-first and UI-agnostic.
+
+At a high level, the system:
+1. Queries raw gym data using geospatial constraints 
+2. Normalizes & De-duplicates entities 
+3. Scores data quality and reliability 
+4. Applies deterministic inference rules to enrich records
+5. Exposes results through stable HTTP APIs
+
+Each stage is designed to be auditable and reproducible.
+
+---
+
+## Core Capabilities
 
 ### Geospatial Gym Discovery
 - Queries OpenStreetMap via the Overpass API
@@ -64,6 +91,8 @@ Each gym receives a confidence score (0.0-1.0) derived from objective data-quali
 
 Downstream systems can filter, rank, or threshold gyms by reliability.
 
+---
+
 ## Explainable Inference Engine
 
 GymDB separates **stored facts** from **inferred attributes**.
@@ -87,6 +116,10 @@ Inference is:
 
 This design makes the inference behavior transparent, auditable, and safe to evolve over time.
 
+The authoritative contract for inference behavior and invariants lives in `docs/inference.md`.
+
+---
+
 ## Embedding-Ready API Views
 
 GymDB includes an embedding-oriented API view designed for downstream semantic systems.
@@ -102,6 +135,8 @@ This allows external systems (search, ML models, vector databases) to:
 
 Embedding views are treated as a **derived API representation**, not core domain data.
 
+---
+
 ## API Design & Routing
 
 GymDB follows strict REST and namespace discipline.
@@ -112,6 +147,8 @@ GymDB follows strict REST and namespace discipline.
     - /v2/gyms/geo/nearby
 
 This avoids route collisions, eliminates ambiguity, and scales cleanly as new query types are added (bounding boxes, routes, analytics).
+
+---
 
 ## Observability & Metrics
 
@@ -126,41 +163,17 @@ GymDB exposes lightweight internal observability endpoints to support debugging,
 
 Metrics are intended for internal use and are not part of the public API contract. They provide visibility into inference behavior without coupling metrics to domain logic or persistence.
 
-## Testing Discipline
+---
 
-GymDB includes a growing automated test suite covering:
-- Health and readiness endpoints
-- Dependency wiring and app initialization
-- Deterministic behavior guarantees
-- Error handling and invalid parameter cases
-- Nearby/geospatial endpoint contracts
+## Versioning & Compatibility
 
-Tests are treated as **first-class artifacts**, not afterthoughts, and are used to enforce API stability as the system evolves.
-
-## Architecture
-
-Overpass API
- -> Geospatial Query 
- -> Normalization & De-duplication 
- -> Confidence Scoring 
- -> Inference & Enrichment
- -> Structured Dataset / Versioned API
-
-Each stage is modular and independently testable.
-
-## Example API Usage
-
-GET /v2/gyms/geo/nearby?lat=36.1627&lon=-86.7816&radius_m=5000
-
-### Versioning & Compatibility
-
+### Versioning
 GymDB versions three concerns independently:
 - API version (`api_version`): response contract
 - Dataset schema version (`schema_version`): structure of stored/output data
 - Inference version (`inference_meta.version`): behavior of inference rules
 
 ### Compatibility Rules
-
 Non-breaking changes (allowed within a version):
 - Adding new fields
 - Adding new inference attributes
@@ -175,13 +188,21 @@ Breaking changes (require a new version):
 
 This forces long-term API discipline and safe evolution.
 
-### Design Goals
-- Deterministic behavior
-- Explainable inference
-- Clean separation of concerns
-- Strong test coverage
-- Safe, intentional evolution
-- Backend-first architecture
+---
+
+## Running & Testing
+
+The backend is considered valid only when all tests pass.
+
+Tests enforce:
+- Deterministic inference behavior
+- Stable API response shapes
+- Correct geospatial query behavior
+- Dependency and boundary correctness
+
+This ensures changes do not silently violate system guarantees.
+
+---
 
 ## Database Foundations (Migration 001)
 
@@ -212,3 +233,29 @@ Instead, GymDB follows a layered approach:
 - **API layer**: exposes stable, versioned representations
 
 This allows the inference system to evolve independently of the database schema while preserving auditability and determinism.
+
+---
+
+## Design Philosophy
+
+GymDB prioritizes correctness, determinism, and explainability over convenience.
+
+The goal is a backend foundation that can be trusted, audited, and safely extended as the system grows.
+
+GymDB is an end-to-end learning system built to mirror real platform development:
+- Backend systems prioritize correctness, determinism, auditability, and long-term stability
+- Frontend applications are layered on top of stable versioned data contracts
+- APIs are treated as products with explicit compatibility rules
+
+A central focus of GymDB is **rule-based inference**:
+- Translating noisy real-world data into structured attributes
+- Making inference decisions deterministic and explainable
+- Versioning inference logic independently from API and dataset schemas
+
+The project is built incrementally, with each layer added deliberately to gain experience with enterprise backend design, testing discipline, and API evolution.
+
+---
+
+## Example API Usage
+
+GET /v2/gyms/geo/nearby?lat=36.1627&lon=-86.7816&radius_m=5000
