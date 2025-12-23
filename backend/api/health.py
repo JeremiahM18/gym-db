@@ -13,7 +13,10 @@ def healthz():
     Liveness probe.
     Confirms the service process is running.
     """
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "api_version": "v2",
+    }
 
 @router.get("/readyz", tags=["health"])
 def readyz():
@@ -26,9 +29,13 @@ def readyz():
         return {
             "status": "ok",
             "db": True,
+            "inference_engine": "rule_based",
+            "inference_version": "1.0.0",
         }
     except DatabaseError:
         return {
             "status": "degraded",
              "db": False,
+             "inference_engine": "rule_based",
+             "inference_version": "1.0.0",
         }

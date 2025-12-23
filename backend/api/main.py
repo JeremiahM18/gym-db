@@ -6,6 +6,7 @@ from api.observability import request_logging_middleware
 from api.routes_v2 import router as v2_router
 from api.geo.nearby_routes import router as nearby_router
 from api.health import router as health_router
+from api.routes_metrics import router as metrics_router
 
 app = FastAPI(
     title="GymDB API",
@@ -27,6 +28,7 @@ app.middleware("http")(request_logging_middleware)
 # API routes
 app.include_router(nearby_router)
 app.include_router(v2_router)
+app.include_router(metrics_router)
 
 # Infra / ops
 app.include_router(health_router)

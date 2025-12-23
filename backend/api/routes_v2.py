@@ -14,6 +14,8 @@ from api.normalizers import normalize_inference_meta, normalize_inference
 
 from src.gymdb.observe.summaries import summarize_inference
 
+# v2 API contract is considered stable
+# Changes require schema + test updates
 
 router = APIRouter(prefix="/v2", tags=["gyms"])
 

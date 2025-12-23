@@ -1,18 +1,20 @@
 from collections import Counter
-from gymdb.infer.result import InferenceResult
 
 _inference_hits = Counter()
 
 
-def record_inference_hits(inferred: dict[str, InferenceResult]) -> None:
+def record_inference_hits(inferred: dict[str, dict]) -> None:
     """
-    Count which inference keys are produced. This is a lightweight metric.
+    Count which inference keys are produced. 
+    Expects normalized inference dicts (v2 contracts).
     """
     for key, result in inferred.items():
-        val = result.get("value")
-        if val is not None:
+        if result.get("value") is not None:
             _inference_hits[key] += 1
 
 
-def snapshot_metrics() -> dict:
+def snapshot_metrics() -> dict[str, int]:
+    """
+    Snapshot current inference hit counts.
+    """
     return dict(_inference_hits)

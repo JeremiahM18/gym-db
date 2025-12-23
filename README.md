@@ -113,6 +113,19 @@ GymDB follows strict REST and namespace discipline.
 
 This avoids route collisions, eliminates ambiguity, and scales cleanly as new query types are added (bounding boxes, routes, analytics).
 
+## Observability & Metrics
+
+GymDB exposes lightweight internal observability endpoints to support debugging, validation, and inference monitoring.
+
+### Health & Readiness
+- `/healthz`: Liveness probe (process is running)
+- `/readyz`: Readiness probe (external dependencies reachable)
+
+### Inference Metrics
+- `/metrics/inference`: Reports which inference rules have fired and how often
+
+Metrics are intended for internal use and are not part of the public API contract. They provide visibility into inference behavior without coupling metrics to domain logic or persistence.
+
 ## Testing Discipline
 
 GymDB includes a growing automated test suite covering:
