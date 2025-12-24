@@ -8,6 +8,7 @@ from gymdb.scoring import compute_confidence
 from gymdb.io_json import write_json
 from gymdb.inference import apply_inference
 from gymdb.processing import compute_gym_id
+from src.gymdb.ingest import run_ingest
 
 def main():
     parser = argparse.ArgumentParser(description="Build GymDB dataset")
@@ -28,18 +29,14 @@ def main():
 
     args = parser.parse_args()
 
-    elements = fetch_gyms(args.radius_miles * 1609.344, args.lat, args.lon)
+    metrics = run_ingest(
+        lat=args.lat,
+        lon=args.lon,
+        radius_miles=args.radius_miles,
+        out=args.out,
+    )
 
-    gyms = deduplicate(elements)
-
-    for g in gyms:
-        g.id =  compute_gym_id(g.norm_name, g.lat, g.lon)
-        compute_confidence(g)
-        apply_inference(g)
-
-    write_json(gyms, args.out)
-
-    print(f"Processed {len(gyms)} gyms -> {args.out}")
+    print(f"Processed {metrics('gyms_written')} gyms -> {metrics['output_path']}")
 
 if __name__ == "__main__":
     main()

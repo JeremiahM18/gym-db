@@ -20,6 +20,7 @@ app = FastAPI(
         {"name": "embeddings", "descripton": "Vector embeddings"},
         {"name": "health", "description": "Service health checks"},
         {"name": "debug", "description": "Inference inspection and audits"},
+        {"name": "internal", "description": "Administrative and ops endpoints"},
     ],
 )
 
@@ -27,16 +28,18 @@ logging.basicConfig(level=logging.INFO)
 
 app.middleware("http")(request_logging_middleware)
 
-# API routes
+# Public API
 app.include_router(nearby_router)
 app.include_router(v2_router)
 app.include_router(metrics_router)
+
+# Internal / ops (fully gated)
 app.include_router(
     internal.router,
     prefix="/internal",
     tags=["internal"],
 )
 
-# Infra / ops
+# Infra
 app.include_router(health_router)
 app.include_router(debug_router)
