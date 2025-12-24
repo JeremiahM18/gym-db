@@ -45,7 +45,7 @@ class FakeStore:
             return self._gym()
         return None
     
-def test_store_dependency_override():
+def test_store_dependency_override(override_auth):
     app.dependency_overrides[get_store] = lambda: FakeStore()
 
     client = TestClient(app)

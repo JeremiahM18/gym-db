@@ -9,6 +9,7 @@ from api.health import router as health_router
 from api.routes_metrics import router as metrics_router
 from api.internal_routes import internal
 
+
 app = FastAPI(
     title="GymDB API",
     version="1.0.0",

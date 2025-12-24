@@ -11,13 +11,14 @@ from api.schemas_v2 import (
 )
 from api.embeddings_views import serialize_gym_embedding_v2
 from api.normalizers import normalize_inference_meta, normalize_inference
+from api.auth.dependencies import require_user
 
 from src.gymdb.observe.summaries import summarize_inference
 
 # v2 API contract is considered stable
 # Changes require schema + test updates
 
-router = APIRouter(prefix="/v2", tags=["gyms"])
+router = APIRouter(prefix="/v2", tags=["gyms"], dependencies=[Depends(require_user)],)
 
 
 # --- Routes ---

@@ -6,6 +6,7 @@ from src.gymdb.models import Gym
 from src.gymdb.inference import apply_inference
 from api.main import app
 from api.deps import get_store
+from api.auth.dependencies import require_user
 
 # @pytest.fixture()
 # def client():
@@ -87,3 +88,9 @@ def infer():
     Inference application fixture.
     """
     return apply_inference
+
+@pytest.fixture()
+def override_auth():
+    app.dependency_overrides[require_user] = lambda: {"sub": "test-user"}
+    yield
+    app.dependency_overrides.clear()

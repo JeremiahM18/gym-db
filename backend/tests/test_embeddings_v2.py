@@ -1,4 +1,4 @@
-def test_v2_embeddings_basic_shape(client):
+def test_v2_embeddings_basic_shape(client, override_auth):
     resp = client.get("/v2/gyms/embeddings")
     assert resp.status_code == 200
 
@@ -39,7 +39,7 @@ def test_v2_embeddings_basic_shape(client):
     assert isinstance(inf["confidence"], float)
 
 
-def test_v2_embedding_text_is_deterministic(client):
+def test_v2_embedding_text_is_deterministic(client, override_auth):
     resp1 = client.get("/v2/gyms/embeddings")
     resp2 = client.get("/v2/gyms/embeddings")
 
@@ -49,7 +49,7 @@ def test_v2_embedding_text_is_deterministic(client):
     assert gym1["embedding_text"] == gym2["embedding_text"]
 
 
-def test_embedding_text_contains_inference(client):
+def test_embedding_text_contains_inference(client, override_auth):
     resp = client.get("/v2/gyms/embeddings")
     gym = resp.json()[0]
 
