@@ -4,6 +4,7 @@ from pathlib import Path
 import os
 
 from fastapi import Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 from api.registry import DatasetRegistry
 from api.store import GymStore
@@ -52,3 +53,16 @@ def db_error_to_http(e: Exception) -> HTTPException:
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
         detail="Internal server error"
     )
+
+def get_db(
+        store: GymStore = Depends(get_store),
+) -> Session:
+    """
+    Provide a raw database session for low-level/internal routes.
+
+    This is intentionally separated from GymStore to:
+    - preserve store encapsulation
+    - support internal diagnostics
+    - keep public routes store-driven
+    """
+    return store.db

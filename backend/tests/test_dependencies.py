@@ -20,10 +20,6 @@ class FakeStore:
             "osm_refs": [{"type": "node", "id": 1}],
             "confidence_score": 1.0,
 
-            "inference_meta": {
-                "engine": "test",
-                "version": "0.0"
-            },
             "inferred": {
                 "is_24_7": InferenceResult(
                     value=True,
