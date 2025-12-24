@@ -4,13 +4,23 @@ from fastapi import APIRouter, HTTPException, Depends
 
 from api.deps import get_store
 from api.store import GymStore
+from api.auth.dependencies import require_admin
+from api.auth.internal import require_internal_enabled
 
 from src.gymdb.domain import INFERRED
 from src.gymdb.observe.summaries import summarize_inference
 from src.gymdb.observe.audit import diff_inference
 from src.gymdb.observe.metrics import snapshot_metrics
 
-router = APIRouter(prefix="/debug", tags=["debug"])
+router = APIRouter(
+    prefix="/debug", 
+    tags=["debug"],
+    dependencies=[
+        Depends(require_internal_enabled),
+        Depends(require_admin),
+    ],
+    
+    )
 
 @router.get("/gyms/{gym_id}/inference")
 def debug_gym_inference(

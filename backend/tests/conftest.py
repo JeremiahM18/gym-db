@@ -18,6 +18,9 @@ from api.auth.dependencies import require_user
 class TestGymStore:
     default_region = "us"
 
+    def __init__(self):
+        self.db = None
+
     def filter(self, **kwargs):
         return [
             {

@@ -2,11 +2,20 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import text
 
 from api.deps import get_db
+from api.auth.dependencies import require_admin
+from api.auth.internal import require_internal_enabled
 from src.gymdb.domain import INFERRED
 
 router = APIRouter()
 
-@router.get("/status", tags=["internal"])
+@router.get(
+    "/status", 
+    tags=["internal"], 
+    dependencies=[ 
+        Depends(require_internal_enabled), 
+        Depends(require_admin),
+        ],
+)
 def internal_status(db=Depends(get_db)):
     """
     Internal system health and sanity check.

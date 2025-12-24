@@ -25,10 +25,17 @@ class FakeDB:
 
         return FakeResult(None)
 
-def test_internal_status():
+def test_internal_status(client, monkeypatch):
+    monkeypatch.setenv("ENABLE_INTERNAL", "true")
+
+    from api.auth.dependencies import require_admin
+    app.dependency_overrides[require_admin] = lambda: {
+        "sub": "admin",
+        "cognito:groups": ["admin"],
+    }
+
     app.dependency_overrides[get_db] = lambda: FakeDB()
 
-    client = TestClient(app)
     resp = client.get("/internal/status")
     assert resp.status_code == 200
 
