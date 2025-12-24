@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
-
-from src.gymdb.db.queries import ping_db
-from src.gymdb.db.errors import DatabaseError
+from fastapi import APIRouter, HTTPException, status, Depends
+from api.deps import get_db
+from api.readiness import (
+    check_database,
+    check_postgis,
+    check_schema,
+)
 
 router = APIRouter()
 
@@ -19,23 +22,33 @@ def healthz():
     }
 
 @router.get("/readyz", tags=["health"])
-def readyz():
+def readyz(db = Depends(get_db)):
     """
     Readiness probe.
     Confirms external dependencies (DB) are available.
+    Returns 503 when NOT ready.
     """
-    try:
-        ping_db()
-        return {
-            "status": "ok",
-            "db": True,
-            "inference_engine": "rule_based",
-            "inference_version": "1.0.0",
-        }
-    except DatabaseError:
-        return {
-            "status": "degraded",
-             "db": False,
-             "inference_engine": "rule_based",
-             "inference_version": "1.0.0",
-        }
+    checks = {
+         "database": check_database(db),
+        "postgis": check_postgis(db),
+        "schema": check_schema(db),
+    }
+
+    ready = all(checks.values())
+
+    payload = {
+        "ready": ready,
+        "checks": checks,
+        "inference": {
+            "engine": "rule_based",
+            "version": "1.0.0",
+        },
+    }
+
+    if not ready:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=payload,
+        )
+
+    return payload
