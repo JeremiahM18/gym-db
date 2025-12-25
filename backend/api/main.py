@@ -7,7 +7,8 @@ from api.routes_v2 import router as v2_router
 from api.geo.nearby_routes import router as nearby_router
 from api.health import router as health_router
 from api.routes_metrics import router as metrics_router
-from api.internal_routes import internal
+from api.internal_routes.internal import router as status_router
+from api.internal_routes.jobs import router as jobs_router
 
 
 app = FastAPI(
@@ -35,10 +36,11 @@ app.include_router(metrics_router)
 
 # Internal / ops (fully gated)
 app.include_router(
-    internal.router,
+    status_router,
     prefix="/internal",
     tags=["internal"],
 )
+app.include_router(jobs_router)
 
 # Infra
 app.include_router(health_router)

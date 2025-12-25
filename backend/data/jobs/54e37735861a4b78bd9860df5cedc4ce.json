@@ -1,0 +1,12 @@
+{
+  "created_at": "2025-12-24T23:33:56.144636+00:00",
+  "error": "Object of type InferenceMeta is not JSON serializable",
+  "finished_at": "2025-12-24T23:33:57.806793+00:00",
+  "job_id": "54e37735861a4b78bd9860df5cedc4ce",
+  "kind": "ingest",
+  "metrics": {},
+  "mode": "manual",
+  "region": "us",
+  "started_at": "2025-12-24T23:33:56.146021+00:00",
+  "status": "failed"
+}

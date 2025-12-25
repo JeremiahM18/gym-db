@@ -22,14 +22,17 @@ def get_job_store() -> JobStore:
 def get_runner() -> IngestRunner:
     return IngestRunner(get_job_store())
 
+def get_ingest_fn():
+    return run_ingest
+
 @router.post("/ingest")
-def start_ingest(region: str = "us"):
-    runner = get_runner()
+def start_ingest(
+    region: str = "us",
+    ingest_fn = Depends(get_ingest_fn),
+):
+    runner = IngestRunner(get_job_store())
     job = runner.start(region=region, mode="manual")
-    final = runner.run(
-        job, 
-        ingest_fn=lambda region: run_ingest(),
-    )
+    final = runner.run(job, ingest_fn=ingest_fn)
 
     if final.status == "failed":
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=final.to_dict())
