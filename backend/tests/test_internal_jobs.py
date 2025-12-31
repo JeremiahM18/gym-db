@@ -66,3 +66,32 @@ def test_internal_jobs_ingest_admin_allowed(monkeypatch):
     assert data["status"] in {"queued", "running", "succeeded"}
 
     app.dependency_overrides.clear()
+
+def test_job_receipt_deterministic_hash_stable():
+    from src.gymdb.jobs.receipt import JobReceipt
+    from datetime import datetime, timezone
+
+    now = datetime(2025, 1, 1, tzinfo=timezone.utc)
+
+    r1 = JobReceipt.build(
+        job_id="job1",
+        region="us",
+        mode="manual",
+        started_at=now,
+        finished_at=now,
+        status="succeeded",
+        stats={"a": 1, "b": 2},
+    )
+
+    r2 = JobReceipt.build(
+        job_id="job1",
+        region="us",
+        mode="manual",
+        started_at=now,
+        finished_at=now,
+        status="succeeded",
+        stats={"b": 2, "a": 1},  # reordered
+    )
+
+    assert r1.deterministic_hash == r2.deterministic_hash
+

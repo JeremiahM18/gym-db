@@ -1,0 +1,18 @@
+{
+  "created_at": "2025-12-31T13:18:51.209496+00:00",
+  "error": null,
+  "finished_at": "2025-12-31T13:18:51.215723+00:00",
+  "job_id": "20763c43d0504cc28ce09e361f18d6f1",
+  "kind": "ingest",
+  "metrics": {
+    "deduped": 3,
+    "gyms_fetched": 10,
+    "gyms_written": 7,
+    "inferred": 7,
+    "region": "us"
+  },
+  "mode": "manual",
+  "region": "us",
+  "started_at": "2025-12-31T13:18:51.211770+00:00",
+  "status": "succeeded"
+}
