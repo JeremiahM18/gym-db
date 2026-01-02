@@ -1,6 +1,11 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from src.gymdb.db.db_engine import get_engine
+from src.gymdb.db.models.job_receipt import metadata as receipt_metadata
 
 from src.gymdb.models import Gym
 from src.gymdb.inference import apply_inference
@@ -97,3 +102,27 @@ def override_auth():
     app.dependency_overrides[require_user] = lambda: {"sub": "test-user"}
     yield
     app.dependency_overrides.clear()
+
+@pytest.fixture
+def db_session():
+    """
+    Database session for integration tests.
+    Creates schema + tables inside a transaction and rolls back.
+    """
+    engine = get_engine()
+
+    # Ensure ops schema + tables exist
+    receipt_metadata.create_all(engine)
+
+    connection = engine.connect()
+    transaction = connection.begin()
+
+    Session = sessionmaker(bind=connection)
+    session = Session()
+
+    try:
+        yield session
+    finally:
+        session.close()
+        transaction.rollback()
+        connection.close()

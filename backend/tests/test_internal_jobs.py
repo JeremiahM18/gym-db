@@ -54,8 +54,12 @@ def test_internal_jobs_ingest_admin_allowed(monkeypatch):
     from api.auth.dependencies import require_admin
     app.dependency_overrides[require_admin] = _admin_override
 
-    app.dependency_overrides[get_ingest_fn] = lambda: fake_ingest
+    from api.internal_routes.jobs import get_receipt_store
+    from tests.fake_receipt_store import FakeReceiptStore
     
+    app.dependency_overrides[get_ingest_fn] = lambda: fake_ingest
+    app.dependency_overrides[get_receipt_store] = lambda: FakeReceiptStore()
+
     client = TestClient(app)
     resp = client.post("/internal/jobs/ingest")
 
@@ -63,7 +67,7 @@ def test_internal_jobs_ingest_admin_allowed(monkeypatch):
 
     data = resp.json()
     assert "job_id" in data
-    assert data["status"] in {"queued", "running", "succeeded"}
+    assert data["status"] == "succeeded"
 
     app.dependency_overrides.clear()
 
