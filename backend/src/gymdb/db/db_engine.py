@@ -8,30 +8,18 @@ from src.gymdb.settings import settings
 from src.gymdb.db.errors import DatabaseUnavailable
 
 _engine: Engine | None = None
-_test_connection = None
+_test_connection: Connection | None = None
 
-def set_test_connection(conn):
+# Test hooks
+
+def set_test_connection(conn: Connection | None) -> None:
     global _test_connection
     _test_connection = conn
 
 
-def clear_test_connection():
+def clear_test_connection() -> None:
     global _test_connection
     _test_connection = None
-
-
-def get_connection() -> Connection:
-    """
-    Return the active DB connection.
-
-    - Uses test connection if set (for tests)
-    - Otherwise uses engine to get a new connection
-    """
-    if _test_connection is not None:
-        return _test_connection
-    return get_engine().connect()
-
-
 
 def get_engine() -> Engine:
     """
@@ -56,6 +44,21 @@ def get_engine() -> Engine:
         except SQLAlchemyError as exc:
             raise DatabaseUnavailable("Failed to create database engine") from exc
     return _engine
+
+# Core engine / connection API
+
+def get_connection() -> Connection:
+    """
+    Return an actice DB connection.
+
+    - Uses test connection if set (for tests)
+    - Otherwise uses engine to get a new connection
+    """
+    if _test_connection is not None:
+        return _test_connection
+    
+    return get_engine().connect()
+
 
 def reset_engine() -> None:
     """

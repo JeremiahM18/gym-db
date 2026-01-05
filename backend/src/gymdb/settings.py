@@ -1,8 +1,18 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+class GymDBSettings(BaseSettings):
+    """
+    Domain / infrastructure configuration.
+
+    This module must remain HTTP-agnostic.
+    """
 
     postgres_dsn: str
 
-settings = Settings()
+    model_config = {
+        "env_file": ".env",
+        "extra": "ignore",
+    }    
+
+settings = GymDBSettings()
+    

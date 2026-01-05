@@ -1,23 +1,33 @@
+from __future__ import annotations
+
 from sqlalchemy import text
-from api.deps import get_db
-from api.settings import settings
+from sqlalchemy.engine import Connection
 from src.gymdb.db.errors import DatabaseUnavailable, QueryFailed
 
-def check_database(db):
+def check_database(db: Connection) -> bool:
+    """
+    Basic DB connectivity check.
+    """
     try:
         result = db.execute(text("SELECT 1"))
         return result.scalar() == 1
     except Exception:
         return False
 
-def check_postgis(db):
+def check_postgis(db: Connection) -> bool:
+    """
+    Verify PostGIS extension is available.
+    """
     try:
         result = db.execute(text("SELECT PostGIS_Version()"))
         return result.scalar() is not None
     except Exception:
         return False
 
-def check_schema(db):
+def check_schema(db: Connection) -> bool:
+    """
+    Verify required schema objects exist.
+    """
     try:
         result = db.execute(
             text("SELECT COUNT(*) FROM gyms")

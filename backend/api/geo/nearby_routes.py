@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Query
 
+from src.gymdb.db.db_engine import get_connection
 from src.gymdb.db.queries import get_nearby_gyms
 from src.gymdb.db.errors import DatabaseError
 
-from api.deps import db_error_to_http
+from api.deps import get_db, db_error_to_http
 from api.schemas_v2 import GymsNearbyResponseV2, GymNearbyOutV2
 
 router = APIRouter(prefix="/v2/gyms/geo", tags=["gyms"])
@@ -25,12 +26,15 @@ def nearby_gyms(
     Uses PostGIS for distance calculations.
     """
     try:
-        gyms = get_nearby_gyms(
-            lat=lat,
-            lon=lon,
-            radius_m=radius_m,
-            limit=limit,
-        )
+        with get_connection() as conn:
+
+            gyms = get_nearby_gyms(
+                conn,
+                lat=lat,
+                lon=lon,
+                radius_m=radius_m,
+                limit=limit,
+            )
     except DatabaseError as exc:
         raise db_error_to_http(exc)
     

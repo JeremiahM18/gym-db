@@ -2,11 +2,13 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from api.auth.cognito import verify_jwt
+from api.settings import  APISettings, get_settings
 
 security = HTTPBearer(auto_error=False)
 
 def require_user(
     creds: HTTPAuthorizationCredentials = Depends(security),
+    settings: APISettings = Depends(get_settings),
 ) -> dict:
     if not creds:
         raise HTTPException(
@@ -15,7 +17,7 @@ def require_user(
         )
 
     try:
-        return verify_jwt(creds.credentials)
+        return verify_jwt(creds.credentials, settings)
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Depends
 
-from api.deps import get_store
-from api.store import GymStore
+
 from api.auth.dependencies import require_admin
 from api.auth.internal import require_internal_enabled
+
+from api.deps import get_gym_store
+from src.gymdb.gyms.store import GymStore
 
 from src.gymdb.domain import INFERRED
 from src.gymdb.observe.summaries import summarize_inference
@@ -22,17 +24,22 @@ router = APIRouter(
     
     )
 
+# Debug Gym Endpoints
+
+
 @router.get("/gyms/{gym_id}/inference")
 def debug_gym_inference(
     gym_id: str,
     region: str | None = None,
-    store: GymStore = Depends(get_store),
+    store: GymStore = Depends(get_gym_store),
 ):
     """
-    Debug view of raw inference artifacts.
+    Debug-only endpoint exposing raw inference data for a gym.
 
-    This endpoint intentionally exposes internal structures.
-    It is NOT part of the public API contract.
+    Notes:
+    - NOT part of the public API contract
+    - Auth-gated via internal + admin dependencies
+    - Uses the same GymStore as the public API to avoid divergence
     """
     region = region or store.default_region
     gym = store.get_by_id(region, gym_id)
@@ -61,12 +68,14 @@ def debug_gym_inference(
         "meta": inference_meta,
     }
 
+# Inference Debug Utilities
+
 @router.post("/inference/diff")
 def debug_inference_diff(payload: dict) -> dict:
     """
     Compare two inference objects and return changed values.
 
-    Stateless by design (no store access).
+    Stateless by design (no dataset or DB access).
     Intended for debugging inference evolution.
     """
     before = payload.get("before") or {}
@@ -80,6 +89,7 @@ def debug_inference_diff(payload: dict) -> dict:
 def debug_metrics():
     """
     Snapshot inference metrics.
+    
     Safe to call without DB or dataset access.
     """
     return{"inference_hits": snapshot_metrics()}

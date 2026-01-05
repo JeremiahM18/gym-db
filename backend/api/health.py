@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, status, Depends
-from api.deps import get_db
+from fastapi import APIRouter, HTTPException, status
+
+from src.gymdb.db.db_engine import get_connection
+
 from api.readiness import (
     check_database,
     check_postgis,
@@ -22,17 +24,24 @@ def healthz():
     }
 
 @router.get("/readyz", tags=["health"])
-def readyz(db = Depends(get_db)):
+def readyz():
     """
     Readiness probe.
     Confirms external dependencies (DB) are available.
     Returns 503 when NOT ready.
     """
-    checks = {
-         "database": check_database(db),
-        "postgis": check_postgis(db),
-        "schema": check_schema(db),
-    }
+    try:
+        with get_connection() as db:
+            checks = {
+                "database": check_database(db),
+                "postgis": check_postgis(db),
+                "schema": check_schema(db),
+        }
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"ready": False, "checks": {"database": False}},
+        )
 
     ready = all(checks.values())
 

@@ -1,25 +1,49 @@
-import requests
+from __future__ import annotations
+
 import time
 from functools import lru_cache
+from typing import Any
+
+import requests
 from jose import jwt
 from jose.exceptions import JWTError
 
-from api.settings import settings
+from api.settings import APISettings
 
-JWKS_URL = f"{settings.cognito_issuer}/.well-known/jwks.json"
+# JWKS retrevial
 
-@lru_cache()
-def get_jwks():
-    resp = requests.get(JWKS_URL, timeout=5)
+@lru_cache(maxsize=8)
+def get_jwks(jwks_url: str) -> list[dict[str, Any]]:
+    """
+    Fetch and cache JWKS keys.
+
+    Cache is keyed by jwks_url so multiple environments remain isolated.
+    """
+    resp = requests.get(jwks_url, timeout=5)
     resp.raise_for_status()
     return resp.json()["keys"]
 
-def verify_jwt(token: str) -> dict:
+# JWT verification
+
+def verify_jwt(token: str, settings: APISettings) -> dict:
+    """
+    Verify a JWT using Cognito configuration.
+
+    This function is PURE:
+    - no globals
+    - no FastAPI imports
+    -no env access
+    """
     try:
+        jwks_url = f"{settings.cognito_issuer}/.well-known/jwks.json"
+
         header = jwt.get_unverified_header(token)
         kid = header["kid"]
 
-        key = next(k for k in get_jwks() if k["kid"] == kid)
+        key = next(
+            k for k in get_jwks(jwks_url)
+            if k["kid"] == kid
+        )
 
         claims = jwt.decode(
             token,
@@ -29,11 +53,10 @@ def verify_jwt(token: str) -> dict:
             issuer=settings.cognito_issuer,
         )
 
-        if claims["exp"] < time.time():
+        if claims.get("exp", 0) < time.time():
             raise JWTError("Token expired")
-
+        
         return claims
-
-    except Exception as e:
-        raise ValueError("Invalid JWT") from e
-
+    
+    except Exception as exc:
+        raise ValueError("Invalid JWT") from exc

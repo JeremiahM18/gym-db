@@ -3,14 +3,6 @@ def test_healthz(client):
     assert resp.status_code == 200
     assert resp.json()["status"] == "ok"
 
-# def test_readyz_shape(client):
-#     resp = client.get("/readyz")
-#     assert resp.status_code == 200
-#     data = resp.json()
-
-#     assert "status" in data
-#     assert "db" in data
-#     assert isinstance(data["db"], bool)
 
 class FakeResult:
     def __init__(self, value):
@@ -34,12 +26,34 @@ class FakeDB:
             return FakeResult(123)
 
         return FakeResult(None)
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc, tb):
+        return False
 
 
-def test_readiness_success(client):
-    from api.deps import get_db
+def test_readiness_success(client, monkeypatch):
+    from api.settings import APISettings, get_settings
+    from src.gymdb.db import db_engine
 
-    client.app.dependency_overrides[get_db] = lambda: FakeDB()
+    # Override settings (what the route actually depends on)
+    client.app.dependency_overrides[get_settings] = lambda: APISettings(
+        postgres_dsn="postgresql://test",
+        aws_region="test",
+        cognito_user_pool_id="test",
+        cognito_app_client_id="test",
+        cognito_issuer="https://example.com",
+        enable_internal=True,
+    )
+
+    # Patch DB connection at infra boundary
+    monkeypatch.setattr(
+        db_engine,
+        "get_connection",
+        lambda *_: FakeDB(),
+    )
 
     resp = client.get("/readyz")
     assert resp.status_code == 200
@@ -56,11 +70,31 @@ def test_readiness_success(client):
 class BrokenDB:
     def execute(self, stmt):
         raise Exception("db down")
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc, tb):
+        return False
 
-def test_readiness_failure(client):
-    from api.deps import get_db
+def test_readiness_failure(client, monkeypatch):
+    from api.settings import APISettings, get_settings
+    from src.gymdb.db import db_engine
 
-    client.app.dependency_overrides[get_db] = lambda: BrokenDB()
+    client.app.dependency_overrides[get_settings] = lambda: APISettings(
+        postgres_dsn="postgresql://test",
+        aws_region="test",
+        cognito_user_pool_id="test",
+        cognito_app_client_id="test",
+        cognito_issuer="https://example.com",
+        enable_internal=True,
+    )
+
+    monkeypatch.setattr(
+        db_engine,
+        "get_connection",
+        lambda *_: BrokenDB(),
+    )
 
     resp = client.get("/readyz")
     assert resp.status_code == 503

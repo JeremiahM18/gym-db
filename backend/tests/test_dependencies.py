@@ -4,11 +4,19 @@ from datetime import datetime, timezone
 import hashlib
 
 from api.main import app
-from api.deps import get_store
-from gymdb.infer.result import InferenceResult
+from api.deps import get_gym_store
+from api.auth.dependencies import require_user
 
-class FakeStore:
+from gymdb.infer.result import InferenceResult
+from src.gymdb.gyms.store import GymStore
+
+# Fake Gym Store
+
+class FakeGymStore(GymStore):
     default_region = "test"
+
+    def __init__(self):
+        pass
 
     def _gym(self):
         return {
@@ -45,13 +53,20 @@ class FakeStore:
             return self._gym()
         return None
     
+# Test
+
 def test_store_dependency_override(override_auth):
-    app.dependency_overrides[get_store] = lambda: FakeStore()
+    """
+    Verify that GymStore dependency can be overridden for API tests.
+    """
+
+    app.dependency_overrides[get_gym_store] = lambda: FakeGymStore()
 
     client = TestClient(app)
     resp = client.get("/v2/gyms")
 
     assert resp.status_code == 200
+    
     data = resp.json()
     assert data["results"][0]["id"] == "fake-gym"
 

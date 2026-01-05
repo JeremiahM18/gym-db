@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Query, HTTPException, Depends
 
-from api.deps import get_store
-from api.store import GymStore
+
+from api.deps import get_gym_store
+from src.gymdb.gyms.store import GymStore
+from src.gymdb.gyms.queries import list_gyms, get_gym_by_id
+
 from api.schemas_v2 import (
     GymResponseV2,
     GymsListResponseV2,
@@ -29,11 +32,12 @@ def list_gyms_v2(
     min_conf: float | None = Query(None, ge=0.0, le=1.0),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
-    store: GymStore = Depends(get_store)
+    store: GymStore = Depends(get_gym_store)
 ):
     region = region or store.default_region
 
-    gyms = store.filter(
+    gyms = list_gyms(
+        store=store,
         region=region,
         min_conf=min_conf,
         limit=limit,
@@ -68,11 +72,15 @@ def list_gyms_v2(
 )
 def list_gym_embeddings_v2(
     region: str | None = None,
-    store: GymStore = Depends(get_store),
+    store: GymStore = Depends(get_gym_store),
 ):
     region = region or store.default_region
 
-    gyms = store.filter(region=region)
+    gyms = get_gym_by_id(
+        store=store,
+        region=region,
+        gym_id=id,
+    )
 
     results = []
     for g in gyms:
@@ -96,11 +104,11 @@ def list_gym_embeddings_v2(
 def get_gym_v2(
     gym_id: str,
     region: str | None = None,
-    store: GymStore = Depends(get_store),
+    store: GymStore = Depends(get_gym_store),
 ):
     region = region or store.default_region
 
-    gym = store.get_by_id(region, gym_id)
+    gym = store.get_by_id(store, region, gym_id)
     if gym is None:
         raise HTTPException(status_code=404, detail="Gym not found")
     
