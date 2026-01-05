@@ -53,6 +53,46 @@ These guarantees are enforced through code structure, testing, and documented co
 
 ---
 
+## API Stability Rules (v2)
+
+GymDB treats its public APIs as **versioned contracts**.
+Once an API version is published, its response shape and semantics are considered stable.
+
+### Allowed Without Version Bump
+The following changes are backward-compatible and may be introduced within the same API version:
+- Adding new optional response fields
+- Adding new inference attributes
+- Adding new optional query parameters
+- Internal performance or implementation improvements
+
+### Requires a New API Version
+The following changes are considered breaking and require a new API version:
+- Removing existing fields
+- Changing field types
+- Changing the semantic meaning of a field or inference result.
+
+Breaking changes are never introduced silently.
+
+---
+
+## Repository Structure & Responsibility Boundaries
+
+This repository is organized by system responsibility:
+
+- `database/`
+  Physical storage layer. Stores **verifiable facts only** and enforces hard invariants.
+  No inference, no enrichment, no interpretation logic.
+
+- `src/gymdb/`
+  Domain, inference, and deterministic processing logic.
+
+- `api/`
+  Versioned HTTP interface exposing stable, read-only views over domain outputs.
+
+Each layer is independently testable and intentionally constrained.
+
+---
+
 ## Architecture Overview
 
 GymDB is intentionally backend-first and UI-agnostic.

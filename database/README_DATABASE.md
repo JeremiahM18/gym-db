@@ -1,6 +1,9 @@
 # GymDB Database Layer
 
-This directory contains the **database layer** for GymDB, built on **PostgreSQL + PostGIS** to support durable storage and deterministic geospatial querying.
+> This directory documents the **physical storage contract** of GymDB.
+> Anything not explicitly described here is intentionally *not* persisted.
+
+This layer is built on **PostgreSQL + PostGIS** to support durable storage and deterministic geospatial querying. 
 
 The database is treated as a **first-class system component**, not an implementation detail. Design priorities include:
 - explicit schemas and migrations
@@ -8,7 +11,7 @@ The database is treated as a **first-class system component**, not an implementa
 - safe, forward-compatible evolution
 - clear separation between domain logic and persistence
 
-The database layer is intentionally minimal and focused on enforcing **physical invariants**, not embedding domain or inference logic.
+The database layer enforces **physical invariants only**. It does **not** contain domain logic, inference rules, or interpretation.
 
 ---
 
