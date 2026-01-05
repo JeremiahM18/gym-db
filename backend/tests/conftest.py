@@ -103,6 +103,7 @@ def override_auth():
     yield
     app.dependency_overrides.clear()
 
+
 @pytest.fixture
 def db_session(monkeypatch):
     """
@@ -112,6 +113,7 @@ def db_session(monkeypatch):
 
     # 1. Override the *actual* source of truth
     from src.gymdb.settings import settings
+    from src.gymdb.db.db_engine import set_test_connection, clear_test_connection
 
     monkeypatch.setattr(
         settings, 
@@ -126,13 +128,15 @@ def db_session(monkeypatch):
 
     # 4 Create schema + tables OUTSIDE the test transaction
     with engine.begin() as conn:
-        conn.execute(text("DROP SCHEMA IF EXISTS ops CASCADE"))
-        conn.execute(text("CREATE SCHEMA ops"))
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS ops"))
         receipt_metadata.create_all(conn)
+        conn.execute(text("TRUNCATE TABLE ops.job_receipts RESTART IDENTITY CASCADE"))
 
     # 5. Start a transaction for the test
     connection = engine.connect()
     transaction = connection.begin()
+
+    set_test_connection(connection)
 
     Session = sessionmaker(bind=connection)
     session = Session()
@@ -142,4 +146,5 @@ def db_session(monkeypatch):
     finally:
         session.close()
         transaction.rollback()
+        clear_test_connection()
         connection.close()

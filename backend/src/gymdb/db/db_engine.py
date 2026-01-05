@@ -1,13 +1,37 @@
 from __future__ import annotations
 
 from sqlalchemy import create_engine
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.gymdb.settings import settings
 from src.gymdb.db.errors import DatabaseUnavailable
 
 _engine: Engine | None = None
+_test_connection = None
+
+def set_test_connection(conn):
+    global _test_connection
+    _test_connection = conn
+
+
+def clear_test_connection():
+    global _test_connection
+    _test_connection = None
+
+
+def get_connection() -> Connection:
+    """
+    Return the active DB connection.
+
+    - Uses test connection if set (for tests)
+    - Otherwise uses engine to get a new connection
+    """
+    if _test_connection is not None:
+        return _test_connection
+    return get_engine().connect()
+
+
 
 def get_engine() -> Engine:
     """
