@@ -12,12 +12,12 @@ job_receipts = Table(
     Column("job_id", Text, primary_key=True),
 
     Column("region", Text, nullable=False),
-    Column("model", Text, nullable=False),
+    Column("mode", Text, nullable=False),
 
     Column("status", Text, nullable=False),
 
     Column("started_at", TIMESTAMP(timezone=True), nullable=False),
-    Column("completed_at", TIMESTAMP(timezone=True), nullable=True),
+    Column("finished_at", TIMESTAMP(timezone=True), nullable=True),
 
     Column("stats", JSONB, nullable=False),
     Column("deterministic_hash", Text, nullable=False),

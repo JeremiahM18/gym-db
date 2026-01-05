@@ -32,3 +32,13 @@ def get_engine() -> Engine:
         except SQLAlchemyError as exc:
             raise DatabaseUnavailable("Failed to create database engine") from exc
     return _engine
+
+def reset_engine() -> None:
+    """
+    Reset the process-wide engine.
+    Intended for tests environment only.
+    """
+    global _engine
+    if _engine is not None:
+        _engine.dispose()
+    _engine = None

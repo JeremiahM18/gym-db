@@ -1,10 +1,10 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from sqlalchemy import create_engine
+from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from src.gymdb.db.db_engine import get_engine
+from src.gymdb.db.db_engine import get_engine, reset_engine
 from src.gymdb.db.models.job_receipt import metadata as receipt_metadata
 
 from src.gymdb.models import Gym
@@ -104,16 +104,33 @@ def override_auth():
     app.dependency_overrides.clear()
 
 @pytest.fixture
-def db_session():
+def db_session(monkeypatch):
     """
     Database session for integration tests.
     Creates schema + tables inside a transaction and rolls back.
     """
+
+    # 1. Override the *actual* source of truth
+    from src.gymdb.settings import settings
+
+    monkeypatch.setattr(
+        settings, 
+        "postgres_dsn", 
+        "postgresql+psycopg://gymdb_test:gymdb_test@localhost:5432/gymdb_test")
+
+    # 2. Reset engine so it uses the test DSN
+    reset_engine()
+
+    # 3. Create a fresh engine bound to the test database
     engine = get_engine()
 
-    # Ensure ops schema + tables exist
-    receipt_metadata.create_all(engine)
+    # 4 Create schema + tables OUTSIDE the test transaction
+    with engine.begin() as conn:
+        conn.execute(text("DROP SCHEMA IF EXISTS ops CASCADE"))
+        conn.execute(text("CREATE SCHEMA ops"))
+        receipt_metadata.create_all(conn)
 
+    # 5. Start a transaction for the test
     connection = engine.connect()
     transaction = connection.begin()
 

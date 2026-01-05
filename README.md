@@ -34,18 +34,21 @@ GymDB is built around explicit, enforceable guarantees:
 - **Stable, versioned APIs**
   API response shapes are treated as contracts; breaking changes require a new version.
 
-- **Read-only API layer**
-  The HTTP API never mutates database state.
-  All writes occur via ingestion or pipeline jobs.
+- **Read-only public API layer**
+  Public HTTP APIs never mutate database state.
+  All writes occur via controlled ingestion or pipeline jobs executed through internal routes.
 
 - **Geospatial correctness**
   All spatial queries are backed by PostGIS with proper indexing and coordinate handling.
+
+- **Auditable job execution**
+  All ingestion jobs produce immutable, deterministic receipts persisted to the database. Job outcomes can be inspected, verified, and replayed independently of runtime execution.
 
 These guarantees are enforced through code structure, testing, and documented contracts.
 
 ### Contracts
 
-- Inference contract(frozen): `docs/inference.md`
+- Inference contract (frozen): `docs/inference.md`
 - API behavior is versioned; breaking changes require a new API version.
 
 ---
@@ -56,12 +59,51 @@ GymDB is intentionally backend-first and UI-agnostic.
 
 At a high level, the system:
 1. Queries raw gym data using geospatial constraints 
-2. Normalizes & De-duplicates entities 
+2. Normalizes & Deduplicates entities 
 3. Scores data quality and reliability 
 4. Applies deterministic inference rules to enrich records
 5. Exposes results through stable HTTP APIs
 
 Each stage is designed to be auditable and reproducible.
+
+---
+
+## Operational Jobs & Audit Receipts
+
+GymDB treats ingestion and pipeline execution as first-class operational events.
+
+Every ingestion job produces a **job receipt** - an immutable, deterministic record describing what was executed and what occurred.
+
+### Job Receipts
+
+A job receipt captures:
+- `job_id`
+- execution mode (manual, scheduled)
+- target region
+- start and finish timestamps
+- execution status (succeeded / failed)
+- structured execution statistics
+- a deterministic hash derived from canonical job inputs and outputs
+
+Receipts are:
+- persisted in the database (`ops.job_receipts`)
+- immutable once written
+- generated for both successful and failed jobs
+- suitable for replay verification and regression detection
+
+The database is the **authoritative source of truth** for job receipts.
+Optional filesystem artifacts may be written for debugging, but are never authoritative.
+
+### Separation of Concerns
+
+GymDB deliberately separates:
+- **Job lifecycle state** (queued / running / failed)
+- **Job outcome artifacts** (receipts)
+
+Lifecycle state is ephemeral and implementation-specific.
+Receipts are durable audit artifacts intended for long-term inspection and verification.
+
+This separation ensures that operational correctness does not depend on runtime state.
 
 ---
 
@@ -75,7 +117,7 @@ Each stage is designed to be auditable and reproducible.
     - `amenity=gym`
 - Handles nodes, ways, and relations uniformly
 
-### Entity De-duplication
+### Entity Deduplication
 - Normalizes gym names to reduce textual variation
 - Uses haversine distance to detect spatial duplicates
 - Merges multiple OSM references into a single canonical gym record
@@ -148,6 +190,23 @@ GymDB follows strict REST and namespace discipline.
 
 This avoids route collisions, eliminates ambiguity, and scales cleanly as new query types are added (bounding boxes, routes, analytics).
 
+### Internal Operational Routes
+
+GymDB exposes a small set of **internal, gated routes** used for operational control and observability. These routes are not part of the public API contract.
+
+Examples:
+- `/internal/jobs/ingest` - trigger ingestion jobs
+- `/internal/jobs/{job_id}` - inspect job receipts
+- `/internal/jobs` - list recent job executions
+
+Internal routes:
+- are disabled by default
+- require explicit enablement
+- require administrative authorization
+- are intended for operators, not clients
+
+This separation preserves API stability while enabling operational control.
+
 ---
 
 ## Observability & Metrics
@@ -202,6 +261,18 @@ Tests enforce:
 
 This ensures changes do not silently violate system guarantees.
 
+### Database Integration Tests
+
+GymDB includes database-backed integration tests that validate persistence, schema invariants, and deterministic behavior.
+
+Integration tests:
+- use a dedicated test database
+- validate job receipt round-trip persistence
+- ensure database constraints enforce system guarantees
+- run independently of API-level dependency overrides
+
+This ensures that operational audit behavior is verified against real database semantics.
+
 ---
 
 ## Database Foundations (Migration 001)
@@ -233,6 +304,20 @@ Instead, GymDB follows a layered approach:
 - **API layer**: exposes stable, versioned representations
 
 This allows the inference system to evolve independently of the database schema while preserving auditability and determinism.
+
+### Operational Metadata (Migration 002)
+
+Migration 002 introduces an `ops` schema used exclusively for operational metadata.
+
+This schema includes:
+- `job_receipts`: immutable records of ingestion job execution
+
+Operational metadata is intentionally separated from domain data to:
+- avoid polluting core schemas
+- preserve clear ownership boundaries
+- allow operational tooling to evolve independently
+
+The `ops` schema is not exposed through public APIs and exist solely to support auditability, replay verification, and operational introspection.
 
 ---
 
