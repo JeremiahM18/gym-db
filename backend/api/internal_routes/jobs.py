@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.engine import Connection
 
 from api.auth.internal import require_internal_enabled
 from api.auth.dependencies import require_admin
+from api.deps import get_db
 
 from src.gymdb.jobs.ingest_runner import IngestRunner
 from src.gymdb.ingest import run_ingest
@@ -31,8 +34,13 @@ def get_runner() -> IngestRunner:
 
     return IngestRunner(JobStore(Path("data/jobs")))
 
-def get_receipt_store() -> JobReceiptStoreDB:
-    return JobReceiptStoreDB()
+def get_receipt_store(
+        db: Connection = Depends(get_db)
+) -> JobReceiptStoreDB:
+    """
+    Construct a JobReceiptStore bound to the request-scoped DB connection.
+    """
+    return JobReceiptStoreDB(conn=db)
 
 def get_ingest_fn():
     return run_ingest

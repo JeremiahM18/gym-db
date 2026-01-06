@@ -34,9 +34,9 @@ class FakeDB:
         return False
 
 
-def test_readiness_success(client, monkeypatch):
+def test_readiness_success(client):
     from api.settings import APISettings, get_settings
-    from src.gymdb.db import db_engine
+    from api.deps import get_db
 
     # Override settings (what the route actually depends on)
     client.app.dependency_overrides[get_settings] = lambda: APISettings(
@@ -48,12 +48,7 @@ def test_readiness_success(client, monkeypatch):
         enable_internal=True,
     )
 
-    # Patch DB connection at infra boundary
-    monkeypatch.setattr(
-        db_engine,
-        "get_connection",
-        lambda *_: FakeDB(),
-    )
+    client.app.dependency_overrides[get_db] = lambda: FakeDB()
 
     resp = client.get("/readyz")
     assert resp.status_code == 200
@@ -77,9 +72,9 @@ class BrokenDB:
     def __exit__(self, exc_type, exc, tb):
         return False
 
-def test_readiness_failure(client, monkeypatch):
+def test_readiness_failure(client):
     from api.settings import APISettings, get_settings
-    from src.gymdb.db import db_engine
+    from api.deps import get_db
 
     client.app.dependency_overrides[get_settings] = lambda: APISettings(
         postgres_dsn="postgresql://test",
@@ -90,11 +85,7 @@ def test_readiness_failure(client, monkeypatch):
         enable_internal=True,
     )
 
-    monkeypatch.setattr(
-        db_engine,
-        "get_connection",
-        lambda *_: BrokenDB(),
-    )
+    client.app.dependency_overrides[get_db] = lambda: BrokenDB()
 
     resp = client.get("/readyz")
     assert resp.status_code == 503

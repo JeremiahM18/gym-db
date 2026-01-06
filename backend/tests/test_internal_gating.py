@@ -14,8 +14,11 @@ def test_internal_enabled_admin_allowed(client, monkeypatch):
 
     from api.main import app
     from api.auth.dependencies import require_admin
+    from api.deps import get_db
+    from tests.test_health import FakeDB
 
     app.dependency_overrides[require_admin] = lambda: {"sub": "admin", "cognito:groups": ["admin"]}
+    app.dependency_overrides[get_db] = lambda: FakeDB()
 
     resp = client.get("/internal/status")
     assert resp.status_code == 200

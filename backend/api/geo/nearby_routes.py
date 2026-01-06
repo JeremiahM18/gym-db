@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 
-from src.gymdb.db.db_engine import get_connection
 from src.gymdb.db.queries import get_nearby_gyms
 from src.gymdb.db.errors import DatabaseError
 
@@ -20,21 +19,20 @@ def nearby_gyms(
     lon: float = Query(..., ge=-180, le=180),
     radius_m: int = Query(1_000, ge=1, le=100_000),
     limit: int = Query(50, ge=1, le=100),
+    db = Depends(get_db)
 ):
     """
     Find gyms near a geographic point.
     Uses PostGIS for distance calculations.
     """
     try:
-        with get_connection() as conn:
-
-            gyms = get_nearby_gyms(
-                conn,
-                lat=lat,
-                lon=lon,
-                radius_m=radius_m,
-                limit=limit,
-            )
+        gyms = get_nearby_gyms(
+            db,
+            lat=lat,
+            lon=lon,
+            radius_m=radius_m,
+            limit=limit,
+        )
     except DatabaseError as exc:
         raise db_error_to_http(exc)
     

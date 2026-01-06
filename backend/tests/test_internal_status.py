@@ -1,7 +1,7 @@
-from fastapi.testclient import TestClient
 from api.main import app
 from api.settings import APISettings, get_settings
 from api.auth.dependencies import require_admin
+from api.deps import get_db
 
 
 class FakeResult:
@@ -35,7 +35,7 @@ class FakeDB:
 
 def test_internal_status(client, monkeypatch):
     # Enable internal routes
-    monkeypatch.setenv("GYMDB_ENABLE_INTERNAL", "true")
+    monkeypatch.setenv("ENABLE_INTERNAL", "true")
 
     # Override admin auth
     from api.auth.dependencies import require_admin
@@ -53,13 +53,7 @@ def test_internal_status(client, monkeypatch):
         enable_internal=True,
     )
 
-    # Patch DB connection at the lowest level
-    from src.gymdb.db import db_engine
-    monkeypatch.setattr(
-        db_engine,
-        "get_connection",
-        lambda *_: FakeDB(),
-    )
+    app.dependency_overrides[get_db] = lambda: FakeDB()
 
     resp = client.get("/internal/status")
     assert resp.status_code == 200

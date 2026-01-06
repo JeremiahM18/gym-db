@@ -1,15 +1,22 @@
 from __future__ import annotations
 
+import logging
+from typing import Optional
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import text
-
+from sqlalchemy import Connection
 
 from api.auth.dependencies import require_admin
 from api.auth.internal import require_internal_enabled
-from src.gymdb.db.db_engine import get_connection
+from api.deps import get_db
+
 from src.gymdb.domain import INFERRED
 
+logger = logging.getLogger("gymdb")
 router = APIRouter()
+
+
 
 @router.get(
     "/status", 
@@ -20,51 +27,46 @@ router = APIRouter()
         ],
 )
 
-@router.get("/status")
-def internal_status():
+#@router.get("/status")
+def internal_status(db: Connection = Depends(get_db)):
     """
     Internal system health and sanity check.
-    Not part of the public API contract.
     """
-    with get_connection() as db:
-        # Database reachability
-        try:
-            db.execute(text("SELECT 1"))
-            db_ok = True
-        except Exception:
-            db_ok = False
 
-        # PostGIS check
-        try:
-            postgis = (
-                db.execute(
-                text("SELECT PostGIS_Version()"))
-                .scalar() is not None
-            )
-        except Exception:
-            postgis = False
+    db_ok = False
+    postgis = False
+    gyms_count = None
 
-        # Gym count
-        try:
-            gyms_count = (
-                db.execute(
-                text("SELECT COUNT(*) FROM gyms"))
-                .scalar()
+    try:
+        db.execute(text("SELECT 1"))
+        db_ok = True
+
+        postgis = (
+            db.execute(
+            text("SELECT PostGIS_Version()"))
+            .scalar() is not None
         )
-        except Exception:
-            gyms_count = None
 
-        # Inference rules
-        rules_loaded = len(INFERRED)
+        gyms_count = (
+            db.execute(
+            text("SELECT COUNT(*) FROM gyms"))
+            .scalar()
+        )
+    except Exception:
+            logger.exception("Internal status database checks failed")
 
-        return {
-            "status": "ok" if db_ok else "degraded",
-            "database": {
-                "reachable": db_ok,
-                "postgis_enabled": postgis,
-                "gyms_count": gyms_count,
-            },
-            "inference": {
-                "rules_loaded": rules_loaded
-            },
-        }
+    # Inference rules
+    rules_loaded = len(INFERRED)
+
+    return {
+        "status": "ok" if db_ok else "degraded",
+        "database": {
+            "reachable": db_ok,
+            "postgis_enabled": postgis,
+            "gyms_count": gyms_count,
+        },
+        "inference": {
+            "rules_loaded": rules_loaded
+        },
+    }
+    

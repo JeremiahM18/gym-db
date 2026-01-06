@@ -7,9 +7,8 @@ class GymStoreProtocol(Protocol):
             self,
             *,
             region, str,
-            min_conf: float | None,
-            limit: int,
-            offset: int,
+            limit: int = ...,
+            offset: int = ...,
     ) -> list[dict]: ...
 
 

@@ -3,7 +3,7 @@ def serialize_gym_embedding_v2(gym: dict, *, region: str) -> dict:
         "id": gym["id"],
         "name": gym["name"],
         "region": region,
-        "embedding_text": build_gym_embedding_test(gym),
+        "embedding_text": build_gym_embedding_text(gym),
         "inference": [
             {
                 "key": k,
@@ -19,7 +19,7 @@ def serialize_gym_embedding_v2(gym: dict, *, region: str) -> dict:
     }
 
 
-def build_gym_embedding_test(gym: dict) -> str:
+def build_gym_embedding_text(gym: dict) -> str:
     """
     Deterministic, stable text representation of a gym.
     This string is what gets embedded.

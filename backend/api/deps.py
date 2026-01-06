@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 from fastapi import HTTPException, status
+
+from typing import Generator
 from sqlalchemy.engine import Connection
 
 from src.gymdb.db.db_engine import get_connection
@@ -13,12 +15,15 @@ from src.gymdb.gyms.store import GymStore
 
 # Core application dependencies
 
-def get_db() -> Connection:
+def get_db() -> Generator[Connection, None, None]:
     """
     FastAPI dependency providing a DB connection.
     """
-    return get_connection()
-
+    conn = get_connection()
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 def get_gym_store() -> GymStore:
     """

@@ -1,0 +1,12 @@
+{
+  "created_at": "2026-01-06T13:08:02.560520+00:00",
+  "error": null,
+  "finished_at": null,
+  "job_id": "268ed3e1598440a4b13578c15c1a3aa3",
+  "kind": "ingest",
+  "metrics": {},
+  "mode": "manual",
+  "region": "us",
+  "started_at": null,
+  "status": "queued"
+}

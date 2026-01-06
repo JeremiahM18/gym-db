@@ -27,7 +27,7 @@ async def request_logging_middleware(request: Request, call_next):
         raise
     finally:
         elapsed_ms = (time.perf_counter() - start) * 1000.0
-        status = getattr(response, "status_code", 500)
+        status = response.status_code if response else 500
 
         logger.info(
             "request",

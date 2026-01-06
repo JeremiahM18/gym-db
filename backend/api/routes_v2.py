@@ -76,10 +76,12 @@ def list_gym_embeddings_v2(
 ):
     region = region or store.default_region
 
-    gyms = get_gym_by_id(
+    gyms = list_gyms(
         store=store,
         region=region,
-        gym_id=id,
+        min_conf=None,
+        limit=500,
+        offset=0,
     )
 
     results = []
@@ -108,7 +110,7 @@ def get_gym_v2(
 ):
     region = region or store.default_region
 
-    gym = store.get_by_id(store, region, gym_id)
+    gym = store.get_by_id(region, gym_id)
     if gym is None:
         raise HTTPException(status_code=404, detail="Gym not found")
     

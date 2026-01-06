@@ -1,36 +1,71 @@
 from __future__ import annotations
 
-from sqlalchemy import insert, select, update
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from src.gymdb.db.db_engine import get_connection
+from sqlalchemy import insert, select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.engine import Connection
+
 from src.gymdb.db.models.job_receipt import job_receipts
 from src.gymdb.jobs.receipt import JobReceipt
 from src.gymdb.jobs.status import ALLOWED_TRANSITIONS
 
 
+# Domain-level errors
+
+class JobReceiptError(Exception):
+    """Base class for job receipt store errors."""
+
+
+class JobReceiptNotFound(JobReceiptError):
+    """Raised when a job receipt cannot be found."""
+
+    def __init__(self, job_id: str):
+        super().__init__(f"JobReceipt not found: {job_id}")
+        self.job_id = job_id
+
+
+class InvalidJobStatusTransition(JobReceiptError):
+    """Raised when an invalid lifecycle transition is attempted."""
+
+    def __init__(self, prev_status: str, new_status: str):
+        super().__init__(f"Invalid status transition from {prev_status} to {new_status}")
+        self.prev_status = prev_status
+        self.new_status = new_status
+
+
+# Store implementation
+
+@dataclass(frozen=True)
 class JobReceiptStoreDB:
     """
     Persistent store for JobReceipts.
 
-    Public contract used by routes and tests:
-    - create(): insert only (fail if exists)
-    - save(): upsert-like behavior (legacy compatibility)
-    - get(): fetch by job_id
-    - list_recent(): list recent receipts
-    - update_status(): update status with lifecycle enforcement
+    Design guarantees:
+    - connection is injected (no hidden global get_connection())
+    - caller owns transaction boundaries (use `engine.begin()` outside)
+    - errors are explicit and semantic (easy to map to HTTP)
+    - update lifecycle rules enforced via ALLOWED_TRANSITIONS
     """
+
+    conn: Connection
+
+    # Writes
 
     def  save(self, receipt: JobReceipt) -> None:
         """
         Idempotent write:
-        - Insert if new
-        - Update if existing
+        - insert if new
+        - update if existing (upsert)
+
+        Notes:
+        - this is safe for retries
+        - caller should wrap in a transaction if multiple writes must be atomic
         """
-        assert isinstance(receipt.stats, dict)
+        if not isinstance(receipt.stats, dict):
+            raise TypeError("receipt.stats must be a dict")
 
         stmt = (
             pg_insert(job_receipts)
@@ -58,18 +93,18 @@ class JobReceiptStoreDB:
             )
         )
 
-        conn = get_connection()
-        conn.execute(stmt)
+        self.conn.execute(stmt)
 
     def create(self, receipt: JobReceipt) -> None:
         """
-        Strict insert. Use when you *expect* it not to exist already.
+        Strict insert:
+        - intended when you expect it NOT to exit already
+        - if it exits, the DB should raise integrity error
         """
-        assert isinstance(receipt.stats, dict)
+        if not isinstance(receipt.stats, dict):
+            raise TypeError("receipt.stats must be a dict")
 
-
-        conn = get_connection()
-        conn.execute(
+        self.conn.execute(
             insert(job_receipts).values(
                 job_id=receipt.job_id,
                 region=receipt.region,
@@ -94,20 +129,19 @@ class JobReceiptStoreDB:
         Update job status with lifecycle enforcement.
 
         Enterprise rules:
-        - Same-status updates are idempotent NO-OP
-        - Transition graph enforced only when status actually changes
-        - Stats are optional, update only when provided
+        - same-status updates are idempotent NO-OP
+        - transition graph enforced only when status actually changes
+        - finished_at / stats can be updated even if status doesn't change
         """
-        conn = get_connection()
 
-        row = conn.execute(
+        row = self.conn.execute(
             select(job_receipts.c.status).where(
                 job_receipts.c.job_id == job_id
             )
         ).first()
              
         if row is None:
-            raise KeyError(job_id)
+            raise JobReceiptNotFound(job_id)
             
         prev_status: str = row[0]
 
@@ -121,28 +155,28 @@ class JobReceiptStoreDB:
                 values["stats"] = stats
 
             if values:
-                conn.execute(
+                self.conn.execute(
                     update(job_receipts)
                     .where(job_receipts.c.job_id == job_id)
                     .values(**values)
                 )
             return
 
-        # Enforce lifecycle rules
+        # Enforce lifecycle rules (only on actual change)
         allowed = ALLOWED_TRANSITIONS.get(prev_status, set())
         if new_status not in allowed:
-                raise ValueError(
-                    f"Invalid status transition from {prev_status} to {new_status}"
-                )
+                raise InvalidJobStatusTransition(prev_status, new_status)
             
-        values: dict[str, Any] = {
-            "status": new_status,
-            "finished_at": finished_at,
-        }
+        values: dict[str, Any] = {"status": new_status}
+
+        # finished_at can be null for intermediate statuses
+        values["finished_at"] = finished_at
+
+
         if stats is not None:
             values["stats"] = stats
 
-        conn.execute(
+        self.conn.execute(
             update(job_receipts)
             .where(job_receipts.c.job_id == job_id)
             .values(
@@ -150,16 +184,18 @@ class JobReceiptStoreDB:
             )
         )
 
+    # Reads
+
     def get(self, job_id: str) -> JobReceipt:
 
-        conn = get_connection()
-        row = conn.execute(
+        row = self.conn.execute(
             select(job_receipts).where(
                 job_receipts.c.job_id == job_id
             )
         ).mappings().first()
+
         if row is None:
-            raise KeyError(job_id)
+            raise JobReceiptNotFound(job_id)
 
         return JobReceipt(
             job_id=row["job_id"],
@@ -174,8 +210,7 @@ class JobReceiptStoreDB:
 
     def list_recent(self, limit: int = 25) -> list[JobReceipt]:
 
-        conn = get_connection()
-        rows = conn.execute(
+        rows = self.conn.execute(
             select(job_receipts)
             .order_by(job_receipts.c.created_at.desc())
             .limit(limit)
@@ -195,6 +230,7 @@ class JobReceiptStoreDB:
             for r in rows
         ]
     
+    # Backwards-compatibility
     def list_receipts(self, limit: int) -> list[JobReceipt]:
         return self.list_recent(limit=limit)
     
