@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
 
 from api.debug_routes import router as debug_router
 from api.observability import request_logging_middleware
@@ -45,6 +46,53 @@ app = FastAPI(
         {"name": "internal", "description": "Administrative and ops endpoints"},
     ],
 )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(
+    request: Request,
+    exc: HTTPException,
+):
+    """
+    Global HTTP exception handler.
+
+    This enforces a stable error response shape for all API consumers.
+    """
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": exc.status_code,
+                "message": (
+                    exc.detail
+                    if isinstance(exc.detail, (dict, list))
+                    else {"detail": exc.detail}
+                )
+            }
+        },
+    )
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(
+    request: Request,
+    exc: Exception,
+):
+    """
+    Catch-all handler for unexpected server errors.
+    """
+    logging.getLogger("gymdb").exception(
+        "Unhandled exception",
+        extra={"path": request.url.path},
+    )
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": {
+                "code": "INTERNAL_SERVER_ERROR",
+                "message": "Internal server error",
+            }
+        },
+    )
 
 # Logging
 

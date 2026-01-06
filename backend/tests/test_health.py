@@ -90,9 +90,16 @@ def test_readiness_failure(client):
     resp = client.get("/readyz")
     assert resp.status_code == 503
 
-    data = resp.json()["detail"]
-    assert data["ready"] is False
-    assert data["checks"]["database"] is False
+    error = resp.json()["error"]
+    assert error["code"] == 503
+
+    detail = error["message"]
+    assert detail["ready"] is False
+    assert detail["checks"]["database"] is False
+
+    # data = resp.json()["detail"]
+    # assert data["ready"] is False
+    # assert data["checks"]["database"] is False
 
     client.app.dependency_overrides.clear()
 

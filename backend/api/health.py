@@ -36,6 +36,18 @@ def readyz(db: Connection = Depends(get_db)):
     Confirms external dependencies (DB + extension + schema) are available.
 
     Returns 503 when NOT ready.
+
+    503 responses are returned using the global error envelope:
+    
+    {
+        "error": {
+            "code": 503,
+            "message": {
+                "ready": false,
+                "checks": {...}
+            }
+        }
+    }
     """
     try:
         checks = {
