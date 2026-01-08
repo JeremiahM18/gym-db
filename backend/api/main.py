@@ -110,7 +110,10 @@ app.middleware("http")(request_logging_middleware)
 # Public API
 app.include_router(nearby_router)
 app.include_router(v2_router)
-app.include_router(metrics_router)
+app.include_router(
+    metrics_router,
+    include_in_schema=False,
+)
 
 # Internal / ops (fully gated)
 app.include_router(
@@ -118,8 +121,14 @@ app.include_router(
     prefix="/internal",
     tags=["internal"],
 )
-app.include_router(jobs_router)
+app.include_router(
+    jobs_router,
+    include_in_schema=False,
+)
 
 # Infra
 app.include_router(health_router)
-app.include_router(debug_router)
+app.include_router(
+    debug_router,
+    include_in_schema=False,
+)

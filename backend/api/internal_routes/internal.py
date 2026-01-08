@@ -20,6 +20,7 @@ router = APIRouter()
 
 @router.get(
     "/status", 
+    include_in_schema=False,
     tags=["internal"], 
     dependencies=[ 
         Depends(require_internal_enabled), 

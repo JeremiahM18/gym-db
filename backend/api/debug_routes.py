@@ -17,6 +17,7 @@ from src.gymdb.observe.metrics import snapshot_metrics
 router = APIRouter(
     prefix="/debug", 
     tags=["debug"],
+    include_in_schema=False,
     dependencies=[
         Depends(require_internal_enabled),
         Depends(require_admin),
@@ -85,7 +86,10 @@ def debug_inference_diff(payload: dict) -> dict:
         "diff": diff_inference(before, after)
     }
 
-@router.get("/metrics")
+@router.get(
+    "/metrics",
+    include_in_schema=False,
+)
 def debug_metrics():
     """
     Snapshot inference metrics.
