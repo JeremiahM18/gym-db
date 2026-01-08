@@ -15,3 +15,6 @@ __pychache__/
 
 # Data outputs
 data/*.json
+
+# Generated OpenAPI spec
+openapi.json
