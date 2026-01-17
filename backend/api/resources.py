@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from src.gymdb.datasets.registry import DatasetRegistry
-from src.gymdb.gyms.store import GymStore
+from gymdb.gyms.store_dataset import GymStore
 from api.settings import APISettings
 
 

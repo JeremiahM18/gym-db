@@ -1,6 +1,8 @@
+from __future__ import annotations
 
 from pathlib import Path
 from functools import lru_cache
+
 from pydantic_settings import BaseSettings
 
 class APISettings(BaseSettings):
@@ -13,16 +15,22 @@ class APISettings(BaseSettings):
     - operational feature flags
     """
 
+    # Filesystem / registry
     registry_path: Path = Path("data/registry.json")
+    dataset_root: Path = Path("data")
 
-    # Auth
-    aws_region: str
-    cognito_user_pool_id: str
-    cognito_app_client_id: str
-    cognito_issuer: str
+    # Database
+    postgres_dsn: str = "postgresql+psycopg://gymdb:gymdb@localhost:5432/gymdb"
 
-    # Ops
+    # Auth (Cognito)
+    aws_region: str = "us-east-1"
+    cognito_user_pool_id: str = "dev"
+    cognito_app_client_id: str = "dev"
+    cognito_issuer: str = "https://example.com"
+
+    # Ops flags
     enable_internal: bool = False
+    enable_dev_auth_bypass: bool = False
 
     model_config = {
         "env_file": ".env",
@@ -33,6 +41,10 @@ class APISettings(BaseSettings):
 def get_settings() -> APISettings:
     """
     Cached API settings dependency.
+
+    NOTE:
+    In tests, override this dependency avoid leaking env state:
+        app.dependency_overrides[get_settings] = lambda: APISettings(...)
     """
     return APISettings()
 

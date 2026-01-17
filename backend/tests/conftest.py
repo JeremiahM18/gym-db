@@ -13,8 +13,9 @@ from src.gymdb.inference import apply_inference
 from api.main import app
 from api.deps import get_gym_store
 from api.auth.dependencies import require_user
+from api.settings import APISettings, get_settings
 
-from src.gymdb.gyms.store import GymStore
+from src.gymdb.gyms.store_postgres import PostgresGymStore
 
 # Fake Gym Store
 
@@ -35,13 +36,11 @@ class FakeGymStore:
                 "name": "Test Gym",
                 "norm_name": "test_gym",
                 "region": "us",
-
                 "lat": 36.1627,
                 "lon": -86.7816,
                 "osm_refs": [
                     {"type": "node", "id": 123456}
                 ],
-
                 "inference": {
                     "is_24_7": {
                         "value": True,
@@ -68,13 +67,42 @@ class FakeGymStore:
 def client():
     """
     Default API client with deterministic gym data.
-    Used by API v2 + embedding tests.
+    Auth is NOT bypassed here.
     """
     app.dependency_overrides[get_gym_store] = lambda: FakeGymStore()
 
     yield TestClient(app)
 
-    app.dependency_overrides.clear()
+    app.dependency_overrides.pop(get_gym_store, None)
+
+
+@pytest.fixture()
+def override_auth():
+    """
+    Explicitly bypass authentication for test that require a "logged in" user.
+    """
+    app.dependency_overrides[require_user] = lambda: {"sub": "test-user"}
+    yield
+    app.dependency_overrides.pop(require_user, None)
+
+
+@pytest.fixture()
+def disable_dev_auth_bypass():
+    """
+    Guarantee dev auth bypass is OFF during test unless explicity overridden.
+    Prevents accidental 200 responses without Authorization header.
+    """
+    app.dependency_overrides[get_settings] = lambda: APISettings(
+        postgres_dsn="postgresql+psycopg://test",
+        aws_region="test",
+        cognito_user_pool_id="test",
+        cognito_app_client_id="test",
+        cognito_issuer="https://example.com",
+        enable_internal=True,
+        enable_dev_auth_bypass=False,       # IMPORTANT
+    )
+    yield
+    app.dependency_overrides.pop(get_settings, None)
 
 # Domain / Inference Fixtures
 
@@ -101,15 +129,6 @@ def infer():
     Inference application fixture.
     """
     return apply_inference
-
-@pytest.fixture()
-def override_auth():
-    """
-    Bypass authentication for API tests.
-    """
-    app.dependency_overrides[require_user] = lambda: {"sub": "test-user"}
-    yield
-    app.dependency_overrides.clear()
 
 # Database Integration Fixture
 

@@ -7,8 +7,8 @@ from api.main import app
 from api.deps import get_gym_store
 from api.auth.dependencies import require_user
 
-from gymdb.infer.result import InferenceResult
-from src.gymdb.gyms.store import GymStore
+from src.gymdb.infer.result import InferenceResult
+from src.gymdb.gyms.store_dataset import GymStore
 
 # Fake Gym Store
 
@@ -70,4 +70,4 @@ def test_store_dependency_override(override_auth):
     data = resp.json()
     assert data["results"][0]["id"] == "fake-gym"
 
-    app.dependency_overrides.clear()
+    app.dependency_overrides.pop(require_user, None)

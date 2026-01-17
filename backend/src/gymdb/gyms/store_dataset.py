@@ -2,20 +2,28 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Iterable
+
 
 from src.gymdb.datasets.registry import DatasetRegistry
 
 
-class GymStore:
+class DatasetGymStore:
     """
-    Deterministic, read-only data access layer for gym datasets.
+    Read-only store backed by static JSON datasets.
 
-    Invariants:
-    - Does NOT know about FastAPI
-    - Does NOT know about auth
-    - Does NOT apply inference or normalization
-    - Only loads and filters raw gym records
+    Purpose:
+    - Bootstrap ingestion
+    - Offline processing
+    - One-time data loads
+
+    NOT USED by:
+    - FastAPI routes
+    -Runtime API requests
+
+    Contract:
+    - Deterministic reads from disk
+    - No mutation / no writes
+    - Region must resolve to a known dataset path
     """
 
     def __init__(self, registry: DatasetRegistry):
@@ -28,6 +36,12 @@ class GymStore:
     
     def _load_dataset(self, region: str) -> list[dict]:
         path = self._registry.dataset_path(region)
+
+        if not path.exists():
+            raise FileNotFoundError(
+                f"Dataset not found for region `{region}`: {path}"
+            )
+        
         return json.loads(path.read_text(encoding="utf-8"))
     
 
@@ -51,7 +65,11 @@ class GymStore:
     
     def get_by_id(self, region: str, gym_id: str) -> dict | None:
         gyms = self._load_dataset(region)
+
         for g in gyms:
             if g.get("id") == gym_id:
                 return g
+            
         return None
+    
+GymStore = DatasetGymStore

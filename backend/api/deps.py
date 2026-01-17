@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
 
 from typing import Generator
 from sqlalchemy.engine import Connection
@@ -10,7 +10,8 @@ from src.gymdb.db.db_engine import get_connection
 from src.gymdb.db.errors import DatabaseUnavailable, QueryFailed
 
 from src.gymdb.datasets.registry import DatasetRegistry
-from src.gymdb.gyms.store import GymStore
+#from src.gymdb.gyms.store_dataset import DatasetGymStore
+from src.gymdb.gyms.store_postgres import PostgresGymStore
 
 
 # Core application dependencies
@@ -25,7 +26,9 @@ def get_db() -> Generator[Connection, None, None]:
     finally:
         conn.close()
 
-def get_gym_store() -> GymStore:
+def get_gym_store(
+        conn: Connection = Depends(get_db),
+) -> PostgresGymStore:
     """
     Application-level dependency for gym data access.
 
@@ -33,10 +36,11 @@ def get_gym_store() -> GymStore:
     - DatasetRegistry is constructed
     - Filesystem paths are referenced
     """
-    registry = DatasetRegistry(
-        Path("data/registry.json")
-    ).load()
-    return GymStore(registry)
+    return PostgresGymStore(conn)
+    # registry = DatasetRegistry(
+    #     Path("data/registry.json")
+    # ).load()
+    # return GymStore(registry)
 
 # Error translation (DB -> HTTP)
 

@@ -10,7 +10,23 @@ def require_user(
     creds: HTTPAuthorizationCredentials = Depends(security),
     settings: APISettings = Depends(get_settings),
 ) -> dict:
+    """
+    Require a valid authenticated user.
+
+    Contract:
+    - Missing Authorization header -> 401 (unless bypass)
+    - Invalid/ expired token -> 401
+    - Returns JWT claims dict on success
+    """
     if not creds:
+        if settings.enable_dev_auth_bypass:
+            return {
+                "sub": "dev-user",
+                "email": "dev@gymdb.local",
+                "cognito:groups": ["admin"],
+                "dev": True,
+            }
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing Authorization header",
@@ -27,6 +43,9 @@ def require_user(
 def require_admin(
     claims: dict = Depends(require_user),
 ) -> dict:
+    """
+    Require an authenticated user with admin group membership.
+    """
     groups = claims.get("cognito:groups", [])
     if "admin" not in groups:
         raise HTTPException(

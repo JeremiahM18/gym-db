@@ -37,12 +37,13 @@ def test_internal_requires_admin(monkeypatch):
     from api.auth.dependencies import require_user
     app.dependency_overrides[require_user] = lambda: {"sub": "user"}
 
-    client = TestClient(app)
-    resp = client.post("/internal/jobs/ingest")
-
-    assert resp.status_code == 403
-
-    app.dependency_overrides.clear()
+    try:
+        client = TestClient(app)
+        resp = client.post("/internal/jobs/ingest")
+        assert resp.status_code == 403
+    finally:
+        app.dependency_overrides.pop(require_user, None)
+        monkeypatch.delenv("ENABLE_INTERNAL", raising=False)
 
 
 def test_internal_jobs_ingest_admin_allowed(monkeypatch):
@@ -60,16 +61,19 @@ def test_internal_jobs_ingest_admin_allowed(monkeypatch):
     app.dependency_overrides[get_ingest_fn] = lambda: fake_ingest
     app.dependency_overrides[get_receipt_store] = lambda: FakeReceiptStore()
 
-    client = TestClient(app)
-    resp = client.post("/internal/jobs/ingest")
+    try:
+        client = TestClient(app)
+        resp = client.post("/internal/jobs/ingest")
 
-    assert resp.status_code == 200
-
-    data = resp.json()
-    assert "job_id" in data
-    assert data["status"] == "succeeded"
-
-    app.dependency_overrides.clear()
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "job_id" in data
+        assert data["status"] == "succeeded"
+    finally:
+        app.dependency_overrides.pop(require_admin, None)
+        app.dependency_overrides.pop(get_ingest_fn, None)
+        app.dependency_overrides.pop(get_receipt_store, None)
+        monkeypatch.delenv("ENABLE_INTERNAL", raising=False)
 
 def test_job_receipt_deterministic_hash_stable():
     from src.gymdb.jobs.receipt import JobReceipt

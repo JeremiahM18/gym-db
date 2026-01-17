@@ -7,7 +7,7 @@ from api.auth.dependencies import require_admin
 from api.auth.internal import require_internal_enabled
 
 from api.deps import get_gym_store
-from src.gymdb.gyms.store import GymStore
+from src.gymdb.gyms.store_postgres import PostgresGymStore
 
 from src.gymdb.domain import INFERRED
 from src.gymdb.observe.summaries import summarize_inference
@@ -32,7 +32,7 @@ router = APIRouter(
 def debug_gym_inference(
     gym_id: str,
     region: str | None = None,
-    store: GymStore = Depends(get_gym_store),
+    store: PostgresGymStore = Depends(get_gym_store),
 ):
     """
     Debug-only endpoint exposing raw inference data for a gym.

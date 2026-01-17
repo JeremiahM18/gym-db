@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from src.gymdb.gyms.store import GymStore
+from gymdb.gyms.store_postgres import PostgresGymStore
 from src.gymdb.processing import haversine_meters
 from src.gymdb.domain import (
     CONFIDENCE_SCORE,
@@ -27,7 +27,7 @@ def _infer_value(gym: dict, key: str):
 
 def list_gyms(
         *,
-        store: GymStore,
+        store: PostgresGymStore,
         region: str,
         min_conf: float | None = None,
         tier: str | None = None,
@@ -76,7 +76,7 @@ def list_gyms(
 
 def get_gym_by_id(
         *,
-        store: GymStore,
+        store: PostgresGymStore,
         region: str,
         gym_id: str,
 ) -> dict | None:
