@@ -1,6 +1,6 @@
-from src.gymdb.models import Gym
-from src.gymdb.inference import apply_inference
-from src.gymdb.domain import (
+from gymdb.models import Gym
+from gymdb.inference import apply_inference
+from gymdb.domain import (
     IS_24_7, LIFTER_FRIENDLY, PREMIUM_SCORE
 )
 

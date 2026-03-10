@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from src.gymdb.jobs.queries import get_job_receipt, list_job_receipts
-from src.gymdb.jobs.receipt import JobReceipt
-from src.gymdb.jobs.receipt_store import JobReceiptStoreDB
-from src.gymdb.db.db_engine import get_engine
+from gymdb.jobs.queries import get_job_receipt, list_job_receipts
+from gymdb.jobs.receipt import JobReceipt
+from gymdb.jobs.receipt_store import JobReceiptStoreDB
+from gymdb.db.db_engine import get_engine
 
 
 def test_queries_round_trip(db_session):

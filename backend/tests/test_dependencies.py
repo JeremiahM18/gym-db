@@ -7,8 +7,8 @@ from api.main import app
 from api.deps import get_gym_store
 from api.auth.dependencies import require_user
 
-from src.gymdb.infer.result import InferenceResult
-from src.gymdb.gyms.store_dataset import GymStore
+from gymdb.infer.result import InferenceResult
+from gymdb.gyms.store_dataset import GymStore
 
 # Fake Gym Store
 

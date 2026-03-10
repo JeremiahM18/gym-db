@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
-from src.gymdb.db.errors import DatabaseUnavailable, QueryFailed
+
 
 def check_database(db: Connection) -> bool:
     """
@@ -14,6 +14,7 @@ def check_database(db: Connection) -> bool:
     except Exception:
         return False
 
+
 def check_postgis(db: Connection) -> bool:
     """
     Verify PostGIS extension is available.
@@ -24,14 +25,13 @@ def check_postgis(db: Connection) -> bool:
     except Exception:
         return False
 
+
 def check_schema(db: Connection) -> bool:
     """
     Verify required schema objects exist.
     """
     try:
-        result = db.execute(
-            text("SELECT COUNT(*) FROM gyms")
-        )
+        result = db.execute(text("SELECT COUNT(*) FROM gyms"))
         return result.scalar() is not None
     except Exception:
         return False

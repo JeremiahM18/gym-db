@@ -4,8 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.gymdb.settings import settings
-from src.gymdb.db.errors import DatabaseUnavailable
+from gymdb.settings import settings
+from gymdb.db.errors import DatabaseUnavailable
 
 _engine: Engine | None = None
 _test_connection: Connection | None = None

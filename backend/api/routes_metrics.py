@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from src.gymdb.observe.metrics import snapshot_metrics
+
+from gymdb.observe.metrics import snapshot_metrics
 
 router = APIRouter(tags=["metrics"])
 

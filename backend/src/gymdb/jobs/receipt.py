@@ -6,7 +6,7 @@ import hashlib
 import json
 from typing import Dict, Any
 
-from src.gymdb.jobs.status import ALLOWED_TRANSITIONS
+from gymdb.jobs.status import ALLOWED_TRANSITIONS
 
 
 @dataclass

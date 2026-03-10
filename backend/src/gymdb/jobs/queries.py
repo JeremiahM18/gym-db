@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from src.gymdb.jobs.receipt import JobReceipt
-from src.gymdb.jobs.receipt_store import JobReceiptStoreDB
+from gymdb.jobs.receipt import JobReceipt
+from gymdb.jobs.receipt_store import JobReceiptStoreDB
 
 
 def get_job_receipt(job_id: str, *, store: JobReceiptStoreDB) -> JobReceipt:

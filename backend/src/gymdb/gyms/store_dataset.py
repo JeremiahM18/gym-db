@@ -1,24 +1,18 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
-
-from src.gymdb.datasets.registry import DatasetRegistry
+from gymdb.datasets.registry import DatasetRegistry
 
 
 class DatasetGymStore:
     """
-    Read-only store backed by static JSON datasets.
+    Read-only store backed by published JSON dataset artifacts.
 
     Purpose:
-    - Bootstrap ingestion
-    - Offline processing
-    - One-time data loads
-
-    NOT USED by:
-    - FastAPI routes
-    -Runtime API requests
+    - Serve the read-only public API
+    - Support offline inspection of deterministic read models
+    - Keep published datasets separate from physical DB facts
 
     Contract:
     - Deterministic reads from disk
@@ -29,11 +23,10 @@ class DatasetGymStore:
     def __init__(self, registry: DatasetRegistry):
         self._registry = registry
 
-    
     @property
     def default_region(self) -> str:
         return self._registry.default_region
-    
+
     def _load_dataset(self, region: str) -> list[dict]:
         path = self._registry.dataset_path(region)
 
@@ -41,17 +34,16 @@ class DatasetGymStore:
             raise FileNotFoundError(
                 f"Dataset not found for region `{region}`: {path}"
             )
-        
+
         return json.loads(path.read_text(encoding="utf-8"))
-    
 
     def filter(
-            self,
-            *,
-            region: str,
-            min_conf: float | None = None,
-            limit: int = 100,
-            offset: int = 0,
+        self,
+        *,
+        region: str,
+        min_conf: float | None = None,
+        limit: int = 100,
+        offset: int = 0,
     ) -> list[dict]:
         gyms = self._load_dataset(region)
 
@@ -62,14 +54,15 @@ class DatasetGymStore:
             ]
 
         return gyms[offset : offset + limit]
-    
+
     def get_by_id(self, region: str, gym_id: str) -> dict | None:
         gyms = self._load_dataset(region)
 
         for g in gyms:
             if g.get("id") == gym_id:
                 return g
-            
+
         return None
-    
+
+
 GymStore = DatasetGymStore
