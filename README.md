@@ -1,12 +1,12 @@
 # GymDB
 
-GymDB is a backend data platform for discovering, normalizing, and enriching gym location data using deterministic geospatial querying and explainable rule-based inference. 
+GymDB is a backend data platform for discovering, normalizing, and enriching gym location data using deterministic geospatial querying and explainable rule-based inference.
 
 GymDB is intentionally designed as a **backend-first system**, not a UI-first product.
 
 The primary goal is to produce clean, auditable, and stable datasets that downstream systems can trust.
 
---- 
+---
 
 ## Why GymDB Exists
 
@@ -89,7 +89,31 @@ This repository is organized by system responsibility:
 - `api/`
   Versioned HTTP interface exposing stable, read-only views over domain outputs.
 
+- `backend/data/`
+  Published dataset artifacts, registries, and non-authoritative operational artifacts used for ingestion and offline inspection.
+
 Each layer is independently testable and intentionally constrained.
+
+---
+
+## Storage Tree
+
+GymDB keeps runtime file storage explicit and boring on purpose.
+
+- `backend/data/registry.json`
+  Region registry describing which dataset artifact belongs to which region.
+
+- `backend/data/*.json`
+  Published deterministic dataset artifacts consumed by the read-only public API.
+
+- `backend/data/artifacts/jobs/`
+  Ephemeral job lifecycle snapshots used for local operational inspection.
+
+- `backend/data/artifacts/receipts/`
+  Optional filesystem copies of job receipts for debugging only.
+
+The database remains authoritative for durable operational receipts.
+Filesystem artifacts are intentionally secondary and replaceable.
 
 ---
 
@@ -98,11 +122,12 @@ Each layer is independently testable and intentionally constrained.
 GymDB is intentionally backend-first and UI-agnostic.
 
 At a high level, the system:
-1. Queries raw gym data using geospatial constraints 
-2. Normalizes & Deduplicates entities 
-3. Scores data quality and reliability 
+1. Queries raw gym data using geospatial constraints
+2. Normalizes & Deduplicates entities
+3. Scores data quality and reliability
 4. Applies deterministic inference rules to enrich records
-5. Exposes results through stable HTTP APIs
+5. Publishes deterministic dataset artifacts
+6. Exposes results through stable HTTP APIs
 
 Each stage is designed to be auditable and reproducible.
 
@@ -340,6 +365,7 @@ Inference, enrichment, and confidence scoring are treated as **derived domain lo
 Instead, GymDB follows a layered approach:
 
 - **Database**: stores physical facts and enforces hard invariants
+- **Published dataset artifacts**: store deterministic read models for the public API
 - **Domain layer**: performs normalization, deduplication, and inference
 - **API layer**: exposes stable, versioned representations
 

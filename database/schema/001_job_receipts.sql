@@ -12,7 +12,7 @@ CREATE TABLE ops.job_receipts (
         CHECK (status IN ('queued', 'running', 'succeeded', 'failed')),
     
     started_at TIMESTAMPTZ NOT NULL,
-    finished_at TIMESTAMPTZ NOT NULL,
+    finished_at TIMESTAMPTZ,
         CHECK (finished_at >= started_at),
     
     stats JSONB NOT NULL,

@@ -1,30 +1,22 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Query, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 
-
-from api.deps import get_gym_store
-from src.gymdb.gyms.store_postgres import PostgresGymStore
-from src.gymdb.gyms.queries import list_gyms, get_gym_by_id
-
-from api.schemas_v2 import (
-    GymResponseV2,
-    GymsListResponseV2,
-    GymEmbeddingV2
-)
-from api.embeddings_views import serialize_gym_embedding_v2
-from api.normalizers import normalize_inference_meta, normalize_inference
 from api.auth.dependencies import require_user
+from api.deps import get_gym_store
+from api.embeddings_views import serialize_gym_embedding_v2
+from api.normalizers import normalize_inference, normalize_inference_meta
+from api.schemas_v2 import GymEmbeddingV2, GymResponseV2, GymsListResponseV2
+from gymdb.gyms.protocol import GymStoreProtocol
+from gymdb.gyms.queries import get_gym_by_id, list_gyms
+from gymdb.observe.summaries import summarize_inference
 
-from src.gymdb.observe.summaries import summarize_inference
 
 # v2 API contract is considered stable
 # Changes require schema + test updates
 
-router = APIRouter(prefix="/v2", tags=["gyms"], dependencies=[Depends(require_user)],)
+router = APIRouter(prefix="/v2", tags=["gyms"], dependencies=[Depends(require_user)])
 
-
-# --- Routes ---
 
 @router.get("/gyms", response_model=GymsListResponseV2)
 def list_gyms_v2(
@@ -32,7 +24,7 @@ def list_gyms_v2(
     min_conf: float | None = Query(None, ge=0.0, le=1.0),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
-    store: PostgresGymStore = Depends(get_gym_store)
+    store: GymStoreProtocol = Depends(get_gym_store),
 ):
     region = region or store.default_region
 
@@ -50,11 +42,7 @@ def list_gyms_v2(
 
         raw = out.pop("inferred", None) or out.get("inference")
         out["inference"] = normalize_inference(raw)
-
-        out["inference_meta"] = normalize_inference_meta(
-            g.get("inference_meta")
-        )
-
+        out["inference_meta"] = normalize_inference_meta(g.get("inference_meta"))
         out["inference_summary"] = summarize_inference(out["inference"])
         results.append(out)
 
@@ -64,7 +52,8 @@ def list_gyms_v2(
         "count": len(results),
         "results": results,
     }
-    
+
+
 @router.get(
     "/gyms/embeddings",
     response_model=list[GymEmbeddingV2],
@@ -72,7 +61,7 @@ def list_gyms_v2(
 )
 def list_gym_embeddings_v2(
     region: str | None = None,
-    store: PostgresGymStore = Depends(get_gym_store),
+    store: GymStoreProtocol = Depends(get_gym_store),
 ):
     region = region or store.default_region
 
@@ -85,45 +74,33 @@ def list_gym_embeddings_v2(
     )
 
     results = []
-    for g in gyms:        
-        inferred = normalize_inference(
-            g.get("inferred") or g.get("inference")
-        )
+    for g in gyms:
+        inferred = normalize_inference(g.get("inferred") or g.get("inference"))
 
         out = dict(g)
-
         out["inference"] = inferred
-        out["inference_meta"] = normalize_inference_meta(
-            g.get("inference_meta")
-        )
-
-        results.append(
-            serialize_gym_embedding_v2(out, region=region)
-        )
+        out["inference_meta"] = normalize_inference_meta(g.get("inference_meta"))
+        results.append(serialize_gym_embedding_v2(out, region=region))
 
     return results
+
 
 @router.get("/gyms/{gym_id}", response_model=GymResponseV2)
 def get_gym_v2(
     gym_id: str,
     region: str | None = None,
-    store: PostgresGymStore = Depends(get_gym_store),
+    store: GymStoreProtocol = Depends(get_gym_store),
 ):
     region = region or store.default_region
 
-    gym = store.get_by_id(region, gym_id)
+    gym = get_gym_by_id(store=store, region=region, gym_id=gym_id)
     if gym is None:
         raise HTTPException(status_code=404, detail="Gym not found")
-    
-    out = dict(gym)
 
+    out = dict(gym)
     raw = out.pop("inferred", None) or out.get("inference")
     out["inference"] = normalize_inference(raw)
-
-    out["inference_meta"] = normalize_inference_meta(
-        gym.get("inference_meta")
-    )
-
+    out["inference_meta"] = normalize_inference_meta(gym.get("inference_meta"))
     out["inference_summary"] = summarize_inference(out["inference"])
 
     return {

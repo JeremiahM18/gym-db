@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Depends, Query
 
-from src.gymdb.db.queries import get_nearby_gyms
-from src.gymdb.db.errors import DatabaseError
-
-from api.deps import get_db, db_error_to_http
-from api.schemas_v2 import GymsNearbyResponseV2, GymNearbyOutV2
+from api.deps import db_error_to_http, get_db
+from api.schemas_v2 import GymNearbyOutV2, GymsNearbyResponseV2
+from gymdb.db.errors import DatabaseError
+from gymdb.db.queries import get_nearby_gyms
 
 router = APIRouter(prefix="/v2/gyms/geo", tags=["gyms"])
+
 
 @router.get(
     "/nearby",
@@ -19,7 +19,7 @@ def nearby_gyms(
     lon: float = Query(..., ge=-180, le=180),
     radius_m: int = Query(1_000, ge=1, le=100_000),
     limit: int = Query(50, ge=1, le=100),
-    db = Depends(get_db)
+    db=Depends(get_db),
 ):
     """
     Find gyms near a geographic point.
@@ -35,7 +35,7 @@ def nearby_gyms(
         )
     except DatabaseError as exc:
         raise db_error_to_http(exc)
-    
+
     api_results = [
         GymNearbyOutV2(
             id=g.id,
@@ -46,7 +46,7 @@ def nearby_gyms(
         )
         for g in gyms
     ]
-    
+
     return {
         "api_version": "v2",
         "count": len(api_results),

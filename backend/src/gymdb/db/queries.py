@@ -3,22 +3,21 @@ from __future__ import annotations
 from typing import Iterable
 
 from sqlalchemy import text
-from sqlalchemy.engine import Engine, Connection
+from sqlalchemy.engine import Connection
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
+from gymdb.db.db_models import GymNearby
+from gymdb.db.errors import DatabaseUnavailable, QueryFailed
 
-from src.gymdb.db.errors import DatabaseUnavailable, QueryFailed
-from src.gymdb.db.db_models import GymNearby
 
 # --- SQL ---
 
 SQL_NEARBY_GYMS = text("""
-    SELECT 
+    SELECT
         g.id,
         g.name,
-        g.normalized_name,
         ST_Y(g.location::geometry) AS lat,
-        ST_X(g.location::geometry) AS lon,        
+        ST_X(g.location::geometry) AS lon,
         ST_Distance(
             g.location,
             ST_MakePoint(:lon, :lat)::geography
@@ -30,13 +29,13 @@ SQL_NEARBY_GYMS = text("""
         :radius_m
     )
     ORDER BY distance_m ASC
-    LIMIT :limit;                       
+    LIMIT :limit;
 """)
 
 SQL_DB_PING = text("SELECT 1 AS ok;")
 
 
-# -- Helpers ---
+# --- Helpers ---
 
 def _execute_scalar(conn: Connection, sql) -> None:
     try:
@@ -45,24 +44,24 @@ def _execute_scalar(conn: Connection, sql) -> None:
         raise DatabaseUnavailable("Database is unavailable") from exc
     except SQLAlchemyError as exc:
         raise QueryFailed("Database query failed") from exc
-    
+
 
 def _execute_query(
-        conn: Connection,
-        sql, 
-        params: dict,
-    ) -> Iterable[dict]:
+    conn: Connection,
+    sql,
+    params: dict,
+) -> Iterable[dict]:
     try:
         return conn.execute(sql, params).mappings().all()
     except OperationalError as exc:
         raise DatabaseUnavailable("Database is unavailable") from exc
     except SQLAlchemyError as exc:
         raise QueryFailed("Database query failed") from exc
-    
+
 
 # --- Public API ---
 
-def ping_db(conn: Connection) ->bool:
+def ping_db(conn: Connection) -> bool:
     """
     Lightweight DB liveness check.
     Intended for health probes.
@@ -70,13 +69,14 @@ def ping_db(conn: Connection) ->bool:
     _execute_scalar(conn, SQL_DB_PING)
     return True
 
+
 def get_nearby_gyms(
-        conn: Connection,
-        *,
-        lat: float,
-        lon: float,
-        radius_m: int,
-        limit: int,
+    conn: Connection,
+    *,
+    lat: float,
+    lon: float,
+    radius_m: int,
+    limit: int,
 ) -> list[GymNearby]:
     """
     Return nearby gyms ordered by distance.

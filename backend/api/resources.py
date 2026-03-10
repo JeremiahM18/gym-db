@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from src.gymdb.datasets.registry import DatasetRegistry
-from gymdb.gyms.store_dataset import GymStore
+from gymdb.datasets.registry import DatasetRegistry
+from gymdb.gyms.store_dataset import DatasetGymStore
+
 from api.settings import APISettings
 
 
@@ -16,13 +17,13 @@ def create_registry(settings: APISettings) -> DatasetRegistry:
     return DatasetRegistry(settings.registry_path).load()
 
 
-def create_store(settings: APISettings) -> GymStore:
+def create_store(settings: APISettings) -> DatasetGymStore:
     """
-    Construct the GymStore for the application.
+    Construct the DatasetGymStore for the application.
 
     Store creation is centralized here so that:
     - deps.py stays simple
     - lifecycle ownership is explicit
     """
     registry = create_registry(settings)
-    return GymStore(registry)
+    return DatasetGymStore(registry)

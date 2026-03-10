@@ -3,7 +3,7 @@
 > This directory documents the **physical storage contract** of GymDB.
 > Anything not explicitly described here is intentionally *not* persisted.
 
-This layer is built on **PostgreSQL + PostGIS** to support durable storage and deterministic geospatial querying. 
+This layer is built on **PostgreSQL + PostGIS** to support durable storage and deterministic geospatial querying.
 
 The database is treated as a **first-class system component**, not an implementation detail. Design priorities include:
 - explicit schemas and migrations
@@ -45,6 +45,7 @@ At this stage:
 
 The database does **not** store inferred attributes or domain interpretations.
 Those remain the responsibility of the domain and inference layers.
+Published dataset artifacts live on disk under `backend/data/` and are treated as a separate read-model concern.
 
 ---
 
@@ -92,14 +93,16 @@ Currently represented concepts include:
     - name and normalized name
     - geographic location `geography(Point, 4326)`
 - spatial indexes to support deterministic nearby queries
+- `ops.job_receipts`: durable operational audit records
 
 The database intentionally does **not** store:
 - inference results
 - confidence scores
 - enriched or derived attributes
 - source interpretation logic
+- public dataset artifact files
 
-These remain derived, reproducible outputs of the domain layer.
+These remain derived, reproducible outputs of the domain layer or filesystem-backed read models.
 
 ---
 
@@ -134,4 +137,5 @@ Schema stability is treated as part of the system's long-term contract.
     - API layer
     - query/storage layer
     - domain and inference logic
+    - filesystem-backed published datasets
 - safe, intentional schema evolution

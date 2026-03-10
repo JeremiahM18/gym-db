@@ -8,12 +8,10 @@ from sqlalchemy import insert, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import Connection
 
-from src.gymdb.db.models.job_receipt import job_receipts
-from src.gymdb.jobs.receipt import JobReceipt
-from src.gymdb.jobs.status import ALLOWED_TRANSITIONS
+from gymdb.db.models.job_receipt import job_receipts
+from gymdb.jobs.receipt import JobReceipt
+from gymdb.jobs.status import ALLOWED_TRANSITIONS
 
-
-# Domain-level errors
 
 class JobReceiptError(Exception):
     """Base class for job receipt store errors."""
@@ -36,8 +34,6 @@ class InvalidJobStatusTransition(JobReceiptError):
         self.new_status = new_status
 
 
-# Store implementation
-
 @dataclass(frozen=True)
 class JobReceiptStoreDB:
     """
@@ -52,18 +48,7 @@ class JobReceiptStoreDB:
 
     conn: Connection
 
-    # Writes
-
-    def  save(self, receipt: JobReceipt) -> None:
-        """
-        Idempotent write:
-        - insert if new
-        - update if existing (upsert)
-
-        Notes:
-        - this is safe for retries
-        - caller should wrap in a transaction if multiple writes must be atomic
-        """
+    def save(self, receipt: JobReceipt) -> None:
         if not isinstance(receipt.stats, dict):
             raise TypeError("receipt.stats must be a dict")
 
@@ -96,11 +81,6 @@ class JobReceiptStoreDB:
         self.conn.execute(stmt)
 
     def create(self, receipt: JobReceipt) -> None:
-        """
-        Strict insert:
-        - intended when you expect it NOT to exit already
-        - if it exits, the DB should raise integrity error
-        """
         if not isinstance(receipt.stats, dict):
             raise TypeError("receipt.stats must be a dict")
 
@@ -118,36 +98,31 @@ class JobReceiptStoreDB:
         )
 
     def update_status(
-            self,
-            *,
-            job_id: str,
-            new_status: str,
-            finished_at: datetime | None = None,
-            stats: dict[str, int],
+        self,
+        *,
+        job_id: str,
+        new_status: str,
+        finished_at: datetime | None = None,
+        stats: dict[str, int],
     ) -> None:
-        """
-        Update job status with lifecycle enforcement.
-
-        Enterprise rules:
-        - same-status updates are idempotent NO-OP
-        - transition graph enforced only when status actually changes
-        - finished_at / stats can be updated even if status doesn't change
-        """
-
         row = self.conn.execute(
-            select(job_receipts.c.status).where(
-                job_receipts.c.job_id == job_id
-            )
+            select(
+                job_receipts.c.region,
+                job_receipts.c.mode,
+                job_receipts.c.status,
+                job_receipts.c.started_at,
+            ).where(job_receipts.c.job_id == job_id)
         ).first()
-             
+
         if row is None:
             raise JobReceiptNotFound(job_id)
-            
-        prev_status: str = row[0]
 
-        # Idempotent: if nothing changes, do nothing
+        region: str = row[0]
+        mode: str = row[1]
+        prev_status: str = row[2]
+        started_at: datetime = row[3]
+
         if prev_status == new_status:
-            # Still allow setting finished_at even if status is same
             values: dict[str, Any] = {}
             if finished_at is not None:
                 values["finished_at"] = finished_at
@@ -162,16 +137,26 @@ class JobReceiptStoreDB:
                 )
             return
 
-        # Enforce lifecycle rules (only on actual change)
         allowed = ALLOWED_TRANSITIONS.get(prev_status, set())
         if new_status not in allowed:
-                raise InvalidJobStatusTransition(prev_status, new_status)
-            
-        values: dict[str, Any] = {"status": new_status}
+            raise InvalidJobStatusTransition(prev_status, new_status)
 
-        # finished_at can be null for intermediate statuses
-        values["finished_at"] = finished_at
+        receipt = JobReceipt.build(
+            job_id=job_id,
+            region=region,
+            mode=mode,
+            started_at=started_at,
+            finished_at=finished_at,
+            status=new_status,
+            stats=stats or {},
+            previous_status=prev_status,
+        )
 
+        values: dict[str, Any] = {
+            "status": new_status,
+            "finished_at": finished_at,
+            "deterministic_hash": receipt.deterministic_hash,
+        }
 
         if stats is not None:
             values["stats"] = stats
@@ -179,19 +164,12 @@ class JobReceiptStoreDB:
         self.conn.execute(
             update(job_receipts)
             .where(job_receipts.c.job_id == job_id)
-            .values(
-                **values
-            )
+            .values(**values)
         )
 
-    # Reads
-
     def get(self, job_id: str) -> JobReceipt:
-
         row = self.conn.execute(
-            select(job_receipts).where(
-                job_receipts.c.job_id == job_id
-            )
+            select(job_receipts).where(job_receipts.c.job_id == job_id)
         ).mappings().first()
 
         if row is None:
@@ -209,7 +187,6 @@ class JobReceiptStoreDB:
         )
 
     def list_recent(self, limit: int = 25) -> list[JobReceipt]:
-
         rows = self.conn.execute(
             select(job_receipts)
             .order_by(job_receipts.c.created_at.desc())
@@ -229,8 +206,6 @@ class JobReceiptStoreDB:
             )
             for r in rows
         ]
-    
-    # Backwards-compatibility
+
     def list_receipts(self, limit: int) -> list[JobReceipt]:
         return self.list_recent(limit=limit)
-    

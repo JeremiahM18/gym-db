@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
-from api.main import app
+
 from api.internal_routes.jobs import get_ingest_fn
+from api.main import app
 
 
 def _admin_override():
@@ -9,7 +10,8 @@ def _admin_override():
         "cognito:groups": ["admin"],
     }
 
-def fake_ingest(region: str):
+
+def fake_ingest(*, region: str):
     return {
         "region": region,
         "gyms_fetched": 10,
@@ -53,11 +55,10 @@ def test_internal_jobs_ingest_admin_allowed(monkeypatch):
     monkeypatch.setenv("ENABLE_INTERNAL", "true")
 
     from api.auth.dependencies import require_admin
-    app.dependency_overrides[require_admin] = _admin_override
-
     from api.internal_routes.jobs import get_receipt_store
     from tests.fake_receipt_store import FakeReceiptStore
-    
+
+    app.dependency_overrides[require_admin] = _admin_override
     app.dependency_overrides[get_ingest_fn] = lambda: fake_ingest
     app.dependency_overrides[get_receipt_store] = lambda: FakeReceiptStore()
 
@@ -75,9 +76,11 @@ def test_internal_jobs_ingest_admin_allowed(monkeypatch):
         app.dependency_overrides.pop(get_receipt_store, None)
         monkeypatch.delenv("ENABLE_INTERNAL", raising=False)
 
+
 def test_job_receipt_deterministic_hash_stable():
-    from src.gymdb.jobs.receipt import JobReceipt
     from datetime import datetime, timezone
+
+    from gymdb.jobs.receipt import JobReceipt
 
     now = datetime(2025, 1, 1, tzinfo=timezone.utc)
 
@@ -98,8 +101,7 @@ def test_job_receipt_deterministic_hash_stable():
         started_at=now,
         finished_at=now,
         status="succeeded",
-        stats={"b": 2, "a": 1},  # reordered
+        stats={"b": 2, "a": 1},
     )
 
     assert r1.deterministic_hash == r2.deterministic_hash
-
