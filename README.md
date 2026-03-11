@@ -148,7 +148,7 @@ GymDB keeps runtime file storage explicit and boring on purpose.
   Region registry describing which dataset artifact belongs to which region.
 
 - `backend/data/*.json`
-  Published deterministic dataset artifacts consumed by the read-only public API.\r\n\r\n- `backend/data/*.sqlite3`\r\n  Generated SQLite read-model sidecars built from published dataset artifacts for indexed public API reads.
+  Published deterministic dataset artifacts consumed by the read-only public API.\r\n\r\n- `backend/data/*.sqlite3`\r\n  Generated SQLite read-model sidecars built during dataset publication for indexed public API reads.
 
 - `backend/data/artifacts/jobs/`
   Ephemeral job lifecycle snapshots used for local operational inspection.
@@ -170,8 +170,7 @@ At a high level, the system:
 2. Normalizes & Deduplicates entities
 3. Scores data quality and reliability
 4. Applies deterministic inference rules to enrich records
-5. Publishes deterministic dataset artifacts
-6. Exposes results through stable HTTP APIs
+5. Publishes deterministic dataset artifacts and their SQLite read-model sidecars`r`n6. Exposes results through stable HTTP APIs
 
 Each stage is designed to be auditable and reproducible.
 
@@ -180,4 +179,5 @@ Each stage is designed to be auditable and reproducible.
 ## Example API Usage
 
 GET /v2/gyms/geo/nearby?lat=36.1627&lon=-86.7816&radius_m=5000
+
 

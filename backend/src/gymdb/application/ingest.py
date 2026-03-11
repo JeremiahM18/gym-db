@@ -6,6 +6,7 @@ from gymdb.config import DEFAULT_LAT, DEFAULT_LON, DEFAULT_RADIUS_MILES
 from gymdb.domain.inference import apply_inference
 from gymdb.domain.processing import compute_gym_id, deduplicate
 from gymdb.domain.scoring import compute_confidence
+from gymdb.infrastructure.datasets.read_model import materialize_dataset_read_model
 from gymdb.infrastructure.datasets.registry import DatasetRegistry
 from gymdb.infrastructure.io_json import write_json
 from gymdb.infrastructure.overpass_client import fetch_gyms
@@ -51,11 +52,18 @@ def run_ingest_for_region(
     radius_miles: float | None = None,
 ) -> dict:
     metadata = registry.region_metadata(region)
-    return run_ingest(
+    dataset_path = registry.dataset_path(region)
+    metrics = run_ingest(
         lat=metadata["lat"],
         lon=metadata["lon"],
         radius_miles=radius_miles or metadata.get("radius_miles", DEFAULT_RADIUS_MILES),
-        out=registry.dataset_path(region),
+        out=dataset_path,
     )
-
-
+    read_model_path = materialize_dataset_read_model(
+        region=region,
+        dataset_path=dataset_path,
+    )
+    return {
+        **metrics,
+        "read_model_path": str(read_model_path),
+    }
