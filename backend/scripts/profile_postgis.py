@@ -4,12 +4,12 @@ from sqlalchemy import text
 from sqlalchemy.engine import Connection
 from sqlalchemy.exc import ProgrammingError
 
-from gymdb.infrastructure.db.queries import explain_nearby_gyms
 from gymdb.infrastructure.settings import settings
 
 CREATE_POSTGIS_SQL = "CREATE EXTENSION IF NOT EXISTS postgis"
 SEED_SQL = """
-CREATE TABLE IF NOT EXISTS gyms (
+DROP TABLE IF EXISTS profile_gyms;
+CREATE TABLE profile_gyms (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     normalized_name TEXT NOT NULL,
@@ -17,14 +17,13 @@ CREATE TABLE IF NOT EXISTS gyms (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (normalized_name, location)
 );
-CREATE INDEX IF NOT EXISTS gyms_location_gix
-    ON gyms
+CREATE INDEX profile_gyms_location_gix
+    ON profile_gyms
     USING GIST (location);
-CREATE INDEX IF NOT EXISTS gyms_location_geometry_gix
-    ON gyms
+CREATE INDEX profile_gyms_location_geometry_gix
+    ON profile_gyms
     USING GIST ((location::geometry));
-TRUNCATE TABLE gyms;
-INSERT INTO gyms (id, name, normalized_name, location)
+INSERT INTO profile_gyms (id, name, normalized_name, location)
 SELECT
     'gym-' || i::text,
     'Gym ' || i::text,
@@ -37,8 +36,32 @@ SELECT
         4326
     )::geography
 FROM generate_series(1, 20000) AS i;
-ANALYZE gyms;
+ANALYZE profile_gyms;
 """
+
+EXPLAIN_SQL = text("""
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+WITH anchor AS (
+    SELECT
+        ST_SetSRID(ST_MakePoint(:lon, :lat), 4326) AS point_geometry,
+        ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography AS point_geography
+)
+SELECT
+    g.id,
+    g.name,
+    ST_Y(g.location::geometry) AS lat,
+    ST_X(g.location::geometry) AS lon,
+    ST_Distance(g.location, anchor.point_geography) AS distance_m
+FROM profile_gyms g
+CROSS JOIN anchor
+WHERE ST_DWithin(
+    g.location,
+    anchor.point_geography,
+    :radius_m
+)
+ORDER BY g.location::geometry <-> anchor.point_geometry
+LIMIT :limit;
+""")
 
 
 def _run_sql_batch(conn: Connection, sql: str) -> None:
@@ -49,6 +72,7 @@ def _run_sql_batch(conn: Connection, sql: str) -> None:
 def _ensure_postgis(conn: Connection) -> bool:
     try:
         version = conn.execute(text("SELECT PostGIS_Version()")).scalar_one_or_none()
+        conn.commit()
     except ProgrammingError:
         conn.rollback()
         version = None
@@ -84,16 +108,18 @@ def main() -> None:
 
         with conn.begin():
             _run_sql_batch(conn, SEED_SQL)
-            plan = explain_nearby_gyms(
-                conn,
-                lat=36.1627,
-                lon=-86.7816,
-                radius_m=2_500,
-                limit=25,
-            )
+            rows = conn.execute(
+                EXPLAIN_SQL,
+                {
+                    "lat": 36.1627,
+                    "lon": -86.7816,
+                    "radius_m": 2_500,
+                    "limit": 25,
+                },
+            ).mappings().all()
 
-    for line in plan:
-        print(line)
+    for row in rows:
+        print(row["QUERY PLAN"])
 
 
 if __name__ == "__main__":
