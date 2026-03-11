@@ -31,7 +31,9 @@ def load_osm_dataset(path: Path) -> list[dict]:
     return results
 
 
-def best_osm_match(place: TomTomPlace, gyms: list[dict]) -> tuple[dict | None, float | None]:
+def best_osm_match(
+    place: TomTomPlace, gyms: list[dict]
+) -> tuple[dict | None, float | None]:
     normalized_target = normalize_name(place.name)
     best_gym: dict | None = None
     best_distance: float | None = None
@@ -39,7 +41,9 @@ def best_osm_match(place: TomTomPlace, gyms: list[dict]) -> tuple[dict | None, f
     for gym in gyms:
         gym_name = str(gym.get("name") or "")
         gym_norm = str(gym.get("norm_name") or normalize_name(gym_name))
-        distance = haversine_meters(place.lat, place.lon, float(gym["lat"]), float(gym["lon"]))
+        distance = haversine_meters(
+            place.lat, place.lon, float(gym["lat"]), float(gym["lon"])
+        )
         if gym_norm == normalized_target and distance <= MATCH_DISTANCE_METERS:
             if best_distance is None or distance < best_distance:
                 best_gym = gym
@@ -49,11 +53,15 @@ def best_osm_match(place: TomTomPlace, gyms: list[dict]) -> tuple[dict | None, f
         return best_gym, best_distance
 
     for gym in gyms:
-        distance = haversine_meters(place.lat, place.lon, float(gym["lat"]), float(gym["lon"]))
+        distance = haversine_meters(
+            place.lat, place.lon, float(gym["lat"]), float(gym["lon"])
+        )
         if distance <= MATCH_DISTANCE_METERS:
             gym_name = str(gym.get("name") or "")
             gym_norm = str(gym.get("norm_name") or normalize_name(gym_name))
-            if gym_norm.startswith(normalized_target) or normalized_target.startswith(gym_norm):
+            if gym_norm.startswith(normalized_target) or normalized_target.startswith(
+                gym_norm
+            ):
                 if best_distance is None or distance < best_distance:
                     best_gym = gym
                     best_distance = distance
@@ -61,7 +69,9 @@ def best_osm_match(place: TomTomPlace, gyms: list[dict]) -> tuple[dict | None, f
     return best_gym, best_distance
 
 
-def classify(place: TomTomPlace, gym: dict | None, distance_m: float | None) -> CoverageMatch:
+def classify(
+    place: TomTomPlace, gym: dict | None, distance_m: float | None
+) -> CoverageMatch:
     if gym is None:
         return CoverageMatch(
             status="missing_from_osm",
@@ -99,7 +109,9 @@ def classify(place: TomTomPlace, gym: dict | None, distance_m: float | None) -> 
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Compare OSM gym dataset coverage against TomTom places")
+    parser = argparse.ArgumentParser(
+        description="Compare OSM gym dataset coverage against TomTom places"
+    )
     parser.add_argument("--dataset", default="data/gyms_raw.json")
     parser.add_argument("--lat", type=float, required=True)
     parser.add_argument("--lon", type=float, required=True)
@@ -113,7 +125,9 @@ def main() -> None:
 
     dataset_path = Path(args.dataset)
     gyms = load_osm_dataset(dataset_path)
-    client = TomTomClient(api_key=settings.tomtom_api_key, base_url=settings.tomtom_base_url)
+    client = TomTomClient(
+        api_key=settings.tomtom_api_key, base_url=settings.tomtom_base_url
+    )
     places = client.search_gyms(
         lat=args.lat,
         lon=args.lon,
@@ -129,7 +143,9 @@ def main() -> None:
     summary = {
         "matched": sum(1 for match in matches if match.status == "matched"),
         "name_mismatch": sum(1 for match in matches if match.status == "name_mismatch"),
-        "missing_from_osm": sum(1 for match in matches if match.status == "missing_from_osm"),
+        "missing_from_osm": sum(
+            1 for match in matches if match.status == "missing_from_osm"
+        ),
     }
 
     output = {

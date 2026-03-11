@@ -2,7 +2,9 @@ from gymdb.domain.models import Gym
 from gymdb.domain.scoring import compute_confidence
 
 
-def make_gym(*, name: str, norm_name: str | None = None, tags: dict | None = None, refs: int = 1) -> Gym:
+def make_gym(
+    *, name: str, norm_name: str | None = None, tags: dict | None = None, refs: int = 1
+) -> Gym:
     return Gym(
         name=name,
         norm_name=norm_name or name.lower().replace(" ", "_"),

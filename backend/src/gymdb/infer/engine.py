@@ -21,13 +21,18 @@ from gymdb.domain.rules import (
     infer_tier,
 )
 from gymdb.infer.decisions import compute_premium_score
+from gymdb.infer.quality import (
+    InferenceDiagnostics,
+    compute_field_confidence,
+    detect_contradictions,
+)
 from gymdb.infer.result import InferenceResult
 
 
-def run_inference(gym: Gym) -> None:
+def run_inference(gym: Gym) -> InferenceDiagnostics:
     """
     Run all inference logic for a single gym.
-    Mutates the gym in-place.
+    Mutates the gym in-place and returns diagnostics.
     """
     features = extract_features(gym.tags)
     capabilities = (
@@ -41,8 +46,6 @@ def run_inference(gym: Gym) -> None:
         capabilities=capabilities,
         attributes=attributes,
     )
-    premium_confidence = round(min(premium_value / 10.0, 1.0), 2)
-
     is_24_7_value, is_24_7_reasons = infer_24_7(features)
     lifter_value, lifter_reasons = infer_lifter_friendly(
         features,
@@ -57,16 +60,14 @@ def run_inference(gym: Gym) -> None:
         is_24_7=is_24_7_value,
     )
 
-    gym.inferred = {
+    inferred = {
         PREMIUM_SCORE: InferenceResult(
             value=premium_value,
             reasons=premium_reasons,
-            confidence=premium_confidence,
         ),
         IS_24_7: InferenceResult(
             value=is_24_7_value,
             reasons=is_24_7_reasons,
-            confidence=1.0 if is_24_7_value else 0.6,
         ),
         LIFTER_FRIENDLY: InferenceResult(
             value=lifter_value,
@@ -75,10 +76,21 @@ def run_inference(gym: Gym) -> None:
         SPECIALTY: InferenceResult(
             value=specialty_value,
             reasons=specialty_reasons,
-            confidence=0.9 if specialty_value != "general_fitness" else 0.5,
         ),
         TIER: InferenceResult(
             value=tier_value,
             reasons=tier_reasons,
         ),
     }
+
+    contradictions = detect_contradictions(features, inferred)
+    field_confidence = compute_field_confidence(features, inferred, contradictions)
+
+    for field, confidence in field_confidence.items():
+        inferred[field].confidence = confidence
+
+    gym.inferred = inferred
+    return InferenceDiagnostics(
+        field_confidence=field_confidence,
+        contradictions=contradictions,
+    )

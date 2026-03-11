@@ -17,7 +17,7 @@ from gymdb.domain.processing import compute_gym_id
 from gymdb.infer.engine import run_inference
 from gymdb.infer.meta import InferenceMeta
 
-RULESET_VERSION = "1.0.0"
+RULESET_VERSION = "1.1.0"
 
 
 def _canonicalize_tags(tags: dict[str, Any]) -> dict[str, str]:
@@ -65,7 +65,7 @@ def apply_inference(gym: Gym) -> None:
     gym_id = gym.id or compute_gym_id(gym.norm_name, gym.lat, gym.lon)
     gym.id = gym_id
 
-    run_inference(gym)
+    diagnostics = run_inference(gym)
 
     deterministic_hash = _compute_deterministic_hash(
         gym_id=gym_id,
@@ -78,5 +78,7 @@ def apply_inference(gym: Gym) -> None:
         version=RULESET_VERSION,
         generated_at=datetime.now(UTC),
         deterministic_hash=deterministic_hash,
+        field_confidence=diagnostics.field_confidence,
+        contradictions=diagnostics.contradictions,
     )
     gym.inference_meta = meta.model_dump(mode="json")

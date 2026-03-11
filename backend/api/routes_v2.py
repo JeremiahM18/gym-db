@@ -106,7 +106,9 @@ def list_gym_embeddings_v2(
     except Exception as exc:
         raise _translate_store_error(exc) from exc
 
-    return [serialize_gym_embedding_v2(_serialize_gym(gym), region=region) for gym in gyms]
+    return [
+        serialize_gym_embedding_v2(_serialize_gym(gym), region=region) for gym in gyms
+    ]
 
 
 @router.get("/gyms/{gym_id}", response_model=GymResponseV2)

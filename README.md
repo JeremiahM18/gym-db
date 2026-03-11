@@ -29,7 +29,7 @@ GymDB is built around explicit, enforceable guarantees:
   Identical inputs always produce identical outputs.
 
 - **Explainable inference**
-  All inferred attributes include readable reasoning and confidence scoring.
+  All inferred attributes include readable reasoning, field-level confidence scoring, and contradiction diagnostics when signals disagree.
 
 - **Stable, versioned APIs**
   API response shapes are treated as contracts; breaking changes require a new version.
@@ -118,7 +118,7 @@ It supports:
 - city/state and miles-first result cards
 - website, phone, email, Google Maps, and OpenStreetMap actions when source tags exist
 - a live geo canvas that projects result coordinates into an interactive map-like panel
-- detailed inference inspection for a selected gym
+- detailed inference inspection for a selected gym, including field-level confidence and contradiction signals
 - stronger confidence scoring for richer real-world gym records like YMCA and Life Time
 
 ---
@@ -216,7 +216,7 @@ At a high level, the system:
 1. Queries raw gym data using geospatial constraints
 2. Normalizes and deduplicates entities
 3. Scores data quality and reliability using structured business-signal heuristics
-4. Applies deterministic inference rules to enrich records
+4. Applies deterministic inference rules to enrich records, assign field-level confidence, and detect contradictory evidence
 5. Publishes deterministic dataset artifacts, SQLite read-model sidecars, and publish manifests
 6. Audits coverage against secondary public sources such as TomTom
 7. Exposes results through stable HTTP APIs and a browser client
