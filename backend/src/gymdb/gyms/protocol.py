@@ -30,6 +30,8 @@ class GymStoreProtocol(Protocol):
         specialty: str | None = ...,
         lifter_friendly: bool | None = ...,
         is_24_7: bool | None = ...,
+        limit: int = ...,
+        offset: int = ...,
     ) -> list[dict]: ...
 
     def get_by_id(self, region: str, gym_id: str) -> dict | None: ...

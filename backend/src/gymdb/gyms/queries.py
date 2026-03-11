@@ -54,6 +54,8 @@ def list_gyms(
             specialty=specialty,
             lifter_friendly=lifter_friendly,
             is_24_7=is_24_7,
+            limit=limit,
+            offset=offset,
         )
     else:
         gyms = store.filter(
@@ -85,6 +87,8 @@ def list_gyms(
             if _infer_value(g, IS_24_7) is is_24_7
         ]
 
+    if lat is not None and lon is not None and radius_m is not None:
+        return gyms
     return gyms[offset : offset + limit]
 
 

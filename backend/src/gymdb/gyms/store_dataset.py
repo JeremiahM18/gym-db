@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import heapq
 import json
 import math
 import sqlite3
@@ -190,6 +191,8 @@ class DatasetGymStore:
         specialty: str | None = None,
         lifter_friendly: bool | None = None,
         is_24_7: bool | None = None,
+        limit: int = 100,
+        offset: int = 0,
     ) -> list[dict[str, Any]]:
         connection = self._connection_for(region)
         lat_delta = math.degrees(radius_m / _EARTH_RADIUS_METERS)
@@ -212,13 +215,11 @@ class DatasetGymStore:
             query = (
                 "SELECT payload, lat, lon FROM gyms"
                 f"{where_sql} AND {bbox_sql}"
-                " ORDER BY confidence_score DESC, id"
             )
         else:
             query = (
                 "SELECT payload, lat, lon FROM gyms"
                 f" WHERE {bbox_sql}"
-                " ORDER BY confidence_score DESC, id"
             )
 
         rows = connection.execute(
@@ -232,6 +233,10 @@ class DatasetGymStore:
             ],
         ).fetchall()
 
+        candidate_count = max(limit + offset, 0)
+        if candidate_count == 0:
+            return []
+
         candidates: list[tuple[float, dict[str, Any]]] = []
         for row in rows:
             row_lat = float(row["lat"])
@@ -240,8 +245,8 @@ class DatasetGymStore:
             if distance <= radius_m:
                 candidates.append((distance, json.loads(row["payload"])))
 
-        candidates.sort(key=lambda item: item[0])
-        return [gym for _, gym in candidates]
+        nearest = heapq.nsmallest(candidate_count, candidates, key=lambda item: item[0])
+        return [gym for _, gym in nearest[offset:offset + limit]]
 
     def get_by_id(self, region: str, gym_id: str) -> dict[str, Any] | None:
         connection = self._connection_for(region)

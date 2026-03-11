@@ -8,7 +8,7 @@ from sqlalchemy import insert, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import Connection
 
-from gymdb.application.jobs.receipt import JobReceipt
+from gymdb.application.jobs.receipt import JobReceipt, JobStats
 from gymdb.application.jobs.status import ALLOWED_TRANSITIONS
 from gymdb.infrastructure.db.models.job_receipt import job_receipts
 
@@ -107,7 +107,7 @@ class JobReceiptStoreDB:
         job_id: str,
         new_status: str,
         finished_at: datetime | None = None,
-        stats: dict[str, int],
+        stats: JobStats,
     ) -> None:
         row = self.conn.execute(
             select(
@@ -130,15 +130,13 @@ class JobReceiptStoreDB:
             existing_update_values: dict[str, Any] = {}
             if finished_at is not None:
                 existing_update_values["finished_at"] = finished_at
-            if stats is not None:
-                existing_update_values["stats"] = stats
+            existing_update_values["stats"] = stats
 
-            if existing_update_values:
-                self.conn.execute(
-                    update(job_receipts)
-                    .where(job_receipts.c.job_id == job_id)
-                    .values(**existing_update_values)
-                )
+            self.conn.execute(
+                update(job_receipts)
+                .where(job_receipts.c.job_id == job_id)
+                .values(**existing_update_values)
+            )
             return
 
         allowed = ALLOWED_TRANSITIONS.get(prev_status, set())
@@ -152,23 +150,19 @@ class JobReceiptStoreDB:
             started_at=started_at,
             finished_at=finished_at,
             status=new_status,
-            stats=stats or {},
+            stats=stats,
             previous_status=prev_status,
         )
-
-        status_update_values: dict[str, Any] = {
-            "status": new_status,
-            "finished_at": finished_at,
-            "deterministic_hash": receipt.deterministic_hash,
-        }
-
-        if stats is not None:
-            status_update_values["stats"] = stats
 
         self.conn.execute(
             update(job_receipts)
             .where(job_receipts.c.job_id == job_id)
-            .values(**status_update_values)
+            .values(
+                status=new_status,
+                finished_at=finished_at,
+                stats=stats,
+                deterministic_hash=receipt.deterministic_hash,
+            )
         )
 
     def get(self, job_id: str) -> JobReceipt:

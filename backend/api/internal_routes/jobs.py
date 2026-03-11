@@ -17,6 +17,7 @@ from gymdb.application.jobs.receipt import JobReceipt
 from gymdb.application.jobs.receipt_artifacts import maybe_write_fs_receipt
 from gymdb.application.jobs.receipt_store import JobReceiptNotFound, JobReceiptStoreDB
 from gymdb.application.jobs.store import JobStore
+from gymdb.infrastructure.datasets.registry import DatasetRegistry
 from gymdb.infrastructure.storage import JOBS_ROOT, ensure_storage_tree
 
 router = APIRouter(
@@ -40,11 +41,15 @@ def get_receipt_store(
     return JobReceiptStoreDB(conn=db)
 
 
-def get_ingest_fn(
+def get_registry(
     settings: APISettings = Depends(get_settings),
-):
-    registry = create_registry(settings)
+) -> DatasetRegistry:
+    return create_registry(settings)
 
+
+def get_ingest_fn(
+    registry: DatasetRegistry = Depends(get_registry),
+):
     def _ingest(*, region: str) -> dict:
         target_region = region or registry.default_region
         return run_ingest_for_region(registry=registry, region=target_region)
@@ -58,11 +63,12 @@ def start_ingest(
     runner: IngestRunner = Depends(get_runner),
     ingest_fn=Depends(get_ingest_fn),
     receipt_store: JobReceiptStoreDB = Depends(get_receipt_store),
+    registry: DatasetRegistry = Depends(get_registry),
 ):
     """
     Trigger a manual ingest job and persist a deterministic job receipt.
     """
-    target_region = region or "nashville"
+    target_region = region or registry.default_region
     job = runner.start(region=target_region, mode="manual")
 
     started_at = datetime.now(UTC)

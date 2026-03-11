@@ -8,6 +8,9 @@ from typing import Any
 
 from gymdb.application.jobs.status import ALLOWED_TRANSITIONS
 
+type JobStatValue = str | int | float | bool | None
+type JobStats = dict[str, JobStatValue]
+
 
 @dataclass
 class JobReceipt:
@@ -19,7 +22,7 @@ class JobReceipt:
     finished_at: datetime | None
 
     status: str  # queued, running, succeeded, failed
-    stats: dict[str, int]
+    stats: JobStats
 
     deterministic_hash: str
 
@@ -55,7 +58,7 @@ class JobReceipt:
         started_at: datetime,
         finished_at: datetime | None,
         status: str,
-        stats: dict[str, int],
+        stats: JobStats,
         previous_status: str | None = None,
     ) -> JobReceipt:
         cls.validate_transition(previous_status, status)
