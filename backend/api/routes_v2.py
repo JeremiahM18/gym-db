@@ -17,6 +17,16 @@ from gymdb.observe.summaries import summarize_inference
 router = APIRouter(prefix="/v2", tags=["gyms"], dependencies=[Depends(require_user)])
 
 
+def _translate_store_error(exc: Exception) -> HTTPException:
+    if isinstance(exc, FileNotFoundError):
+        return HTTPException(status_code=503, detail=str(exc))
+    if isinstance(exc, KeyError):
+        return HTTPException(status_code=404, detail=str(exc))
+    if isinstance(exc, RuntimeError):
+        return HTTPException(status_code=503, detail=str(exc))
+    return HTTPException(status_code=500, detail="Internal server error")
+
+
 @router.get("/gyms", response_model=GymsListResponseV2)
 def list_gyms_v2(
     region: str | None = None,
@@ -34,20 +44,23 @@ def list_gyms_v2(
 ):
     region = region or store.default_region
 
-    gyms = list_gyms(
-        store=store,
-        region=region,
-        min_conf=min_conf,
-        tier=tier,
-        specialty=specialty,
-        lifter_friendly=lifter_friendly,
-        is_24_7=is_24_7,
-        lat=lat,
-        lon=lon,
-        radius_m=radius_m,
-        limit=limit,
-        offset=offset,
-    )
+    try:
+        gyms = list_gyms(
+            store=store,
+            region=region,
+            min_conf=min_conf,
+            tier=tier,
+            specialty=specialty,
+            lifter_friendly=lifter_friendly,
+            is_24_7=is_24_7,
+            lat=lat,
+            lon=lon,
+            radius_m=radius_m,
+            limit=limit,
+            offset=offset,
+        )
+    except Exception as exc:
+        raise _translate_store_error(exc) from exc
 
     results = []
     for g in gyms:
@@ -78,13 +91,16 @@ def list_gym_embeddings_v2(
 ):
     region = region or store.default_region
 
-    gyms = list_gyms(
-        store=store,
-        region=region,
-        min_conf=None,
-        limit=500,
-        offset=0,
-    )
+    try:
+        gyms = list_gyms(
+            store=store,
+            region=region,
+            min_conf=None,
+            limit=500,
+            offset=0,
+        )
+    except Exception as exc:
+        raise _translate_store_error(exc) from exc
 
     results = []
     for g in gyms:
@@ -106,7 +122,10 @@ def get_gym_v2(
 ):
     region = region or store.default_region
 
-    gym = get_gym_by_id(store=store, region=region, gym_id=gym_id)
+    try:
+        gym = get_gym_by_id(store=store, region=region, gym_id=gym_id)
+    except Exception as exc:
+        raise _translate_store_error(exc) from exc
     if gym is None:
         raise HTTPException(status_code=404, detail="Gym not found")
 
