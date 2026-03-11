@@ -10,6 +10,10 @@ class GymStoreProtocol(Protocol):
         *,
         region: str,
         min_conf: float | None = ...,
+        tier: str | None = ...,
+        specialty: str | None = ...,
+        lifter_friendly: bool | None = ...,
+        is_24_7: bool | None = ...,
         limit: int = ...,
         offset: int = ...,
     ) -> list[dict]: ...
@@ -22,6 +26,10 @@ class GymStoreProtocol(Protocol):
         lon: float,
         radius_m: float,
         min_conf: float | None = ...,
+        tier: str | None = ...,
+        specialty: str | None = ...,
+        lifter_friendly: bool | None = ...,
+        is_24_7: bool | None = ...,
     ) -> list[dict]: ...
 
     def get_by_id(self, region: str, gym_id: str) -> dict | None: ...

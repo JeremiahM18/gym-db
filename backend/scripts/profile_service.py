@@ -27,23 +27,76 @@ FOCUSED_QUERY_RADIUS_M = 2_500
 
 
 class NaiveDatasetGymStore:
+    default_region = "profile"
+
     def __init__(self, gyms: tuple[dict[str, Any], ...]):
         self._gyms = gyms
 
-    def nearby(
+    def _matches_filters(
         self,
+        gym: dict[str, Any],
         *,
-        region: str,
-        lat: float,
-        lon: float,
-        radius_m: float,
-        min_conf: float | None = None,
-    ) -> list[dict[str, Any]]:
-        del region
+        min_conf: float | None,
+        tier: str | None,
+        specialty: str | None,
+        lifter_friendly: bool | None,
+        is_24_7: bool | None,
+    ) -> bool:
+        inferred = gym.get("inferred", {})
+        if min_conf is not None and gym.get("confidence_score", 0.0) < min_conf:
+            return False
+        if tier is not None and inferred.get("tier", {}).get("value") != tier:
+            return False
+        if (
+            specialty is not None
+            and inferred.get("specialty", {}).get("value") != specialty
+        ):
+            return False
+        if (
+            lifter_friendly is not None
+            and inferred.get("lifter_friendly", {}).get("value")
+            is not lifter_friendly
+        ):
+            return False
+        if (
+            is_24_7 is not None
+            and inferred.get("is_24_7", {}).get("value") is not is_24_7
+        ):
+            return False
+        return True
+
+    def filter(self, **kwargs) -> list[dict[str, Any]]:
+        results = [
+            gym
+            for gym in self._gyms
+            if self._matches_filters(
+                gym,
+                min_conf=kwargs.get("min_conf"),
+                tier=kwargs.get("tier"),
+                specialty=kwargs.get("specialty"),
+                lifter_friendly=kwargs.get("lifter_friendly"),
+                is_24_7=kwargs.get("is_24_7"),
+            )
+        ]
+        offset = kwargs.get("offset", 0)
+        limit = kwargs.get("limit", 100)
+        return results[offset : offset + limit]
+
+    def nearby(self, **kwargs) -> list[dict[str, Any]]:
+        lat = kwargs["lat"]
+        lon = kwargs["lon"]
+        radius_m = kwargs["radius_m"]
 
         candidates: list[tuple[float, dict[str, Any]]] = []
         for gym in self._gyms:
-            if min_conf is not None and gym.get("confidence_score", 0.0) < min_conf:
+            if not self._matches_filters(
+                gym,
+                min_conf=kwargs.get("min_conf"),
+                tier=kwargs.get("tier"),
+                specialty=kwargs.get("specialty"),
+                lifter_friendly=kwargs.get("lifter_friendly"),
+                is_24_7=kwargs.get("is_24_7"),
+            ):
                 continue
             distance = haversine_meters(lat, lon, gym["lat"], gym["lon"])
             if distance <= radius_m:
@@ -100,7 +153,13 @@ def _build_store_fixture(root: Path) -> DatasetGymStore:
     )
 
     registry = DatasetRegistry(registry_path).load()
-    return DatasetGymStore(registry)
+    return DatasetGymStore(registry, cache_recheck_ns=60_000_000_000)
+
+
+def _load_naive_fixture(root: Path) -> tuple[dict[str, Any], ...]:
+    dataset_path = root / "gyms.json"
+    payload = json.loads(dataset_path.read_text(encoding="utf-8"))
+    return tuple(payload["results"])
 
 
 def _make_gym(idx: int) -> Gym:
@@ -173,8 +232,9 @@ def _print_query_summary(
 
 
 def benchmark_query_concurrency(indexed_store: DatasetGymStore) -> None:
-    snapshot = indexed_store._load_dataset("profile")
-    naive_store = NaiveDatasetGymStore(snapshot.gyms)
+    naive_store = NaiveDatasetGymStore(
+        _load_naive_fixture(Path(".tmp") / "profile-service")
+    )
 
     for label, radius_m in (
         ("Broad Radius", BROAD_QUERY_RADIUS_M),
@@ -235,4 +295,3 @@ if __name__ == "__main__":
         "postgresql+psycopg://gymdb:gymdb_password@localhost:5432/gymdb",
     )
     main()
-

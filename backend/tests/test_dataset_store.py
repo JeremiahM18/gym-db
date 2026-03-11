@@ -93,7 +93,51 @@ def test_dataset_store_invalidates_cache_when_dataset_changes():
         shutil.rmtree(root, ignore_errors=True)
 
 
-def test_dataset_store_nearby_uses_geo_indexed_candidates():
+def test_dataset_store_filters_specialty_from_sqlite_read_model():
+    root = _make_scratch_dir()
+    try:
+        dataset_path = root / "gyms_test.json"
+        dataset_path.write_text(
+            json.dumps(
+                {
+                    "results": [
+                        {
+                            "id": "power",
+                            "name": "Power Gym",
+                            "confidence_score": 0.95,
+                            "inferred": {
+                                "specialty": {"value": "powerlifting"},
+                                "lifter_friendly": {"value": True},
+                            },
+                        },
+                        {
+                            "id": "general",
+                            "name": "General Gym",
+                            "confidence_score": 0.99,
+                            "inferred": {
+                                "specialty": {"value": "general_fitness"},
+                                "lifter_friendly": {"value": False},
+                            },
+                        },
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        store = DatasetGymStore(_write_registry(root), cache_recheck_ns=0)
+        results = store.filter(
+            region="test",
+            specialty="powerlifting",
+            lifter_friendly=True,
+        )
+
+        assert [gym["id"] for gym in results] == ["power"]
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+def test_dataset_store_nearby_filters_candidates_with_bbox_and_radius():
     root = _make_scratch_dir()
     try:
         dataset_path = root / "gyms_test.json"
@@ -107,6 +151,7 @@ def test_dataset_store_nearby_uses_geo_indexed_candidates():
                             "lat": 36.1627,
                             "lon": -86.7816,
                             "confidence_score": 0.9,
+                            "inferred": {"specialty": {"value": "powerlifting"}},
                         },
                         {
                             "id": "far",
@@ -114,6 +159,7 @@ def test_dataset_store_nearby_uses_geo_indexed_candidates():
                             "lat": 36.3627,
                             "lon": -86.7816,
                             "confidence_score": 0.9,
+                            "inferred": {"specialty": {"value": "powerlifting"}},
                         },
                     ]
                 }
@@ -128,9 +174,9 @@ def test_dataset_store_nearby_uses_geo_indexed_candidates():
             lon=-86.7816,
             radius_m=1_000,
             min_conf=0.5,
+            specialty="powerlifting",
         )
 
         assert [gym["id"] for gym in results] == ["nearby"]
     finally:
         shutil.rmtree(root, ignore_errors=True)
-

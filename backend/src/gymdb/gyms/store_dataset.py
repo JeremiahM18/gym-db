@@ -2,34 +2,34 @@ from __future__ import annotations
 
 import json
 import math
+import sqlite3
+import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
+from gymdb.domain.constants import (
+    INFERRED,
+    IS_24_7,
+    LIFTER_FRIENDLY,
+    SPECIALTY,
+    TIER,
+)
 from gymdb.domain.processing import haversine_meters
 from gymdb.infrastructure.datasets.registry import DatasetRegistry
 
-_GRID_DEGREES = 0.05
 _EARTH_RADIUS_METERS = 6_371_000.0
-_MAX_INDEX_SCAN_CELLS = 256
-_MIN_GEO_INDEX_GYMS = 100_000
 _CACHE_RECHECK_NS = 1_000_000_000
+_SQLITE_TIMEOUT_S = 30.0
 
 
 @dataclass(frozen=True)
 class DatasetSnapshot:
-    path: Path
-    mtime_ns: int
+    dataset_path: Path
+    dataset_mtime_ns: int
+    index_path: Path
     checked_at_ns: int
-    gyms: tuple[dict[str, Any], ...]
-    by_id: dict[str, dict[str, Any]]
-    by_conf_desc: tuple[dict[str, Any], ...]
-    geo_cells: dict[tuple[int, int], tuple[dict[str, Any], ...]]
-    min_lat: float | None
-    max_lat: float | None
-    min_lon: float | None
-    max_lon: float | None
 
 
 class DatasetGymStore:
@@ -41,7 +41,9 @@ class DatasetGymStore:
     ):
         self._registry = registry
         self._cache_recheck_ns = cache_recheck_ns
-        self._cache: dict[str, DatasetSnapshot] = {}
+        self._snapshot_cache: dict[str, DatasetSnapshot] = {}
+        self._snapshot_lock = threading.Lock()
+        self._locals = threading.local()
 
     @property
     def default_region(self) -> str:
@@ -68,170 +70,282 @@ class DatasetGymStore:
             "with a results list"
         )
 
-    def _cell_key(self, lat: float, lon: float) -> tuple[int, int]:
-        return (math.floor(lat / _GRID_DEGREES), math.floor(lon / _GRID_DEGREES))
+    def _index_path(self, dataset_path: Path, dataset_mtime_ns: int) -> Path:
+        return dataset_path.with_name(f"{dataset_path.stem}.{dataset_mtime_ns}.sqlite3")
 
-    def _bounding_box(
+    def _extract_inferred_value(self, gym: dict[str, Any], key: str) -> Any:
+        inferred = gym.get(INFERRED)
+        if not isinstance(inferred, dict):
+            inferred = gym.get("inference")
+        if not isinstance(inferred, dict):
+            return None
+
+        item = inferred.get(key)
+        if isinstance(item, dict):
+            return item.get("value")
+        if hasattr(item, "value"):
+            return cast(Any, item).value
+        return None
+
+    def _as_optional_float(self, value: Any) -> float | None:
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, int | float):
+            return float(value)
+        return None
+
+    def _as_optional_bool(self, value: Any) -> int | None:
+        if isinstance(value, bool):
+            return int(value)
+        return None
+
+    def _cleanup_old_indexes(self, dataset_path: Path, keep_path: Path) -> None:
+        pattern = f"{dataset_path.stem}.*.sqlite3"
+        for candidate in dataset_path.parent.glob(pattern):
+            if candidate == keep_path:
+                continue
+            try:
+                candidate.unlink()
+            except OSError:
+                continue
+
+    def _build_index(
         self,
-        lat: float,
-        lon: float,
-        radius_m: float,
-    ) -> tuple[float, float, float, float]:
-        lat_delta = math.degrees(radius_m / _EARTH_RADIUS_METERS)
-        cos_lat = math.cos(math.radians(lat))
-        lon_delta = 180.0 if abs(cos_lat) < 1e-12 else lat_delta / abs(cos_lat)
-        return (
-            lat - lat_delta,
-            lat + lat_delta,
-            lon - lon_delta,
-            lon + lon_delta,
-        )
+        *,
+        region: str,
+        dataset_path: Path,
+        index_path: Path,
+    ) -> None:
+        payload = json.loads(dataset_path.read_text(encoding="utf-8"))
+        gyms = self._parse_dataset_payload(payload, region=region, path=dataset_path)
 
-    def _load_dataset(self, region: str) -> DatasetSnapshot:
-        path = self._registry.dataset_path(region)
-        cached = self._cache.get(region)
+        temp_path = index_path.with_suffix(f"{index_path.suffix}.tmp")
+        if temp_path.exists():
+            temp_path.unlink()
+
+        connection = sqlite3.connect(temp_path, timeout=_SQLITE_TIMEOUT_S)
+        try:
+            connection.execute("PRAGMA journal_mode = OFF")
+            connection.execute("PRAGMA synchronous = OFF")
+            connection.execute("PRAGMA temp_store = MEMORY")
+            connection.execute(
+                """
+                CREATE TABLE gyms (
+                    id TEXT PRIMARY KEY,
+                    payload TEXT NOT NULL,
+                    confidence_score REAL NOT NULL,
+                    tier TEXT,
+                    specialty TEXT,
+                    lifter_friendly INTEGER,
+                    is_24_7 INTEGER,
+                    lat REAL,
+                    lon REAL
+                )
+                """
+            )
+            connection.execute(
+                "CREATE INDEX idx_gyms_confidence "
+                "ON gyms(confidence_score DESC, id)"
+            )
+            connection.execute(
+                "CREATE INDEX idx_gyms_tier_conf "
+                "ON gyms(tier, confidence_score DESC, id)"
+            )
+            connection.execute(
+                "CREATE INDEX idx_gyms_specialty_conf "
+                "ON gyms(specialty, confidence_score DESC, id)"
+            )
+            connection.execute(
+                "CREATE INDEX idx_gyms_lifter_conf "
+                "ON gyms(lifter_friendly, confidence_score DESC, id)"
+            )
+            connection.execute(
+                "CREATE INDEX idx_gyms_247_conf "
+                "ON gyms(is_24_7, confidence_score DESC, id)"
+            )
+            connection.execute(
+                "CREATE INDEX idx_gyms_geo_filter "
+                "ON gyms(lat, lon, specialty, tier, confidence_score DESC, id)"
+            )
+
+            rows: list[tuple[Any, ...]] = []
+            for gym in gyms:
+                gym_id = gym.get("id")
+                if not isinstance(gym_id, str) or not gym_id:
+                    continue
+                rows.append(
+                    (
+                        gym_id,
+                        json.dumps(gym, separators=(",", ":"), ensure_ascii=True),
+                        float(gym.get("confidence_score", 0.0)),
+                        self._extract_inferred_value(gym, TIER),
+                        self._extract_inferred_value(gym, SPECIALTY),
+                        self._as_optional_bool(
+                            self._extract_inferred_value(gym, LIFTER_FRIENDLY)
+                        ),
+                        self._as_optional_bool(
+                            self._extract_inferred_value(gym, IS_24_7)
+                        ),
+                        self._as_optional_float(gym.get("lat")),
+                        self._as_optional_float(gym.get("lon")),
+                    )
+                )
+
+            connection.executemany(
+                """
+                INSERT INTO gyms(
+                    id,
+                    payload,
+                    confidence_score,
+                    tier,
+                    specialty,
+                    lifter_friendly,
+                    is_24_7,
+                    lat,
+                    lon
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                rows,
+            )
+            connection.commit()
+        finally:
+            connection.close()
+
+        temp_path.replace(index_path)
+        self._cleanup_old_indexes(dataset_path, index_path)
+
+    def _ensure_snapshot(self, region: str) -> DatasetSnapshot:
+        dataset_path = self._registry.dataset_path(region)
+        cached = self._snapshot_cache.get(region)
         now_ns = time.monotonic_ns()
 
-        if cached is not None and cached.path == path:
+        if cached is not None and cached.dataset_path == dataset_path:
             if now_ns - cached.checked_at_ns <= self._cache_recheck_ns:
                 return cached
 
-            if not path.exists():
-                raise FileNotFoundError(
-                    f"Dataset not found for region `{region}`: {path}"
-                )
-
-            mtime_ns = path.stat().st_mtime_ns
-            if cached.mtime_ns == mtime_ns:
-                refreshed = DatasetSnapshot(
-                    path=cached.path,
-                    mtime_ns=cached.mtime_ns,
-                    checked_at_ns=now_ns,
-                    gyms=cached.gyms,
-                    by_id=cached.by_id,
-                    by_conf_desc=cached.by_conf_desc,
-                    geo_cells=cached.geo_cells,
-                    min_lat=cached.min_lat,
-                    max_lat=cached.max_lat,
-                    min_lon=cached.min_lon,
-                    max_lon=cached.max_lon,
-                )
-                self._cache[region] = refreshed
-                return refreshed
-        elif not path.exists():
+        if not dataset_path.exists():
             raise FileNotFoundError(
-                f"Dataset not found for region `{region}`: {path}"
+                f"Dataset not found for region `{region}`: {dataset_path}"
             )
 
-        mtime_ns = path.stat().st_mtime_ns
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        gyms = tuple(self._parse_dataset_payload(payload, region=region, path=path))
+        dataset_mtime_ns = dataset_path.stat().st_mtime_ns
+        index_path = self._index_path(dataset_path, dataset_mtime_ns)
 
-        geo_cells: dict[tuple[int, int], list[dict[str, Any]]] = {}
-        latitudes: list[float] = []
-        longitudes: list[float] = []
-        for gym in gyms:
-            gym_lat = gym.get("lat")
-            gym_lon = gym.get("lon")
-            if (
-                not isinstance(gym_lat, int | float)
-                or not isinstance(gym_lon, int | float)
-            ):
-                continue
-            key = self._cell_key(gym_lat, gym_lon)
-            geo_cells.setdefault(key, []).append(gym)
-            latitudes.append(float(gym_lat))
-            longitudes.append(float(gym_lon))
+        with self._snapshot_lock:
+            cached = self._snapshot_cache.get(region)
+            if cached is not None and cached.dataset_path == dataset_path:
+                if (
+                    cached.dataset_mtime_ns == dataset_mtime_ns
+                    and index_path.exists()
+                    and now_ns - cached.checked_at_ns <= self._cache_recheck_ns
+                ):
+                    return cached
 
-        snapshot = DatasetSnapshot(
-            path=path,
-            mtime_ns=mtime_ns,
-            checked_at_ns=now_ns,
-            gyms=gyms,
-            by_id={gym["id"]: gym for gym in gyms if "id" in gym},
-            by_conf_desc=tuple(
-                sorted(
-                    gyms,
-                    key=lambda gym: gym.get("confidence_score", 0.0),
-                    reverse=True,
+            if not index_path.exists():
+                self._build_index(
+                    region=region,
+                    dataset_path=dataset_path,
+                    index_path=index_path,
                 )
-            ),
-            geo_cells={key: tuple(value) for key, value in geo_cells.items()},
-            min_lat=min(latitudes) if latitudes else None,
-            max_lat=max(latitudes) if latitudes else None,
-            min_lon=min(longitudes) if longitudes else None,
-            max_lon=max(longitudes) if longitudes else None,
+
+            snapshot = DatasetSnapshot(
+                dataset_path=dataset_path,
+                dataset_mtime_ns=dataset_mtime_ns,
+                index_path=index_path,
+                checked_at_ns=now_ns,
+            )
+            self._snapshot_cache[region] = snapshot
+            return snapshot
+
+    def _connections(self) -> dict[str, tuple[Path, sqlite3.Connection]]:
+        connections = getattr(self._locals, "connections", None)
+        if connections is None:
+            connections = {}
+            self._locals.connections = connections
+        return connections
+
+    def _connection_for(self, region: str) -> sqlite3.Connection:
+        snapshot = self._ensure_snapshot(region)
+        connections = self._connections()
+        existing = connections.get(region)
+        if existing is not None:
+            existing_path, connection = existing
+            if existing_path == snapshot.index_path:
+                return connection
+            connection.close()
+
+        connection = sqlite3.connect(
+            f"file:{snapshot.index_path}?mode=ro",
+            uri=True,
+            timeout=_SQLITE_TIMEOUT_S,
         )
-        self._cache[region] = snapshot
-        return snapshot
+        connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA query_only = ON")
+        connections[region] = (snapshot.index_path, connection)
+        return connection
 
-    def _filter_by_confidence(
+    def _build_filter_where(
         self,
-        gyms: tuple[dict[str, Any], ...] | list[dict[str, Any]],
-        min_conf: float | None,
         *,
-        assume_descending: bool,
-    ) -> list[dict[str, Any]]:
-        if min_conf is None:
-            return list(gyms)
-
-        filtered: list[dict[str, Any]] = []
-        for gym in gyms:
-            if gym.get("confidence_score", 0.0) < min_conf:
-                if assume_descending:
-                    break
-                continue
-            filtered.append(gym)
-        return filtered
-
-    def _nearby_by_scan(
-        self,
-        gyms: tuple[dict[str, Any], ...] | list[dict[str, Any]],
-        *,
-        lat: float,
-        lon: float,
-        radius_m: float,
         min_conf: float | None,
-        assume_descending: bool,
-    ) -> list[dict[str, Any]]:
-        candidates: list[tuple[float, dict[str, Any]]] = []
+        tier: str | None,
+        specialty: str | None,
+        lifter_friendly: bool | None,
+        is_24_7: bool | None,
+    ) -> tuple[str, list[Any]]:
+        clauses: list[str] = []
+        params: list[Any] = []
 
-        for gym in gyms:
-            if min_conf is not None and gym.get("confidence_score", 0.0) < min_conf:
-                if assume_descending:
-                    break
-                continue
+        if min_conf is not None:
+            clauses.append("confidence_score >= ?")
+            params.append(min_conf)
+        if tier is not None:
+            clauses.append("tier = ?")
+            params.append(tier)
+        if specialty is not None:
+            clauses.append("specialty = ?")
+            params.append(specialty)
+        if lifter_friendly is not None:
+            clauses.append("lifter_friendly = ?")
+            params.append(int(lifter_friendly))
+        if is_24_7 is not None:
+            clauses.append("is_24_7 = ?")
+            params.append(int(is_24_7))
 
-            gym_lat = gym.get("lat")
-            gym_lon = gym.get("lon")
-            if (
-                not isinstance(gym_lat, int | float)
-                or not isinstance(gym_lon, int | float)
-            ):
-                continue
-            distance = haversine_meters(lat, lon, gym_lat, gym_lon)
-            if distance <= radius_m:
-                candidates.append((distance, gym))
-
-        candidates.sort(key=lambda item: item[0])
-        return [gym for _, gym in candidates]
+        if not clauses:
+            return "", params
+        return f" WHERE {' AND '.join(clauses)}", params
 
     def filter(
         self,
         *,
         region: str,
         min_conf: float | None = None,
+        tier: str | None = None,
+        specialty: str | None = None,
+        lifter_friendly: bool | None = None,
+        is_24_7: bool | None = None,
         limit: int = 100,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
-        snapshot = self._load_dataset(region)
-        base = snapshot.by_conf_desc if min_conf is not None else snapshot.gyms
-        gyms = self._filter_by_confidence(
-            base,
-            min_conf,
-            assume_descending=min_conf is not None,
+        connection = self._connection_for(region)
+        where_sql, params = self._build_filter_where(
+            min_conf=min_conf,
+            tier=tier,
+            specialty=specialty,
+            lifter_friendly=lifter_friendly,
+            is_24_7=is_24_7,
         )
-        return gyms[offset : offset + limit]
+        rows = connection.execute(
+            (
+                "SELECT payload FROM gyms"
+                f"{where_sql}"
+                " ORDER BY confidence_score DESC, id"
+                " LIMIT ? OFFSET ?"
+            ),
+            [*params, limit, offset],
+        ).fetchall()
+        return [json.loads(row["payload"]) for row in rows]
 
     def nearby(
         self,
@@ -241,82 +355,72 @@ class DatasetGymStore:
         lon: float,
         radius_m: float,
         min_conf: float | None = None,
+        tier: str | None = None,
+        specialty: str | None = None,
+        lifter_friendly: bool | None = None,
+        is_24_7: bool | None = None,
     ) -> list[dict[str, Any]]:
-        snapshot = self._load_dataset(region)
-        min_lat, max_lat, min_lon, max_lon = self._bounding_box(lat, lon, radius_m)
-        min_cell = self._cell_key(min_lat, min_lon)
-        max_cell = self._cell_key(max_lat, max_lon)
-        lat_cells = max_cell[0] - min_cell[0] + 1
-        lon_cells = max_cell[1] - min_cell[1] + 1
-        cell_count = lat_cells * lon_cells
-        covers_dataset_bounds = (
-            snapshot.min_lat is not None
-            and snapshot.max_lat is not None
-            and snapshot.min_lon is not None
-            and snapshot.max_lon is not None
-            and min_lat <= snapshot.min_lat
-            and max_lat >= snapshot.max_lat
-            and min_lon <= snapshot.min_lon
-            and max_lon >= snapshot.max_lon
-        )
-        should_use_geo_index = (
-            len(snapshot.gyms) >= _MIN_GEO_INDEX_GYMS
-            and not covers_dataset_bounds
-            and cell_count <= _MAX_INDEX_SCAN_CELLS
-        )
+        connection = self._connection_for(region)
+        lat_delta = math.degrees(radius_m / _EARTH_RADIUS_METERS)
+        cos_lat = math.cos(math.radians(lat))
+        lon_delta = 180.0 if abs(cos_lat) < 1e-12 else lat_delta / abs(cos_lat)
 
-        if not should_use_geo_index:
-            base = snapshot.by_conf_desc if min_conf is not None else snapshot.gyms
-            return self._nearby_by_scan(
-                base,
-                lat=lat,
-                lon=lon,
-                radius_m=radius_m,
-                min_conf=min_conf,
-                assume_descending=min_conf is not None,
+        where_sql, params = self._build_filter_where(
+            min_conf=min_conf,
+            tier=tier,
+            specialty=specialty,
+            lifter_friendly=lifter_friendly,
+            is_24_7=is_24_7,
+        )
+        bbox_sql = (
+            "lat IS NOT NULL AND lon IS NOT NULL "
+            "AND lat BETWEEN ? AND ? "
+            "AND lon BETWEEN ? AND ?"
+        )
+        if where_sql:
+            query = (
+                "SELECT payload, lat, lon FROM gyms"
+                f"{where_sql} AND {bbox_sql}"
+                " ORDER BY confidence_score DESC, id"
+            )
+        else:
+            query = (
+                "SELECT payload, lat, lon FROM gyms"
+                f" WHERE {bbox_sql}"
+                " ORDER BY confidence_score DESC, id"
             )
 
+        rows = connection.execute(
+            query,
+            [
+                *params,
+                lat - lat_delta,
+                lat + lat_delta,
+                lon - lon_delta,
+                lon + lon_delta,
+            ],
+        ).fetchall()
+
         candidates: list[tuple[float, dict[str, Any]]] = []
-        seen_ids: set[str] = set()
-        for lat_cell in range(min_cell[0], max_cell[0] + 1):
-            for lon_cell in range(min_cell[1], max_cell[1] + 1):
-                for gym in snapshot.geo_cells.get((lat_cell, lon_cell), ()):
-                    gym_id = gym.get("id")
-                    if not isinstance(gym_id, str):
-                        continue
-                    if gym_id in seen_ids:
-                        continue
-                    seen_ids.add(gym_id)
-
-                    gym_lat = gym.get("lat")
-                    gym_lon = gym.get("lon")
-                    if (
-                        not isinstance(gym_lat, int | float)
-                        or not isinstance(gym_lon, int | float)
-                    ):
-                        continue
-                    if not (
-                        min_lat <= gym_lat <= max_lat
-                        and min_lon <= gym_lon <= max_lon
-                    ):
-                        continue
-                    if (
-                        min_conf is not None
-                        and gym.get("confidence_score", 0.0) < min_conf
-                    ):
-                        continue
-
-                    distance = haversine_meters(lat, lon, gym_lat, gym_lon)
-                    if distance <= radius_m:
-                        candidates.append((distance, gym))
+        for row in rows:
+            row_lat = float(row["lat"])
+            row_lon = float(row["lon"])
+            distance = haversine_meters(lat, lon, row_lat, row_lon)
+            if distance <= radius_m:
+                candidates.append((distance, json.loads(row["payload"])))
 
         candidates.sort(key=lambda item: item[0])
         return [gym for _, gym in candidates]
 
     def get_by_id(self, region: str, gym_id: str) -> dict[str, Any] | None:
-        snapshot = self._load_dataset(region)
-        return snapshot.by_id.get(gym_id)
+        connection = self._connection_for(region)
+        row = connection.execute(
+            "SELECT payload FROM gyms WHERE id = ?",
+            [gym_id],
+        ).fetchone()
+        if row is None:
+            return None
+        return json.loads(row["payload"])
 
 
 GymStore = DatasetGymStore
-

@@ -21,6 +21,13 @@ router = APIRouter(prefix="/v2", tags=["gyms"], dependencies=[Depends(require_us
 def list_gyms_v2(
     region: str | None = None,
     min_conf: float | None = Query(None, ge=0.0, le=1.0),
+    tier: str | None = None,
+    specialty: str | None = None,
+    lifter_friendly: bool | None = None,
+    is_24_7: bool | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    radius_m: float | None = Query(None, gt=0.0),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     store: GymStoreProtocol = Depends(get_gym_store),
@@ -31,6 +38,13 @@ def list_gyms_v2(
         store=store,
         region=region,
         min_conf=min_conf,
+        tier=tier,
+        specialty=specialty,
+        lifter_friendly=lifter_friendly,
+        is_24_7=is_24_7,
+        lat=lat,
+        lon=lon,
+        radius_m=radius_m,
         limit=limit,
         offset=offset,
     )
@@ -106,5 +120,3 @@ def get_gym_v2(
         "api_version": "v2",
         "gym": out,
     }
-
-

@@ -1,12 +1,6 @@
 from __future__ import annotations
 
-from gymdb.domain.constants import (
-    INFERRED,
-    IS_24_7,
-    LIFTER_FRIENDLY,
-    SPECIALTY,
-    TIER,
-)
+from gymdb.domain.constants import IS_24_7, LIFTER_FRIENDLY, SPECIALTY, TIER
 from gymdb.gyms.protocol import GymStoreProtocol
 
 
@@ -14,7 +8,9 @@ def _infer_value(gym: dict, key: str):
     """
     Safely extract the inferred value for a given inference key.
     """
-    item = gym.get(INFERRED, {}).get(key)
+    item = gym.get("inferred", {}).get(key)
+    if item is None:
+        item = gym.get("inference", {}).get(key)
     if item is None:
         return None
     if hasattr(item, "value"):
@@ -54,13 +50,21 @@ def list_gyms(
             lon=lon,
             radius_m=radius_m,
             min_conf=min_conf,
+            tier=tier,
+            specialty=specialty,
+            lifter_friendly=lifter_friendly,
+            is_24_7=is_24_7,
         )
     else:
         gyms = store.filter(
             region=region,
             min_conf=min_conf,
-            limit=10_000,
-            offset=0,
+            tier=tier,
+            specialty=specialty,
+            lifter_friendly=lifter_friendly,
+            is_24_7=is_24_7,
+            limit=limit,
+            offset=offset,
         )
 
     if tier is not None:

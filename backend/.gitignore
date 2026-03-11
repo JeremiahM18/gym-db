@@ -17,6 +17,7 @@ __pychache__/
 # Runtime / generated data
 # Keep only intentional placeholders or tiny fixtures in git.
 data/**/*.json
+data/**/*.sqlite3
 !data/.gitkeep
 !data/gyms_test.json
 !data/registry_test.json
@@ -27,3 +28,4 @@ data/jobs/
 
 # Generated OpenAPI spec
 openapi.json
+
