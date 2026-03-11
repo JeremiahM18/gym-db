@@ -6,12 +6,29 @@ from gymdb.infer.meta import InferenceMeta
 from gymdb.infer.result import InferenceResult
 
 
-# Embedding Schemas (v2)
+class SourceReferenceV2(BaseModel):
+    provider: str
+    external_id: str | None = None
+    name: str | None = None
+    distance_m: float | None = None
+    city: str | None = None
+    url: str | None = None
+    status: str
+
+
+class SourceProvenanceV2(BaseModel):
+    primary: str = "osm"
+    confirmed_by: list[str] = Field(default_factory=list)
+    match_status: str = "unconfirmed"
+    external_refs: dict[str, SourceReferenceV2] = Field(default_factory=dict)
+
+
 class InferenceEmbeddingV2(BaseModel):
     key: str
     value: str
     confidence: float
     source: str
+
 
 class GymEmbeddingV2(BaseModel):
     """
@@ -22,22 +39,14 @@ class GymEmbeddingV2(BaseModel):
     id: str
     name: str
     region: str
-
-    # Primary text input for embedding
     embedding_text: str = Field(
-        ...,
-        description="Determininstic text used for vector embeddings"
+        ..., description="Determininstic text used for vector embeddings"
     )
-
-    # Structured inference preserved
     inference: list[InferenceEmbeddingV2]
-
-    # Metadata (filterable, not embedded)
     confidence_score: float | None = None
     lat: float | None = None
     lon: float | None = None
 
-# Gym Output (v2)
 
 class GymOutV2(BaseModel):
     """
@@ -52,17 +61,14 @@ class GymOutV2(BaseModel):
     id: str
     name: str
     norm_name: str
-
     lat: float
     lon: float
-
     confidence_score: float | None = None
-
     osm_refs: list[dict[str, Any]]
     tags: dict[str, Any] | None = None
-
     inference: dict[str, InferenceResult]
     inference_meta: InferenceMeta
+    source_provenance: SourceProvenanceV2
     inference_summary: dict[str, str] | None = None
 
 
@@ -74,25 +80,25 @@ class GymNearbyOutV2(BaseModel):
     distance_m: float
 
 
-# Collection Responses
-
 class GymsListResponseV2(BaseModel):
     api_version: str = Field(default="v2")
     region: str
     count: int
     results: list[GymOutV2]
 
+
 class GymResponseV2(BaseModel):
     api_version: str = Field(default="v2")
     gym: GymOutV2
+
 
 class RegionsResponseV2(BaseModel):
     api_version: str = Field(default="v2")
     default: str
     regions: list[str]
 
+
 class GymsNearbyResponseV2(BaseModel):
     api_version: str = Field(default="v2")
     count: int
     results: list[GymNearbyOutV2]
-

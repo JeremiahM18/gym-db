@@ -18,6 +18,7 @@ __pychache__/
 # Keep only intentional placeholders or small deterministic fixtures in git.
 data/**/*.json
 data/**/*.sqlite3
+data/**/*.manifest.json
 data/**/*.lock
 !data/.gitkeep
 !data/README.md

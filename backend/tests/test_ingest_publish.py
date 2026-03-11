@@ -64,3 +64,73 @@ def test_run_ingest_for_region_materializes_read_model(monkeypatch):
         assert manifest["read_model_file"] == materialized_read_model.name
     finally:
         shutil.rmtree(root, ignore_errors=True)
+
+
+def test_run_ingest_for_region_writes_source_provenance(monkeypatch):
+    root = _make_scratch_dir()
+    try:
+        dataset_path = root / "gyms_region.json"
+        registry_path = root / "registry.json"
+        registry_path.write_text(
+            json.dumps(
+                {
+                    "default": "test",
+                    "datasets": {
+                        "test": {
+                            "file": dataset_path.name,
+                            "lat": 36.1627,
+                            "lon": -86.7816,
+                            "radius_miles": 5,
+                        }
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        registry = DatasetRegistry(registry_path).load()
+
+        monkeypatch.setattr(
+            "gymdb.application.ingest.fetch_gyms",
+            lambda radius_m, lat, lon: [
+                {
+                    "type": "node",
+                    "id": 1,
+                    "lat": 36.1627,
+                    "lon": -86.7816,
+                    "tags": {"name": "Life Time", "leisure": "fitness_centre"},
+                }
+            ],
+        )
+        monkeypatch.setattr(
+            "gymdb.application.ingest.settings.tomtom_api_key", "test-key"
+        )
+        monkeypatch.setattr(
+            "gymdb.application.ingest.TomTomClient.search_gyms",
+            lambda self, lat, lon, radius_m, limit: [
+                type(
+                    "Place",
+                    (),
+                    {
+                        "id": "tt-1",
+                        "name": "Life Time",
+                        "lat": 36.16271,
+                        "lon": -86.78161,
+                        "address": "Nashville, TN",
+                        "city": "Nashville",
+                        "country_code": "US",
+                        "url": "https://www.lifetime.life/",
+                        "raw": {},
+                    },
+                )()
+            ],
+        )
+
+        metrics = run_ingest_for_region(registry=registry, region="test")
+        payload = json.loads(Path(metrics["output_path"]).read_text(encoding="utf-8"))
+        gym = payload["results"][0]
+
+        assert metrics["coverage_matched"] == 1
+        assert gym["source_provenance"]["match_status"] == "matched"
+        assert gym["source_provenance"]["confirmed_by"] == ["tomtom"]
+    finally:
+        shutil.rmtree(root, ignore_errors=True)

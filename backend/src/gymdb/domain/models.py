@@ -15,6 +15,7 @@ class Gym:
         "confidence_score",
         "inferred",
         "inference_meta",
+        "source_provenance",
     )
 
     def __init__(
@@ -37,3 +38,9 @@ class Gym:
 
         self.inferred: dict[str, InferenceResult] = {}
         self.inference_meta: dict[str, Any] = {}
+        self.source_provenance: dict[str, Any] = {
+            "primary": "osm",
+            "confirmed_by": [],
+            "match_status": "unconfirmed",
+            "external_refs": {},
+        }

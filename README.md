@@ -1,6 +1,6 @@
 # GymDB
 
-GymDB is a backend data platform for discovering, normalizing, and enriching gym location data using deterministic geospatial querying, explainable rule-based inference, and coverage auditing against secondary public sources.
+GymDB is a backend data platform for discovering, normalizing, and enriching gym location data using deterministic geospatial querying, explainable rule-based inference, and provenance-aware coverage auditing against secondary public sources.
 
 GymDB is intentionally designed as a **backend-first system** with a browser client that demonstrates the API and data model clearly.
 
@@ -45,6 +45,9 @@ GymDB is built around explicit, enforceable guarantees:
 - **Auditable job execution**
   All ingestion jobs produce deterministic receipts persisted to the database. Job outcomes can be inspected, verified, and replayed independently of runtime execution.
 
+- **Explicit source provenance**
+  Published gym records keep OSM as the primary source of record and attach secondary-source confirmation metadata instead of silently merging external data.
+
 These guarantees are enforced through code structure, testing, and documented contracts.
 
 ### Contracts
@@ -72,7 +75,7 @@ Backend quality workflow:
 - `python scripts/profile_postgis.py`
   Run a synthetic PostGIS query-plan profile for nearby-lookup behavior.
 - `python scripts/compare_osm_tomtom.py --lat <lat> --lon <lon>`
-  Run a coverage audit that compares the local OSM-derived dataset against TomTom places.
+  Run a coverage audit that compares the local OSM-derived dataset against TomTom places using the same matching logic as publish-time enrichment.
 
 Frontend quality workflow:
 - `npm run lint`
@@ -120,6 +123,7 @@ It supports:
 - a live geo canvas that projects result coordinates into an interactive map-like panel
 - detailed inference inspection for a selected gym, including field-level confidence and contradiction signals
 - stronger confidence scoring for richer real-world gym records like YMCA and Life Time
+- source provenance that distinguishes primary OSM facts from secondary TomTom confirmation
 
 ---
 
@@ -157,7 +161,7 @@ This repository is organized by system responsibility:
   Deterministic business logic: canonical models, normalization, scoring, inference orchestration, and core constants.
 
 - `backend/src/gymdb/application/`
-  Orchestration and use cases, including ingestion workflows and job execution.
+  Orchestration and use cases, including ingestion workflows, job execution, and source-comparison logic.
 
 - `backend/src/gymdb/infrastructure/`
   External systems and side effects: database adapters, dataset registry access, filesystem storage, HTTP fetch clients, and comparison-source adapters like TomTom.
@@ -189,7 +193,7 @@ GymDB keeps runtime file storage explicit and boring on purpose.
   Region registry describing which dataset artifact belongs to which region.
 
 - `backend/data/*.json`
-  Published deterministic dataset artifacts consumed by the read-only public API. Local demo datasets are kept out of git.
+  Published deterministic dataset artifacts consumed by the read-only public API. Each record may include source provenance showing OSM as primary and secondary-source confirmation metadata. Local demo datasets are kept out of git.
 
 - `backend/data/*.sqlite3`
   Generated SQLite read-model sidecars built during dataset publication for indexed public API reads.
@@ -217,8 +221,7 @@ At a high level, the system:
 2. Normalizes and deduplicates entities
 3. Scores data quality and reliability using structured business-signal heuristics
 4. Applies deterministic inference rules to enrich records, assign field-level confidence, and detect contradictory evidence
-5. Publishes deterministic dataset artifacts, SQLite read-model sidecars, and publish manifests
-6. Audits coverage against secondary public sources such as TomTom
-7. Exposes results through stable HTTP APIs and a browser client
+5. Confirms matched gyms against secondary public sources such as TomTom and records explicit provenance
+6. Publishes deterministic dataset artifacts, SQLite read-model sidecars, and publish manifests
 
 Each stage is designed to be auditable and reproducible.

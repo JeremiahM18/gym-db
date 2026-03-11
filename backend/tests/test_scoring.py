@@ -80,3 +80,42 @@ def test_multiple_osm_refs_increase_confidence():
     )
 
     assert compute_confidence(richer) > compute_confidence(sparse)
+
+
+def test_tomtom_confirmation_increases_confidence():
+    unconfirmed = make_gym(
+        name="Life Time",
+        norm_name="life_time",
+        tags={
+            "brand": "Life Time",
+            "leisure": "fitness_centre",
+            "name": "Life Time",
+        },
+    )
+    confirmed = make_gym(
+        name="Life Time",
+        norm_name="life_time",
+        tags={
+            "brand": "Life Time",
+            "leisure": "fitness_centre",
+            "name": "Life Time",
+        },
+    )
+    confirmed.source_provenance = {
+        "primary": "osm",
+        "confirmed_by": ["tomtom"],
+        "match_status": "matched",
+        "external_refs": {
+            "tomtom": {
+                "provider": "tomtom",
+                "external_id": "tt-1",
+                "name": "Life Time",
+                "distance_m": 24.0,
+                "city": "Franklin",
+                "url": "https://www.lifetime.life/",
+                "status": "matched",
+            }
+        },
+    }
+
+    assert compute_confidence(confirmed) > compute_confidence(unconfirmed)

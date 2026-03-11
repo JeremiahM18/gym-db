@@ -60,3 +60,24 @@ def normalize_inference(inference: dict[str, Any] | None) -> dict[str, dict]:
             }
 
     return out
+
+
+def normalize_source_provenance(provenance: dict | None) -> dict:
+    if not provenance:
+        return {
+            "primary": "osm",
+            "confirmed_by": [],
+            "match_status": "unconfirmed",
+            "external_refs": {},
+        }
+
+    external_refs = provenance.get("external_refs")
+    if not isinstance(external_refs, dict):
+        external_refs = {}
+
+    return {
+        "primary": str(provenance.get("primary", "osm")),
+        "confirmed_by": list(provenance.get("confirmed_by", [])),
+        "match_status": str(provenance.get("match_status", "unconfirmed")),
+        "external_refs": external_refs,
+    }

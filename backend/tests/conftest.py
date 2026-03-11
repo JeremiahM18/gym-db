@@ -45,7 +45,23 @@ class FakeGymStore:
                 },
                 "inference_meta": {
                     "engine": "rule_based",
-                    "version": "1.0.0",
+                    "version": "1.1.0",
+                },
+                "source_provenance": {
+                    "primary": "osm",
+                    "confirmed_by": ["tomtom"],
+                    "match_status": "matched",
+                    "external_refs": {
+                        "tomtom": {
+                            "provider": "tomtom",
+                            "external_id": "tt-1",
+                            "name": "Test Gym",
+                            "distance_m": 18.0,
+                            "city": "Nashville",
+                            "url": None,
+                            "status": "matched",
+                        }
+                    },
                 },
             }
         ]

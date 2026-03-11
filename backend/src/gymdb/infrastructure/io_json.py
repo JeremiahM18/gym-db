@@ -5,7 +5,14 @@ from tempfile import NamedTemporaryFile
 
 from gymdb.domain.models import Gym
 
-SCHEMA_VERSION = "1.2"
+SCHEMA_VERSION = "1.3"
+
+
+def _serialize_inferred(gym: Gym) -> dict[str, dict]:
+    return {
+        key: result.model_dump(mode="json")
+        for key, result in gym.inferred.items()
+    }
 
 
 def write_json(gyms: list[Gym], path: Path) -> None:
@@ -25,8 +32,9 @@ def write_json(gyms: list[Gym], path: Path) -> None:
                 "confidence_score": g.confidence_score,
                 "osm_refs": g.osm_refs,
                 "tags": g.tags,
-                "inferred": g.inferred,
+                "inferred": _serialize_inferred(g),
                 "inference_meta": g.inference_meta,
+                "source_provenance": g.source_provenance,
             }
             for g in gyms
         ],

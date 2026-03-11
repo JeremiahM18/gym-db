@@ -5,7 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from api.auth.dependencies import require_user
 from api.deps import get_gym_store
 from api.embeddings_views import serialize_gym_embedding_v2
-from api.normalizers import normalize_inference, normalize_inference_meta
+from api.normalizers import (
+    normalize_inference,
+    normalize_inference_meta,
+    normalize_source_provenance,
+)
 from api.schemas_v2 import GymEmbeddingV2, GymResponseV2, GymsListResponseV2
 from gymdb.domain.processing import normalize_name
 from gymdb.gyms.protocol import GymStoreProtocol
@@ -35,6 +39,9 @@ def _serialize_gym(gym: dict) -> dict:
     raw = out.pop("inferred", None) or out.get("inference")
     out["inference"] = normalize_inference(raw)
     out["inference_meta"] = normalize_inference_meta(gym.get("inference_meta"))
+    out["source_provenance"] = normalize_source_provenance(
+        gym.get("source_provenance")
+    )
     out["inference_summary"] = summarize_inference(out["inference"])
     return out
 

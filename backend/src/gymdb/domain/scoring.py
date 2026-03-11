@@ -75,7 +75,6 @@ def _contact_score(tags: dict[str, object]) -> float:
     if "opening_hours" in tags and str(tags["opening_hours"]).strip():
         score += 0.12
 
-    # Reward a complete public business surface slightly more than the sum of parts.
     if _has_any(tags, _WEBSITE_TAGS) and _has_any(tags, _PHONE_TAGS):
         score += 0.05
     if _has_any(tags, _WEBSITE_TAGS) and "opening_hours" in tags:
@@ -112,6 +111,39 @@ def _refs_score(gym: Gym) -> float:
     return 0.0
 
 
+def _external_validation_score(gym: Gym) -> float:
+    provenance = gym.source_provenance or {}
+    external_refs = provenance.get("external_refs")
+    if not isinstance(external_refs, dict):
+        return 0.0
+
+    tomtom = external_refs.get("tomtom")
+    if not isinstance(tomtom, dict):
+        return 0.0
+
+    status = str(tomtom.get("status") or provenance.get("match_status") or "")
+    distance = tomtom.get("distance_m")
+    url = tomtom.get("url")
+
+    if status == "matched":
+        score = 0.12
+        if isinstance(distance, (int, float)):
+            if distance <= 50:
+                score += 0.06
+            elif distance <= 150:
+                score += 0.04
+            else:
+                score += 0.02
+        if isinstance(url, str) and url.strip():
+            score += 0.02
+        return score
+
+    if status == "name_mismatch":
+        return 0.04
+
+    return 0.0
+
+
 def compute_confidence(gym: Gym) -> float:
     tags = gym.tags
     score = 0.0
@@ -123,6 +155,7 @@ def compute_confidence(gym: Gym) -> float:
     score += _brand_score(tags)
     score += _metadata_score(tags)
     score += _name_score(gym)
+    score += _external_validation_score(gym)
 
     gym.confidence_score = round(min(score, 1.0), 2)
     return gym.confidence_score

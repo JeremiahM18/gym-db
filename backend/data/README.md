@@ -13,6 +13,6 @@ Ignored from git:
 - local or regenerated datasets such as `gyms_raw.json`
 - generated dataset sidecars such as `*.sqlite3` and temporary lock files
 - runtime job snapshots under `jobs/`
-- operational artifacts under `artifacts/`
+- operational artifacts under `artifacts/`, including local TomTom coverage audit outputs
 
 The rule is simple: tiny deterministic fixtures may be committed; local datasets and regenerated runtime data should not be.

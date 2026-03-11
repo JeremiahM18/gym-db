@@ -45,3 +45,9 @@ def test_v2_gyms_response_contract(client):
     assert "version" in meta
     assert "field_confidence" in meta
     assert "contradictions" in meta
+
+    assert "source_provenance" in gym
+    provenance = gym["source_provenance"]
+    assert "primary" in provenance
+    assert "match_status" in provenance
+    assert "external_refs" in provenance

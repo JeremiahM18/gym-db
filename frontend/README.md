@@ -8,7 +8,7 @@ The app lets a user:
 - browse published gym records from `/v2/gyms`
 - filter by confidence, tier, specialty, 24/7 access, and lifter friendliness
 - run nearby search through `/v2/gyms` using `lat`, `lon`, and `radius_m`
-- inspect a single gym's structured inference, field-level confidence, contradiction diagnostics, and source-backed metadata
+- inspect a single gym's structured inference, field-level confidence, contradiction diagnostics, source provenance, and source-backed metadata
 - open gym websites when OSM tags provide them
 - jump to Google Maps or OpenStreetMap for the selected gym
 - see city/state and distance-in-miles in the result flow
