@@ -14,22 +14,44 @@ SQL_NEARBY_GYMS = text("""
     WITH anchor AS (
         SELECT
             ST_SetSRID(ST_MakePoint(:lon, :lat), 4326) AS point_geometry,
-            ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography AS point_geography
+            ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography AS point_geography,
+            degrees(:radius_m / 6371000.0) AS lat_delta,
+            CASE
+                WHEN abs(cos(radians(:lat))) < 1e-12 THEN 180.0
+                ELSE degrees(:radius_m / 6371000.0) / abs(cos(radians(:lat)))
+            END AS lon_delta
+    ),
+    candidates AS (
+        SELECT
+            g.id,
+            g.name,
+            g.location
+        FROM gyms g
+        CROSS JOIN anchor
+        WHERE g.location::geometry && ST_MakeEnvelope(
+            :lon - anchor.lon_delta,
+            :lat - anchor.lat_delta,
+            :lon + anchor.lon_delta,
+            :lat + anchor.lat_delta,
+            4326
+        )
+        ORDER BY g.location::geometry <-> anchor.point_geometry
+        LIMIT GREATEST(:limit * 50, 500)
     )
     SELECT
-        g.id,
-        g.name,
-        ST_Y(g.location::geometry) AS lat,
-        ST_X(g.location::geometry) AS lon,
-        ST_Distance(g.location, anchor.point_geography) AS distance_m
-    FROM gyms g
+        c.id,
+        c.name,
+        ST_Y(c.location::geometry) AS lat,
+        ST_X(c.location::geometry) AS lon,
+        ST_Distance(c.location, anchor.point_geography) AS distance_m
+    FROM candidates c
     CROSS JOIN anchor
     WHERE ST_DWithin(
-        g.location,
+        c.location,
         anchor.point_geography,
         :radius_m
     )
-    ORDER BY g.location::geometry <-> anchor.point_geometry
+    ORDER BY distance_m ASC
     LIMIT :limit;
 """)
 
@@ -38,22 +60,44 @@ SQL_EXPLAIN_NEARBY_GYMS = text("""
     WITH anchor AS (
         SELECT
             ST_SetSRID(ST_MakePoint(:lon, :lat), 4326) AS point_geometry,
-            ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography AS point_geography
+            ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography AS point_geography,
+            degrees(:radius_m / 6371000.0) AS lat_delta,
+            CASE
+                WHEN abs(cos(radians(:lat))) < 1e-12 THEN 180.0
+                ELSE degrees(:radius_m / 6371000.0) / abs(cos(radians(:lat)))
+            END AS lon_delta
+    ),
+    candidates AS (
+        SELECT
+            g.id,
+            g.name,
+            g.location
+        FROM gyms g
+        CROSS JOIN anchor
+        WHERE g.location::geometry && ST_MakeEnvelope(
+            :lon - anchor.lon_delta,
+            :lat - anchor.lat_delta,
+            :lon + anchor.lon_delta,
+            :lat + anchor.lat_delta,
+            4326
+        )
+        ORDER BY g.location::geometry <-> anchor.point_geometry
+        LIMIT GREATEST(:limit * 50, 500)
     )
     SELECT
-        g.id,
-        g.name,
-        ST_Y(g.location::geometry) AS lat,
-        ST_X(g.location::geometry) AS lon,
-        ST_Distance(g.location, anchor.point_geography) AS distance_m
-    FROM gyms g
+        c.id,
+        c.name,
+        ST_Y(c.location::geometry) AS lat,
+        ST_X(c.location::geometry) AS lon,
+        ST_Distance(c.location, anchor.point_geography) AS distance_m
+    FROM candidates c
     CROSS JOIN anchor
     WHERE ST_DWithin(
-        g.location,
+        c.location,
         anchor.point_geography,
         :radius_m
     )
-    ORDER BY g.location::geometry <-> anchor.point_geometry
+    ORDER BY distance_m ASC
     LIMIT :limit;
 """)
 
@@ -100,11 +144,11 @@ def get_nearby_gyms(
     limit: int,
 ) -> list[GymNearby]:
     """
-    Return nearby gyms ordered by distance.
+    Return nearby gyms ordered by exact geographic distance.
 
-    The query uses an exact geography radius filter and a geometry KNN order,
-    which lets PostGIS use the geometry expression index for fast nearest-neighbor
-    candidate ordering while still returning exact geographic distance.
+    The query first uses a conservative geometry bounding box plus KNN ordering
+    to pull a small candidate set through the geometry expression index, then
+    applies exact geography filtering and distance ordering on that reduced set.
     """
     rows = _execute_query(
         conn,
