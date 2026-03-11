@@ -1,16 +1,18 @@
 # GymDB Frontend
 
-This frontend is now the primary demo surface for the GymDB backend.
+This frontend is the primary demo surface for the GymDB backend.
 
 ## What It Does
 
 The app lets a user:
 - browse published gym records from `/v2/gyms`
 - filter by confidence, tier, specialty, 24/7 access, and lifter friendliness
-- run nearby search against `/v2/gyms/geo/nearby`
+- run nearby search through `/v2/gyms` using `lat`, `lon`, and `radius_m`
 - inspect a single gym's structured inference and source-backed metadata
 - open gym websites when OSM tags provide them
-- jump to map views for the selected gym
+- jump to Google Maps or OpenStreetMap for the selected gym
+- see city/state and distance-in-miles in the result flow
+- use the geo canvas to select gyms from a live coordinate projection
 - see backend liveness and readiness at a glance
 
 ## Commands
@@ -44,3 +46,4 @@ VITE_API_BASE_URL=http://localhost:8000
 3. Run `npm install` in `frontend/`.
 4. Run `npm run dev`.
 5. Open the local Vite URL shown in the terminal.
+6. Hard refresh if the browser cached an older frontend bundle.

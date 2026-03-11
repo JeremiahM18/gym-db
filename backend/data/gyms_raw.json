@@ -1,0 +1,3096 @@
+{
+  "schema_version": "1.2",
+  "generated_at": "2025-12-17T18:57:23.763599+00:00",
+  "count": 66,
+  "inference_meta": {
+    "engine": "rule_based",
+    "version": "1.0.0"
+  },
+  "results": [
+    {
+      "id": "c2e0b5b79dcb5fad",
+      "name": "Irontribe",
+      "lat": 36.0313359,
+      "lon": -86.8026025,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 2597881514
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Irontribe"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "cc0b352550148bf4",
+      "name": "Curves",
+      "lat": 36.0005619,
+      "lon": -86.6919276,
+      "confidence_score": 0.7,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 2653959247
+        }
+      ],
+      "tags": {
+        "addr:city": "Brentwood",
+        "addr:housenumber": "6688",
+        "addr:postcode": "37027",
+        "addr:street": "Nolensville Road #112",
+        "brand": "Curves",
+        "brand:wikidata": "Q5196080",
+        "leisure": "fitness_centre",
+        "name": "Curves",
+        "phone": "+1-615-469-0850",
+        "website": "https://www.curves.com/locations/club/Brentwood-2"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "482059a81c081947",
+      "name": "Maryland Farms YMCA",
+      "lat": 36.032016,
+      "lon": -86.797395,
+      "confidence_score": 0.7,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 3011825333
+        }
+      ],
+      "tags": {
+        "addr:city": "Brentwood",
+        "addr:housenumber": "5101",
+        "addr:postcode": "37027",
+        "addr:street": "Maryland Way",
+        "leisure": "fitness_centre",
+        "name": "Maryland Farms YMCA",
+        "operator": "YMCA of Middle Tennessee",
+        "phone": "+1-615-373-2900",
+        "website": "https://www.ymcamidtn.org/maryland-farms"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "834d79fb999429e2",
+      "name": "Crossfit",
+      "lat": 36.1524177,
+      "lon": -86.8536331,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 4796284005
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Crossfit"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "0e2430676d5394a4",
+      "name": "Planet Fitness",
+      "lat": 36.1502416,
+      "lon": -86.8606197,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 4816594786
+        }
+      ],
+      "tags": {
+        "brand": "Planet Fitness",
+        "brand:wikidata": "Q7201095",
+        "leisure": "fitness_centre",
+        "name": "Planet Fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "f913b9dab24e508e",
+      "name": "Workout Anytime",
+      "lat": 35.7400187,
+      "lon": -86.8917127,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 5016431237
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Workout Anytime"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "6a0846002f21a555",
+      "name": "Anytime Fitness",
+      "lat": 36.1703201,
+      "lon": -86.6847291,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 5311163473
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Anytime Fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "a7512ff862676458",
+      "name": "Orangetheory Fitness",
+      "lat": 36.1520644,
+      "lon": -86.7934916,
+      "confidence_score": 0.4,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 5511703487
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "121",
+        "addr:postcode": "37203",
+        "addr:state": "TN",
+        "addr:street": "17th Avenue South",
+        "brand": "Orangetheory Fitness",
+        "brand:wikidata": "Q25005163",
+        "leisure": "fitness_centre",
+        "name": "Orangetheory Fitness",
+        "phone": "+1 615-988-9288",
+        "ref": "1902"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "0bc530db58f2b602",
+      "name": "Anytime Fitness",
+      "lat": 35.9745355,
+      "lon": -87.1303422,
+      "confidence_score": 0.7,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 5661755445
+        }
+      ],
+      "tags": {
+        "addr:city": "Fairview",
+        "addr:housenumber": "7048",
+        "addr:postcode": "37062",
+        "addr:state": "TN",
+        "addr:street": "City Center Way",
+        "branch": "Fairview",
+        "brand": "Anytime Fitness",
+        "brand:wikidata": "Q4778364",
+        "leisure": "fitness_centre",
+        "name": "Anytime Fitness",
+        "phone": "+1 615-799-0200",
+        "ref": "3502",
+        "website": "https://www.anytimefitness.com/gyms/3502/fairview-tn-37062/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "6877cbcf0ee96232",
+      "name": "Steadfast South",
+      "lat": 36.1272205,
+      "lon": -86.7529354,
+      "confidence_score": 0.6,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 6143452188
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "2190",
+        "addr:postcode": "37211",
+        "addr:state": "TN",
+        "addr:street": "Nolensville Pike",
+        "addr:unit": "C",
+        "leisure": "fitness_centre",
+        "name": "Steadfast South",
+        "sport": "yoga",
+        "website": "https://www.steadfastandtrueyoga.com/news/2019/12/7/big-announcements"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "f9e880ec2a0d1677",
+      "name": "YMCA",
+      "lat": 36.321192,
+      "lon": -86.5703889,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 6238922082
+        }
+      ],
+      "tags": {
+        "brand": "YMCA",
+        "brand:wikidata": "Q157169",
+        "leisure": "fitness_centre",
+        "name": "YMCA",
+        "sport": "swimming;basketball;yoga"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "b0c4f02a504fe745",
+      "name": "Planet Fitness",
+      "lat": 36.1267985,
+      "lon": -86.7144739,
+      "confidence_score": 0.5,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7050546894
+        }
+      ],
+      "tags": {
+        "brand": "Planet Fitness",
+        "brand:wikidata": "Q7201095",
+        "leisure": "fitness_centre",
+        "name": "Planet Fitness",
+        "opening_hours": "PH,Mo-Su 00:00-24:00",
+        "website": "https://www.planetfitness.com/gyms/south-nashville-tn"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 2,
+          "reasons": [
+            "has website",
+            "has opening hours"
+          ]
+        },
+        "is_24_7": {
+          "value": true,
+          "reasons": [
+            "derived from opening_hours"
+          ]
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=2",
+            "24/7 access adds value"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "ff442cf722899c08",
+      "name": "Donelson Hot Yoga",
+      "lat": 36.1696659,
+      "lon": -86.6804878,
+      "confidence_score": 0.6,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7093576893
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "2428",
+        "addr:postcode": "37214",
+        "addr:state": "TN",
+        "addr:street": "Lebanon Pike",
+        "leisure": "fitness_centre",
+        "name": "Donelson Hot Yoga",
+        "sport": "yoga",
+        "website": "https://www.donelsonhotyoga.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "5c4e0e63046c2116",
+      "name": "Chestnut Hill Yoga",
+      "lat": 36.1465593,
+      "lon": -86.76633,
+      "confidence_score": 0.6,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7501601246
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "1106",
+        "addr:postcode": "37210",
+        "addr:state": "TN",
+        "addr:street": "3rd Avenue South",
+        "leisure": "fitness_centre",
+        "name": "Chestnut Hill Yoga",
+        "sport": "yoga",
+        "website": "https://chestnuthillyoga.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "72f281b3672525f6",
+      "name": "Williamson County Recreation Complex",
+      "lat": 35.9993317,
+      "lon": -86.7878862,
+      "confidence_score": 0.8,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7564378686
+        }
+      ],
+      "tags": {
+        "addr:housenumber": "920",
+        "addr:postcode": "37027",
+        "addr:street": "Heritage Way",
+        "leisure": "fitness_centre",
+        "name": "Williamson County Recreation Complex",
+        "name:en": "Williamson County Indoor Sports Complex",
+        "opening_hours": "Mo-Fr 05:00-21:00,Sa 07:00-18:00,Su 13:00-18:00",
+        "phone": "+1-615-790-5719",
+        "website": "https://www.wcparksandrec.com"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 2,
+          "reasons": [
+            "has website",
+            "has opening hours"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=2"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "e738916f7db2df5f",
+      "name": "Cross Fit Forte",
+      "lat": 36.1487305,
+      "lon": -86.7703615,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7911563292
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Cross Fit Forte"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "5a0d4bafed8fe41c",
+      "name": "H Dub Athletics",
+      "lat": 36.147362,
+      "lon": -86.7667197,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7911563293
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "H Dub Athletics"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "74f6878a07627bd3",
+      "name": "Urban Strength Gym",
+      "lat": 36.1474714,
+      "lon": -86.7667864,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7917897147
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Urban Strength Gym"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": true,
+          "reasons": [
+            "name suggests strength focus"
+          ]
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "2168f77cb968fce1",
+      "name": "Planet Fitness Nashville-Bellevue",
+      "lat": 36.0767513,
+      "lon": -86.9504949,
+      "confidence_score": 0.8,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 8064171934
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "7657",
+        "addr:postcode": "37221",
+        "addr:state": "TN",
+        "addr:street": "Highway 70 S",
+        "addr:unit": "114",
+        "brand": "Planet Fitness",
+        "brand:wikidata": "Q7201095",
+        "leisure": "fitness_centre",
+        "name": "Planet Fitness Nashville-Bellevue",
+        "opening_hours": "24/7",
+        "phone": "+1615-610-8055",
+        "website": "https://www.planetfitness.com/gyms/nashville-bellevue-tn"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 2,
+          "reasons": [
+            "has website",
+            "has opening hours"
+          ]
+        },
+        "is_24_7": {
+          "value": true,
+          "reasons": [
+            "derived from opening_hours"
+          ]
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=2",
+            "24/7 access adds value"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "c5bcf45e98e7d283",
+      "name": "Carbon Culture",
+      "lat": 35.8636206,
+      "lon": -86.4505006,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 8547124465
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Carbon Culture"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "1333cbc24e80f5a4",
+      "name": "Revive Studio & Spa",
+      "lat": 35.8549979,
+      "lon": -86.4298225,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 8561109620
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Revive Studio & Spa"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "f541343686f63dbe",
+      "name": "Planet Fitness",
+      "lat": 35.8490484,
+      "lon": -86.4247401,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 8562054650
+        }
+      ],
+      "tags": {
+        "brand": "Planet Fitness",
+        "brand:wikidata": "Q7201095",
+        "leisure": "fitness_centre",
+        "name": "Planet Fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "d876011d12933c2a",
+      "name": "Gold's Gym",
+      "lat": 35.8680005,
+      "lon": -86.3892967,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 8677829061
+        }
+      ],
+      "tags": {
+        "brand": "Gold's Gym",
+        "brand:wikidata": "Q1536234",
+        "leisure": "fitness_centre",
+        "name": "Gold's Gym"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "492338ff7578fd5c",
+      "name": "9 Round 30 min Kickbox Fitness",
+      "lat": 35.8805944,
+      "lon": -86.3864655,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 8778860553
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "9 Round 30 min Kickbox Fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "3a31a9479258178a",
+      "name": "Fit Studio",
+      "lat": 35.9211198,
+      "lon": -86.8249242,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 8909949717
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Fit Studio"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "def9e7eee3403d71",
+      "name": "Corax Strength and Performance",
+      "lat": 35.9041743,
+      "lon": -86.3828908,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 8993711931
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Corax Strength and Performance"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": true,
+          "reasons": [
+            "name suggests strength focus"
+          ]
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "99dedef4328632ca",
+      "name": "Barre 11 Fitness",
+      "lat": 35.9032487,
+      "lon": -86.3822792,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 8993711980
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Barre 11 Fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "b06ad11fd80f269f",
+      "name": "Cyclebar",
+      "lat": 35.9563738,
+      "lon": -86.8027975,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 9487308352
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Cyclebar"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "334b106a4381941a",
+      "name": "Planet Fitness",
+      "lat": 35.9850767,
+      "lon": -86.4953897,
+      "confidence_score": 0.7,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 10007037348
+        }
+      ],
+      "tags": {
+        "addr:city": "Smyrna",
+        "addr:housenumber": "564",
+        "addr:postcode": "37167",
+        "addr:state": "TN",
+        "addr:street": "Nissan Drive",
+        "brand": "Planet Fitness",
+        "brand:wikidata": "Q7201095",
+        "leisure": "fitness_centre",
+        "name": "Planet Fitness",
+        "phone": "+1-615-956-0100",
+        "website": "https://www.planetfitness.com/gyms/smyrna-tn"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "1da8d094eb6827ff",
+      "name": "Gold's Gym",
+      "lat": 36.0758581,
+      "lon": -86.9199643,
+      "confidence_score": 0.8,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 10612306529
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "7062",
+        "addr:postcode": "37221",
+        "addr:state": "TN",
+        "addr:street": "Highway 70 South",
+        "brand": "Gold's Gym",
+        "brand:wikidata": "Q1536234",
+        "email": "bellevue@goldsgymtn.com",
+        "leisure": "fitness_centre",
+        "name": "Gold's Gym",
+        "opening_hours": "Mo-Su 04:00-22:00",
+        "phone": "+1-615-956-6016 x4",
+        "website": "https://www.goldsgym.com/nashville-bellevue/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 2,
+          "reasons": [
+            "has website",
+            "has opening hours"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=2"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "5bf3a73aa49c6122",
+      "name": "Club Pilates",
+      "lat": 35.8426705,
+      "lon": -86.4907985,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 11173204097
+        }
+      ],
+      "tags": {
+        "brand": "Club Pilates",
+        "brand:wikidata": "Q109328844",
+        "leisure": "fitness_centre",
+        "name": "Club Pilates",
+        "sport": "pilates"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "142d9becccf7895b",
+      "name": "Orangetheory Fitness",
+      "lat": 36.1613964,
+      "lon": -86.7847875,
+      "confidence_score": 0.4,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 11220520250
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "1022",
+        "addr:postcode": "37203",
+        "addr:state": "TN",
+        "addr:street": "Church Street",
+        "brand": "Orangetheory Fitness",
+        "brand:wikidata": "Q25005163",
+        "leisure": "fitness_centre",
+        "name": "Orangetheory Fitness",
+        "phone": "+1 615-866-3522",
+        "ref": "48188"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "1ebc04bbe2917be1",
+      "name": "Legacy Fitness Center",
+      "lat": 36.1948691,
+      "lon": -86.6231675,
+      "confidence_score": 0.5,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 11327525941
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Legacy Fitness Center",
+        "phone": "+1-615-953-3177",
+        "website": "https://legacyfitnesscenter.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "35d25697c850ffba",
+      "name": "Heron Pointe Gym",
+      "lat": 36.1182022,
+      "lon": -86.6298171,
+      "confidence_score": 0.2,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 11669492029
+        }
+      ],
+      "tags": {
+        "access": "private",
+        "leisure": "fitness_centre",
+        "name": "Heron Pointe Gym",
+        "opening_hours": "Mo-Su,PH 00:00-24:00",
+        "sport": "fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has opening hours"
+          ]
+        },
+        "is_24_7": {
+          "value": true,
+          "reasons": [
+            "derived from opening_hours"
+          ]
+        },
+        "lifter_friendly": {
+          "value": true,
+          "reasons": [
+            "has strength training amenities"
+          ]
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1",
+            "24/7 access adds value"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "1d9f20c67149bf8f",
+      "name": "Climb West",
+      "lat": 36.1530445,
+      "lon": -86.8280456,
+      "confidence_score": 0.5,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 11778973371
+        }
+      ],
+      "tags": {
+        "addr:housenumber": "3600",
+        "addr:postcode": "37209",
+        "addr:street": "Charlotte Avenue",
+        "leisure": "fitness_centre",
+        "name": "Climb West",
+        "opening_hours": "Mo-Fr 06:00-22:00; Sa 09:00-21:00; Su 11:00-18:00",
+        "phone": "+1-615-463-7625"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has opening hours"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "6e4835a063b2db0c",
+      "name": "StretchLab",
+      "lat": 35.8548653,
+      "lon": -86.4310965,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 12105688552
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "StretchLab"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "afac5feef65d7ac8",
+      "name": "Hot Yoga of East Nashville",
+      "lat": 36.1758081,
+      "lon": -86.7583513,
+      "confidence_score": 0.7,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 12556488305
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "807",
+        "addr:postcode": "37206",
+        "addr:state": "TN",
+        "addr:street": "Main Street",
+        "leisure": "fitness_centre",
+        "name": "Hot Yoga of East Nashville",
+        "phone": "+1-615-622-6077",
+        "sport": "yoga",
+        "website": "https://www.hotyogaofeastnashville.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "3cbd7d45f96603b8",
+      "name": "Climb Nashville East",
+      "lat": 36.1816982,
+      "lon": -86.7355516,
+      "confidence_score": 0.3,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 12585946601
+        }
+      ],
+      "tags": {
+        "addr:housenumber": "1900",
+        "addr:postcode": "37206",
+        "addr:street": "Eastland Avenue",
+        "leisure": "fitness_centre",
+        "name": "Climb Nashville East"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "979501015f94edf4",
+      "name": "Climb Nashville Kraft",
+      "lat": 36.1088619,
+      "lon": -86.757443,
+      "confidence_score": 0.4,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 12585946602
+        }
+      ],
+      "tags": {
+        "addr:housenumber": "2926",
+        "addr:postcode": "37204",
+        "addr:street": "Kraft Drive",
+        "leisure": "fitness_centre",
+        "name": "Climb Nashville Kraft",
+        "opening_hours": "Mo-Su 09:00-21:00"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has opening hours"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "4dc37c52b400a904",
+      "name": "CrossFit",
+      "lat": 36.0738029,
+      "lon": -86.92179,
+      "confidence_score": 0.7,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 12587625533
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "7103",
+        "addr:postcode": "37221-2901",
+        "addr:state": "TN",
+        "addr:street": "Highway 70 South",
+        "addr:unit": "B",
+        "brand": "CrossFit",
+        "brand:wikidata": "Q2072840",
+        "leisure": "fitness_centre",
+        "name": "CrossFit",
+        "phone": "+1-615-909-4136",
+        "website": "https://www.crossfitwestnashville.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "1f4ef891b425ff4b",
+      "name": "Shed Fitness Bellevue",
+      "lat": 36.0723186,
+      "lon": -86.9248762,
+      "confidence_score": 0.7,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 12587625538
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "7097",
+        "addr:postcode": "37221",
+        "addr:state": "TN",
+        "addr:street": "Old Harding Pike",
+        "addr:unit": "J",
+        "email": "caroline@shedgroupfitness.com",
+        "leisure": "fitness_centre",
+        "name": "Shed Fitness Bellevue",
+        "phone": "+1-301-509-2521",
+        "website": "https://shedgroupfitness.com/bellevue-1"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "47cd76c64f48aea4",
+      "name": "Body Architecture Fitness",
+      "lat": 35.9253803,
+      "lon": -86.872319,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 12697401518
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Body Architecture Fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "c85b4ddcd20264fe",
+      "name": "Planet Fitness",
+      "lat": 35.918331,
+      "lon": -86.8373821,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 13030451273
+        }
+      ],
+      "tags": {
+        "brand": "Planet Fitness",
+        "brand:wikidata": "Q7201095",
+        "leisure": "fitness_centre",
+        "name": "Planet Fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "a5448d0b80910059",
+      "name": "Solidcore",
+      "lat": 35.9345174,
+      "lon": -86.825618,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 13096519318
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Solidcore"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "8dfaba2ec532d85f",
+      "name": "Pure Barre",
+      "lat": 35.9346331,
+      "lon": -86.826824,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 13096548712
+        }
+      ],
+      "tags": {
+        "brand": "Pure Barre",
+        "brand:wikidata": "Q86707084",
+        "leisure": "fitness_centre",
+        "name": "Pure Barre",
+        "sport": "barre"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "42aaf68d7ca81014",
+      "name": "Dive Barre & Pilates",
+      "lat": 36.3885734,
+      "lon": -86.4466577,
+      "confidence_score": 0.8,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 13098685604
+        }
+      ],
+      "tags": {
+        "addr:housenumber": "110",
+        "addr:postcode": "37066",
+        "addr:street": "North Water Avenue",
+        "contact:facebook": "divebarreandpilates",
+        "contact:instagram": "divebarreandpilates",
+        "email": "julie@divebarreandpilates.com",
+        "leisure": "fitness_centre",
+        "name": "Dive Barre & Pilates",
+        "opening_hours": "Mo-Fr 07:00-19:00; Sa 07:00-12:00; Su 14:00-19:00",
+        "phone": "+1-615-461-0662",
+        "website": "https://divebarreandpilates.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 2,
+          "reasons": [
+            "has website",
+            "has opening hours"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=2"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "cea8c79f95a0b4fb",
+      "name": "Quantify Fitness",
+      "lat": 36.1744054,
+      "lon": -86.7504803,
+      "confidence_score": 0.7,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 13203997501
+        }
+      ],
+      "tags": {
+        "addr:housenumber": "2144",
+        "addr:postcode": "37206",
+        "addr:street": "South 11th Street",
+        "leisure": "fitness_centre",
+        "name": "Quantify Fitness",
+        "phone": "+1-615-697-3481",
+        "website": "https://quantifyfitness.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "45793111be3f8836",
+      "name": "Zivel Performance and Recovery",
+      "lat": 35.9415717,
+      "lon": -86.8222216,
+      "confidence_score": 0.8,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 13204053601
+        }
+      ],
+      "tags": {
+        "addr:housenumber": "790",
+        "addr:postcode": "37067",
+        "addr:street": "Jordan Road",
+        "leisure": "fitness_centre",
+        "name": "Zivel Performance and Recovery",
+        "opening_hours": "Su 11:00-15:00; Mo, We-Th 08:00-18:00; Tu 08:00-16:00; Fr 08:00-17:00; Sa 09:00-17:00",
+        "phone": "+1-615-997-4159",
+        "website": "https://coolsprings.zivel.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 2,
+          "reasons": [
+            "has website",
+            "has opening hours"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=2"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "6ff11bddc918bc01",
+      "name": "Stronghold Strength and Conditioning",
+      "lat": 35.8297611,
+      "lon": -86.4615039,
+      "confidence_score": 0.3,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 13354010363
+        }
+      ],
+      "tags": {
+        "addr:city": "Murfreesboro",
+        "addr:housenumber": "3436",
+        "addr:postcode": "37128",
+        "addr:state": "TN",
+        "addr:street": "Tourmaline road",
+        "check_date": "2025-12-04",
+        "currency:XBT": "yes",
+        "leisure": "fitness_centre",
+        "name": "Stronghold Strength and Conditioning",
+        "payment:lightning": "yes",
+        "payment:lightning:operator": "square",
+        "payment:lightning_contactless": "no",
+        "payment:onchain": "no"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": true,
+          "reasons": [
+            "name suggests strength focus"
+          ]
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "9035a79cb7c831e1",
+      "name": "Gold's Gym",
+      "lat": 35.8450659,
+      "lon": -86.4168291,
+      "confidence_score": 0.3,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 293932803
+        }
+      ],
+      "tags": {
+        "addr:city": "Murfreesboro",
+        "addr:housenumber": "1713",
+        "addr:postcode": "37129",
+        "addr:state": "TN",
+        "addr:street": "Old Fort Parkway",
+        "brand": "Gold's Gym",
+        "brand:wikidata": "Q1536234",
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "name": "Gold's Gym"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "2afad261802fd551",
+      "name": "Rock Box Fitness",
+      "lat": 35.9121134,
+      "lon": -86.831612,
+      "confidence_score": 0.3,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 345649632
+        }
+      ],
+      "tags": {
+        "addr:city": "Franklin",
+        "addr:housenumber": "209",
+        "addr:postcode": "37064",
+        "addr:state": "TN",
+        "addr:street": "South Royal Oaks Boulevard",
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "name": "Rock Box Fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "c13cbd184ad612e5",
+      "name": "Indoor Tennis Courts",
+      "lat": 36.0562649,
+      "lon": -86.9233004,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 544255831
+        }
+      ],
+      "tags": {
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "name": "Indoor Tennis Courts",
+        "parking": "multi-storey",
+        "sport": "tennis"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "e6bcbb62822004b8",
+      "name": "Elcan Athletics Center",
+      "lat": 36.0565106,
+      "lon": -86.9196299,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 544255856
+        }
+      ],
+      "tags": {
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "level": "3",
+        "name": "Elcan Athletics Center",
+        "sport": "basketball;multi;volleyball"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "b8a84e80576203ca",
+      "name": "YMCA Donelson-Hermitage",
+      "lat": 36.1718555,
+      "lon": -86.6486517,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 549824714
+        }
+      ],
+      "tags": {
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "name": "YMCA Donelson-Hermitage",
+        "sport": "soccer;basketball;swimming;running"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "b03d079d67dde0a9",
+      "name": "Sports Village",
+      "lat": 36.2246135,
+      "lon": -86.3501825,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 555599224
+        }
+      ],
+      "tags": {
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "name": "Sports Village"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "b190910ee1dfaceb",
+      "name": "Sport Village Kids Camp",
+      "lat": 36.223997,
+      "lon": -86.3504018,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 555599225
+        }
+      ],
+      "tags": {
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "name": "Sport Village Kids Camp"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "f5dcff9ec67ee889",
+      "name": "Longview Recreation Center",
+      "lat": 35.7649358,
+      "lon": -86.9094635,
+      "confidence_score": 0.3,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 667741022
+        }
+      ],
+      "tags": {
+        "addr:housenumber": "2909",
+        "addr:street": "Commonwealth Drive",
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "name": "Longview Recreation Center",
+        "sport": "basketball;fitness;swimming"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": true,
+          "reasons": [
+            "has strength training amenities"
+          ]
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "94fac49c1b87971f",
+      "name": "Dalewood Baptist Church - Christian Life Center",
+      "lat": 36.2080299,
+      "lon": -86.7159848,
+      "confidence_score": 0.3,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 670330389
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "1586",
+        "addr:postcode": "37216",
+        "addr:state": "TN",
+        "addr:street": "McGavock Pike",
+        "building": "yes",
+        "denomination": "baptist",
+        "leisure": "fitness_centre",
+        "name": "Dalewood Baptist Church - Christian Life Center",
+        "sport": "basketball;walking_track;exercise_room;game_room"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "cbcdacab5db27031",
+      "name": "CrossFit Donelson",
+      "lat": 36.1715509,
+      "lon": -86.6731142,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 745008871
+        }
+      ],
+      "tags": {
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "name": "CrossFit Donelson"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "7fa06881d6a52255",
+      "name": "CycleBar",
+      "lat": 35.857283,
+      "lon": -86.4363412,
+      "confidence_score": 0.8,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 921473329
+        }
+      ],
+      "tags": {
+        "addr:city": "Murfreesboro",
+        "addr:housenumber": "2249",
+        "addr:postcode": "37129",
+        "addr:state": "TN",
+        "addr:street": "Medical Center Parkway",
+        "addr:unit": "A",
+        "brand": "CycleBar",
+        "brand:wikidata": "Q121459827",
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "name": "CycleBar",
+        "opening_hours": "Mo,Tu,Th 17:00-19:00; We 08:00-19:00; Fr 05:00-19:00; Sa,Su 08:00-10:00",
+        "phone": "+1 615 622 1091",
+        "sport": "cycling",
+        "website": "https://www.cyclebar.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 2,
+          "reasons": [
+            "has website",
+            "has opening hours"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=2"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "69e113b98a0bdc45",
+      "name": "Gold's Gym",
+      "lat": 36.3227955,
+      "lon": -86.5991068,
+      "confidence_score": 0.7,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 941645816
+        }
+      ],
+      "tags": {
+        "addr:city": "Hendersonville",
+        "addr:housenumber": "225",
+        "addr:postcode": "37075",
+        "addr:state": "TN",
+        "addr:street": "Indian Lake Boulevard",
+        "brand": "Gold's Gym",
+        "brand:wikidata": "Q1536234",
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "name": "Gold's Gym",
+        "phone": "+1-615-956-6016 x3",
+        "website": "https://www.goldsgym.com/hendersonvilletn/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "fa244e14d25becf0",
+      "name": "Club Pilates",
+      "lat": 36.3226917,
+      "lon": -86.6005643,
+      "confidence_score": 0.7,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 1044397427
+        }
+      ],
+      "tags": {
+        "addr:city": "Hendersonville",
+        "addr:housenumber": "217",
+        "addr:postcode": "37075",
+        "addr:state": "TN",
+        "addr:street": "Indian Lake Boulevard",
+        "addr:unit": "1002",
+        "brand": "Club Pilates",
+        "brand:wikidata": "Q109328844",
+        "building:part": "unit",
+        "leisure": "fitness_centre",
+        "name": "Club Pilates",
+        "phone": "+1-615-270-2470",
+        "source": "https://www.yelp.com/biz_photos/rock-n-roll-sushi-hendersonville-hendersonville?select=8EENysaPULzHWkt_0vZz0g;https://www.yelp.com/biz_photos/club-pilates-hendersonville-hendersonville?select=j_3fQeku5DRquofimSu1cA",
+        "sport": "pilates",
+        "website": "https://www.clubpilates.com/location/indianlake"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "258f152395daca99",
+      "name": "Planet Fitness",
+      "lat": 36.1908753,
+      "lon": -86.6293155,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 1092676094
+        }
+      ],
+      "tags": {
+        "brand": "Planet Fitness",
+        "brand:wikidata": "Q7201095",
+        "building:part": "yes",
+        "leisure": "fitness_centre",
+        "name": "Planet Fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "6772ae79be3b5b4f",
+      "name": "Snap Fitness",
+      "lat": 36.2493866,
+      "lon": -87.0358959,
+      "confidence_score": 0.8,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 1194657471
+        }
+      ],
+      "tags": {
+        "addr:city": "Ashland City",
+        "addr:housenumber": "260",
+        "addr:postcode": "37015",
+        "addr:state": "TN",
+        "addr:street": "Hutton Place",
+        "brand": "Snap Fitness",
+        "brand:wikidata": "Q7547254",
+        "building": "yes",
+        "email": "ashlandcity@snapfitness.com",
+        "leisure": "fitness_centre",
+        "name": "Snap Fitness",
+        "opening_hours": "24/7",
+        "phone": "+1-615-792-0400",
+        "website": "https://www.snapfitness.com/us/gyms/ashlandcity"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 2,
+          "reasons": [
+            "has website",
+            "has opening hours"
+          ]
+        },
+        "is_24_7": {
+          "value": true,
+          "reasons": [
+            "derived from opening_hours"
+          ]
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=2",
+            "24/7 access adds value"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "59e4653405089182",
+      "name": "Life Time",
+      "lat": 35.9236865,
+      "lon": -86.8145988,
+      "confidence_score": 0.5,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 1413969899
+        }
+      ],
+      "tags": {
+        "brand": "Life Time",
+        "brand:wikidata": "Q6545004",
+        "internet_access": "wlan",
+        "leisure": "fitness_centre",
+        "name": "Life Time",
+        "opening_hours": "Mo-Fr 04:00-23:00; Sa,Su 05:00-21:00",
+        "website": "https://www.lifetime.life/life-time-locations/tn-franklin.html"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 2,
+          "reasons": [
+            "has website",
+            "has opening hours"
+          ]
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": []
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=2"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "1c3fcd0553dc453f",
+      "name": "All Strength Nathville",
+      "lat": 35.9645429,
+      "lon": -86.8187766,
+      "confidence_score": 0.1,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 1418127255
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "level": "0",
+        "name": "All Strength Nathville"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": []
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": []
+        },
+        "lifter_friendly": {
+          "value": true,
+          "reasons": [
+            "name suggests strength focus"
+          ]
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ]
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}

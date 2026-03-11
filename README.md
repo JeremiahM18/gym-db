@@ -93,6 +93,7 @@ Backend:
 - Start the API with:
   `.\.venv\Scripts\python.exe -m uvicorn api.main:app --reload`
 - For local frontend work without Cognito, set `ENABLE_DEV_AUTH_BYPASS=true` in `backend/.env`.
+- The backend now includes CORS for the local Vite frontend origins.
 
 Frontend:
 - From `frontend/`, install dependencies with:
@@ -102,6 +103,20 @@ Frontend:
 - Open the local URL shown by Vite, typically `http://localhost:5173`
 
 The frontend reads `VITE_API_BASE_URL` from `frontend/src/.env.local` and defaults to `http://localhost:8000`.
+
+---
+
+## Browser Client
+
+The current frontend is a real demo surface, not a placeholder shell.
+
+It supports:
+- catalog browsing over `/v2/gyms`
+- dataset-backed nearby search using `/v2/gyms` with `lat`, `lon`, and `radius_m`
+- city/state and miles-first result cards
+- website, phone, email, Google Maps, and OpenStreetMap actions when source tags exist
+- a live geo canvas that projects result coordinates into an interactive map-like panel
+- detailed inference inspection for a selected gym
 
 ---
 
@@ -157,7 +172,7 @@ This repository is organized by system responsibility:
   Published dataset artifacts, registries, and non-authoritative operational artifacts used for ingestion and offline inspection.
 
 - `frontend/`
-  Browser client for browsing gyms, running nearby search, inspecting structured inference, and jumping to source-backed public actions like websites and maps.
+  Browser client for browsing gyms, running nearby search, inspecting structured inference, and jumping to source-backed public actions like websites, maps, city/location views, and the geo canvas.
 
 Each layer is independently testable and intentionally constrained.
 
@@ -169,6 +184,9 @@ GymDB keeps runtime file storage explicit and boring on purpose.
 
 - `backend/data/registry.json`
   Region registry describing which dataset artifact belongs to which region.
+
+- `backend/data/gyms_raw.json`
+  Intentionally tracked local sample dataset used for the browser demo and local development.
 
 - `backend/data/*.json`
   Published deterministic dataset artifacts consumed by the read-only public API.
