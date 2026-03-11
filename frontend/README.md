@@ -1,15 +1,15 @@
 # GymDB Frontend
 
-This frontend is a thin exploratory client for the GymDB backend, not the primary product surface.
+This frontend is now the primary demo surface for the GymDB backend.
 
-## Current Role
+## What It Does
 
-The frontend exists to:
-- exercise the versioned API from a browser client
-- validate generated OpenAPI client usage
-- provide a place for future product-facing UI work without coupling it to backend architecture decisions
-
-The backend remains the authoritative focus of the project.
+The app lets you:
+- browse published gym records from `/v2/gyms`
+- filter by confidence, tier, specialty, 24/7 access, and lifter friendliness
+- run nearby search against `/v2/gyms/geo/nearby`
+- inspect a single gym's structured inference and metadata
+- see backend liveness/readiness at a glance
 
 ## Commands
 
@@ -25,7 +25,19 @@ The backend remains the authoritative focus of the project.
 - `npm run generate:api`
   Regenerate the typed API client from the backend OpenAPI document.
 
-## Notes
+## Environment
 
-- `src/api/` is generated client code and is excluded from lint noise.
-- The current UI is intentionally minimal while the backend architecture is still evolving.
+The frontend reads `VITE_API_BASE_URL`.
+
+Example local setup in `src/.env.local`:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+## Run Locally
+
+1. Start the backend from `backend/`.
+2. Run `npm install` in `frontend/`.
+3. Run `npm run dev`.
+4. Open the local Vite URL shown in the terminal.

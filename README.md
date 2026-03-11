@@ -2,7 +2,7 @@
 
 GymDB is a backend data platform for discovering, normalizing, and enriching gym location data using deterministic geospatial querying and explainable rule-based inference.
 
-GymDB is intentionally designed as a **backend-first system**, not a UI-first product.
+GymDB is intentionally designed as a **backend-first system** with a browser client that demonstrates the API and data model clearly.
 
 The primary goal is to produce clean, auditable, and stable datasets that downstream systems can trust.
 
@@ -39,10 +39,11 @@ GymDB is built around explicit, enforceable guarantees:
   All writes occur via controlled ingestion or pipeline jobs executed through internal routes.
 
 - **Geospatial correctness**
-  All spatial queries are backed by PostGIS with proper indexing and coordinate handling.
+  Nearby geospatial queries use PostGIS with exact distance filtering and indexed candidate selection.
+  Published dataset reads use deterministic JSON artifacts plus SQLite read-model sidecars for fast filterable API access.
 
 - **Auditable job execution**
-  All ingestion jobs produce immutable, deterministic receipts persisted to the database. Job outcomes can be inspected, verified, and replayed independently of runtime execution.
+  All ingestion jobs produce deterministic receipts persisted to the database. Job outcomes can be inspected, verified, and replayed independently of runtime execution.
 
 These guarantees are enforced through code structure, testing, and documented contracts.
 
@@ -62,7 +63,7 @@ Backend quality workflow:
   Run the backend test suite.
 - `ruff check .`
   Run backend linting.
-- `mypy src/gymdb api`
+- `mypy src/gymdb api scripts`
   Run backend type checking.
 - `python scripts/profile_hotpaths.py`
   Run repeatable hot-path profiling for ingest and read-path algorithms.
@@ -85,6 +86,23 @@ The repo is intended to show not just working code, but deliberate architecture,
 
 ---
 
+## Running The App
+
+Backend:
+- From `backend/`, start the API with:
+  `python -m uvicorn api.main:app --reload`
+
+Frontend:
+- From `frontend/`, install dependencies with:
+  `npm install`
+- Start the Vite app with:
+  `npm run dev`
+- Open the local URL shown by Vite, typically `http://localhost:5173`
+
+The frontend reads `VITE_API_BASE_URL` from `frontend/src/.env.local` and defaults to `http://localhost:8000`.
+
+---
+
 ## API Stability Rules (v2)
 
 GymDB treats its public APIs as **versioned contracts**.
@@ -101,7 +119,7 @@ The following changes are backward-compatible and may be introduced within the s
 The following changes are considered breaking and require a new API version:
 - Removing existing fields
 - Changing field types
-- Changing the semantic meaning of a field or inference result.
+- Changing the semantic meaning of a field or inference result
 
 Breaking changes are never introduced silently.
 
@@ -136,6 +154,9 @@ This repository is organized by system responsibility:
 - `backend/data/`
   Published dataset artifacts, registries, and non-authoritative operational artifacts used for ingestion and offline inspection.
 
+- `frontend/`
+  Browser client for browsing gyms, running nearby search, and inspecting structured inference from the live API.
+
 Each layer is independently testable and intentionally constrained.
 
 ---
@@ -148,7 +169,13 @@ GymDB keeps runtime file storage explicit and boring on purpose.
   Region registry describing which dataset artifact belongs to which region.
 
 - `backend/data/*.json`
-  Published deterministic dataset artifacts consumed by the read-only public API.\r\n\r\n- `backend/data/*.sqlite3`\r\n  Generated SQLite read-model sidecars built during dataset publication for indexed public API reads.
+  Published deterministic dataset artifacts consumed by the read-only public API.
+
+- `backend/data/*.sqlite3`
+  Generated SQLite read-model sidecars built during dataset publication for indexed public API reads.
+
+- `backend/data/*.manifest.json`
+  Publish manifests that tie each dataset artifact to its generated SQLite read model.
 
 - `backend/data/artifacts/jobs/`
   Ephemeral job lifecycle snapshots used for local operational inspection.
@@ -167,17 +194,10 @@ GymDB is intentionally backend-first and UI-agnostic.
 
 At a high level, the system:
 1. Queries raw gym data using geospatial constraints
-2. Normalizes & Deduplicates entities
+2. Normalizes and deduplicates entities
 3. Scores data quality and reliability
 4. Applies deterministic inference rules to enrich records
-5. Publishes deterministic dataset artifacts and their SQLite read-model sidecars`r`n6. Exposes results through stable HTTP APIs
+5. Publishes deterministic dataset artifacts, SQLite read-model sidecars, and publish manifests
+6. Exposes results through stable HTTP APIs and a browser client
 
 Each stage is designed to be auditable and reproducible.
-
----
-
-## Example API Usage
-
-GET /v2/gyms/geo/nearby?lat=36.1627&lon=-86.7816&radius_m=5000
-
-
