@@ -515,6 +515,86 @@ select:focus {
   border-radius: 18px;
 }
 
+.geo-stage {
+  display: grid;
+  gap: 1rem;
+}
+
+.geo-map {
+  width: 100%;
+  height: auto;
+  border-radius: 28px;
+  border: 1px solid var(--panel-border);
+  background:
+    radial-gradient(circle at top, rgba(71, 197, 190, 0.18), transparent 35%),
+    linear-gradient(180deg, rgba(10, 16, 24, 0.94), rgba(15, 26, 38, 0.96));
+}
+
+.geo-map-bg {
+  fill: rgba(255, 255, 255, 0.02);
+}
+
+.geo-grid-line {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
+}
+
+.geo-point-group {
+  cursor: pointer;
+}
+
+.geo-point {
+  fill: #47c5be;
+  stroke: rgba(255, 255, 255, 0.8);
+  stroke-width: 1.5;
+}
+
+.geo-point.selected {
+  fill: #ebaa53;
+}
+
+.geo-point-halo {
+  fill: rgba(235, 170, 83, 0.12);
+  stroke: rgba(235, 170, 83, 0.45);
+  stroke-width: 1.5;
+}
+
+.geo-legend-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.geo-legend-card {
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.geo-legend-card span {
+  display: block;
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.geo-legend-card strong {
+  display: block;
+  margin-top: 0.35rem;
+  color: #fff8eb;
+}
+
+.map-empty {
+  display: grid;
+  place-items: center;
+  min-height: 18rem;
+  border: 1px dashed var(--panel-strong);
+  border-radius: 22px;
+  color: var(--ink-soft);
+}
+
 .detail-grid {
   display: grid;
   gap: 1.2rem;
@@ -595,7 +675,8 @@ select:focus {
 @media (max-width: 1080px) {
   .hero,
   .workspace-grid,
-  .detail-columns {
+  .detail-columns,
+  .geo-legend-row {
     grid-template-columns: 1fr;
   }
 

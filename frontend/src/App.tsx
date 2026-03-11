@@ -42,6 +42,13 @@ type ActionLink = {
   tone?: "warm" | "cool" | "ink";
 };
 
+type MapPoint = {
+  gym: GymOutV2;
+  x: number;
+  y: number;
+  distanceLabel: string | null;
+};
+
 const specialtyOptions = [
   "general_fitness",
   "crossfit",
@@ -57,6 +64,9 @@ const specialtyOptions = [
 const tierOptions = ["basic", "mid", "premium"] as const;
 const METERS_PER_MILE = 1609.344;
 const EARTH_RADIUS_METERS = 6_371_000;
+const MAP_WIDTH = 720;
+const MAP_HEIGHT = 420;
+const MAP_PADDING = 28;
 
 const defaultFilters: FiltersState = {
   region: "",
@@ -274,6 +284,40 @@ function getAmenityChips(gym: GymOutV2): string[] {
   return Array.from(chips).slice(0, 8);
 }
 
+function getBounds(gyms: GymOutV2[]) {
+  const lats = gyms.map((gym) => gym.lat);
+  const lons = gyms.map((gym) => gym.lon);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLon = Math.min(...lons);
+  const maxLon = Math.max(...lons);
+
+  return {
+    minLat,
+    maxLat,
+    minLon,
+    maxLon,
+    latSpan: Math.max(maxLat - minLat, 0.01),
+    lonSpan: Math.max(maxLon - minLon, 0.01),
+  };
+}
+
+function buildMapPoints(gyms: GymOutV2[], nearbyLat?: number, nearbyLon?: number): MapPoint[] {
+  if (!gyms.length) {
+    return [];
+  }
+
+  const bounds = getBounds(gyms);
+  return gyms.map((gym) => {
+    const x = MAP_PADDING + ((gym.lon - bounds.minLon) / bounds.lonSpan) * (MAP_WIDTH - MAP_PADDING * 2);
+    const y = MAP_PADDING + (1 - (gym.lat - bounds.minLat) / bounds.latSpan) * (MAP_HEIGHT - MAP_PADDING * 2);
+    const distanceLabel = nearbyLat != null && nearbyLon != null
+      ? formatMilesFromMeters(haversineMeters(nearbyLat, nearbyLon, gym.lat, gym.lon))
+      : null;
+    return { gym, x, y, distanceLabel };
+  });
+}
+
 function StatCard(props: { label: string; value: string; tone?: "warm" | "cool" | "ink" }) {
   return (
     <div className={`stat-card ${props.tone ?? "ink"}`}>
@@ -303,6 +347,66 @@ function ActionPill(props: ActionLink) {
     <a className={`action-pill ${props.tone ?? "ink"}`} href={props.href} target="_blank" rel="noreferrer">
       {props.label}
     </a>
+  );
+}
+
+function GeoMap(props: {
+  gyms: GymOutV2[];
+  selectedGymId: string | null;
+  onSelect: (gymId: string) => void;
+  nearbyLat?: number;
+  nearbyLon?: number;
+}) {
+  const points = useMemo(
+    () => buildMapPoints(props.gyms, props.nearbyLat, props.nearbyLon),
+    [props.gyms, props.nearbyLat, props.nearbyLon],
+  );
+
+  if (!points.length) {
+    return <div className="map-empty">Run a query to populate the geo panel.</div>;
+  }
+
+  const bounds = getBounds(props.gyms);
+
+  return (
+    <div className="geo-stage">
+      <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} className="geo-map" role="img" aria-label="Gym coordinate map">
+        <rect x="0" y="0" width={MAP_WIDTH} height={MAP_HEIGHT} rx="28" className="geo-map-bg" />
+        {Array.from({ length: 6 }).map((_, index) => {
+          const x = MAP_PADDING + index * ((MAP_WIDTH - MAP_PADDING * 2) / 5);
+          const y = MAP_PADDING + index * ((MAP_HEIGHT - MAP_PADDING * 2) / 5);
+          return (
+            <g key={`grid-${index}`}>
+              <line x1={x} y1={MAP_PADDING} x2={x} y2={MAP_HEIGHT - MAP_PADDING} className="geo-grid-line" />
+              <line x1={MAP_PADDING} y1={y} x2={MAP_WIDTH - MAP_PADDING} y2={y} className="geo-grid-line" />
+            </g>
+          );
+        })}
+        {points.map((point) => {
+          const selected = point.gym.id === props.selectedGymId;
+          return (
+            <g key={point.gym.id} className="geo-point-group" onClick={() => props.onSelect(point.gym.id)}>
+              {selected ? <circle cx={point.x} cy={point.y} r="13" className="geo-point-halo" /> : null}
+              <circle cx={point.x} cy={point.y} r={selected ? 7 : 5} className={selected ? "geo-point selected" : "geo-point"} />
+            </g>
+          );
+        })}
+      </svg>
+      <div className="geo-legend-row">
+        <div className="geo-legend-card">
+          <span>Latitude span</span>
+          <strong>{bounds.minLat.toFixed(2)} to {bounds.maxLat.toFixed(2)}</strong>
+        </div>
+        <div className="geo-legend-card">
+          <span>Longitude span</span>
+          <strong>{bounds.minLon.toFixed(2)} to {bounds.maxLon.toFixed(2)}</strong>
+        </div>
+        <div className="geo-legend-card">
+          <span>Rendered pins</span>
+          <strong>{points.length}</strong>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -733,6 +837,20 @@ export function App() {
             </div>
           </Panel>
         </div>
+
+        <Panel
+          title="Geo Canvas"
+          subtitle="A live coordinate projection of the current result set with selectable gym pins."
+          accent="Spatial Surface"
+        >
+          <GeoMap
+            gyms={activeRows}
+            selectedGymId={selectedGymId}
+            onSelect={setSelectedGymId}
+            nearbyLat={mode === "nearby" ? nearbyLat : undefined}
+            nearbyLon={mode === "nearby" ? nearbyLon : undefined}
+          />
+        </Panel>
 
         <Panel
           title="Selected Gym"
