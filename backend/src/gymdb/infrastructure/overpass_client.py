@@ -28,3 +28,4 @@ def fetch_gyms(radius_meters: float, lat: float, lon: float) -> list[dict]:
     resp = requests.post(OVERPASS_URL, data=query, timeout=60)
     resp.raise_for_status()
     return resp.json().get("elements", [])
+

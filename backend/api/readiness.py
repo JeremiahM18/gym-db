@@ -36,3 +36,4 @@ def check_schema(db: Connection) -> bool:
     except Exception:
         return False
 
+

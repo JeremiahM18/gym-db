@@ -28,3 +28,4 @@ def create_store(settings: APISettings) -> DatasetGymStore:
     registry = create_registry(settings)
     return DatasetGymStore(registry)
 
+

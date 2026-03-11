@@ -17,3 +17,4 @@ class GymDBSettings(BaseSettings):
 settings = GymDBSettings()
     
 
+

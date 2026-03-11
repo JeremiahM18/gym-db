@@ -53,3 +53,4 @@ def nearby_gyms(
         "results": api_results,
     }
 
+

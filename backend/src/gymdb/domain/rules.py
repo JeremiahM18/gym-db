@@ -1,8 +1,8 @@
-from gymdb.domain import(
+from gymdb.domain.constants import(
     TIER_BASIC, TIER_MID, TIER_PREMIUM,
 )
 
-from gymdb.features import combined_capabilities
+from gymdb.domain.features import combined_capabilities
 
 
 def infer_24_7(features: dict) -> tuple[bool, list[str]]:
@@ -42,3 +42,4 @@ def infer_tier(premium_score: int, is_24_7: bool) -> tuple[str, list[str]]:
     if premium_score >= 3:
         return TIER_MID, reasons
     return TIER_BASIC, reasons
+

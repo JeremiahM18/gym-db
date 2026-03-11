@@ -83,8 +83,8 @@ This repository is organized by system responsibility:
   Physical storage layer. Stores **verifiable facts only** and enforces hard invariants.
   No inference, no enrichment, no interpretation logic.
 
-- `backend/src/gymdb/`
-  Backend package root.
+- `backend/src/gymdb/domain/`
+  Deterministic business logic: canonical models, normalization, scoring, inference orchestration, and core constants.
 
 - `backend/src/gymdb/application/`
   Orchestration and use cases, including ingestion workflows and job execution.
@@ -92,8 +92,11 @@ This repository is organized by system responsibility:
 - `backend/src/gymdb/infrastructure/`
   External systems and side effects: database adapters, dataset registry access, filesystem storage, and HTTP fetch clients.
 
-- `backend/src/gymdb/`
-  Top-level domain modules remain focused on deterministic business logic such as normalization, scoring, inference, and core models.
+- `backend/src/gymdb/infer/`
+  Low-level rule engine components and inference primitives used by the domain layer.
+
+- `backend/src/gymdb/observe/`
+  Internal summaries, metrics, and audit helpers.
 
 - `backend/api/`
   Versioned HTTP interface exposing stable, read-only views over domain outputs.

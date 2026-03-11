@@ -1,5 +1,5 @@
 from gymdb.infer.result import InferenceResult
-from gymdb.domain import (
+from gymdb.domain.constants import (
     IS_24_7,
     LIFTER_FRIENDLY,
     PREMIUM_SCORE,
@@ -52,5 +52,6 @@ def summarize_inference(
         summaries[LIFTER_FRIENDLY] = "Strength-focused gym"
 
     return summaries
+
 
 

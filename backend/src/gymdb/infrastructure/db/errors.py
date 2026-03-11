@@ -8,3 +8,4 @@ class DatabaseUnavailable(DatabaseError):
 
 class QueryFailed(DatabaseError):
     """SQL ran but failed."""
+

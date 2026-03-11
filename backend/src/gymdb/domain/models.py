@@ -24,3 +24,4 @@ class Gym:
         self.inferred: dict[str, InferenceResult] = {}
         # inference metadata
         self.inference_meta: dict[str, str] = {}
+

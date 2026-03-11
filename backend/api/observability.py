@@ -40,3 +40,4 @@ async def request_logging_middleware(request: Request, call_next):
                 "elapsed_ms": round(elapsed_ms, 2)
             },
         )
+

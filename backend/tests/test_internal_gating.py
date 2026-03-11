@@ -25,3 +25,4 @@ def test_internal_enabled_admin_allowed(client, monkeypatch):
 
     app.dependency_overrides.clear()
 
+

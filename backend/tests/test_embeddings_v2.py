@@ -62,3 +62,4 @@ def test_embedding_text_contains_inference(client, override_auth):
     )
 
     assert found
+

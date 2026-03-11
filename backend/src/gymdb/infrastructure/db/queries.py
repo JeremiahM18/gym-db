@@ -94,3 +94,4 @@ def get_nearby_gyms(
 
     return [GymNearby.model_validate(row) for row in rows]
 
+

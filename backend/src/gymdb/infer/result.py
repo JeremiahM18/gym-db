@@ -8,3 +8,4 @@ class InferenceResult(BaseModel):
     reasons: list[str]
     confidence: Optional[float] = None
     source: Literal["rule"] = "rule"
+

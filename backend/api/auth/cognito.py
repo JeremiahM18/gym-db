@@ -60,3 +60,4 @@ def verify_jwt(token: str, settings: APISettings) -> dict:
     
     except Exception as exc:
         raise ValueError("Invalid JWT") from exc
+

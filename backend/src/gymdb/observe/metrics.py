@@ -18,3 +18,4 @@ def snapshot_metrics() -> dict[str, int]:
     Snapshot current inference hit counts.
     """
     return dict(_inference_hits)
+

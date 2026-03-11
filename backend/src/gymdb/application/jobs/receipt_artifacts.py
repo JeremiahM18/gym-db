@@ -21,3 +21,4 @@ def maybe_write_fs_receipt(receipt: JobReceipt) -> None:
         encoding="utf-8",
     )
 
+

@@ -20,3 +20,4 @@ def list_job_receipts(limit: int, *, store: JobReceiptStoreDB) -> list[JobReceip
     """
     return store.list_receipts(limit=limit)
 
+

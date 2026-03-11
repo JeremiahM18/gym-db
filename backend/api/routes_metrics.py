@@ -18,3 +18,4 @@ def inference_metrics():
         "inference_hits": snapshot_metrics(),
     }
 
+

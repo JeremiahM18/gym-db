@@ -22,3 +22,4 @@ def diff_inference(
             }
 
     return diffs
+

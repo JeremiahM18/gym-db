@@ -46,3 +46,4 @@ def test_v2_gyms_response_contract(client):
     assert "inference_meta" in gym
     meta = gym["inference_meta"]
     assert "version" in meta
+

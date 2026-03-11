@@ -106,3 +106,4 @@ def test_job_receipt_deterministic_hash_stable():
 
     assert r1.deterministic_hash == r2.deterministic_hash
 
+

@@ -94,3 +94,4 @@ class GymsNearbyResponseV2(BaseModel):
     api_version: str = Field(default="v2")
     count: int
     results: list[GymNearbyOutV2]
+

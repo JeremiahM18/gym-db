@@ -9,7 +9,7 @@ from sqlalchemy.engine import Connection
 from api.auth.dependencies import require_admin
 from api.auth.internal import require_internal_enabled
 from api.deps import get_db
-from gymdb.domain import INFERRED
+from gymdb.domain.constants import INFERRED
 
 logger = logging.getLogger("gymdb")
 router = APIRouter()
@@ -55,4 +55,5 @@ def internal_status(db: Connection = Depends(get_db)):
             "rules_loaded": rules_loaded,
         },
     }
+
 

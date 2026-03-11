@@ -15,3 +15,4 @@ class GymStoreProtocol(Protocol):
 
     def get_by_id(self, region: str, gym_id: str) -> dict | None: ...
 
+

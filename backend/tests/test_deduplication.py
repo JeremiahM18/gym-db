@@ -1,4 +1,4 @@
-from gymdb.processing import deduplicate, compute_gym_id
+from gymdb.domain.processing import deduplicate, compute_gym_id
 
 def test_dedup_same_name_close_distance():
     # Two gyms with the same name within dedup distance should deduplicate
@@ -52,3 +52,4 @@ def test_no_dedup_far_distance():
 
     assert len(gyms) == 2
     assert gyms[0].osm_refs[0]["id"] != gyms[1].osm_refs[0]["id"]
+

@@ -59,3 +59,4 @@ def db_error_to_http(exc: Exception) -> HTTPException:
         detail="Internal server error",
     )
 
+

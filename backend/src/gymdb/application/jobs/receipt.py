@@ -95,3 +95,4 @@ class JobReceipt:
             "deterministic_hash": self.deterministic_hash,
         }
 
+

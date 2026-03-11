@@ -22,3 +22,4 @@ ALLOWED_TRANSITIONS: Mapping[str, Set[str]] = {
     JOB_STATUS_SUCCEEDED: set(),
     JOB_STATUS_FAILED: set(),
 }
+

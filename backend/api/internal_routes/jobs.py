@@ -161,3 +161,4 @@ def list_jobs(
     receipts = list_job_receipts(limit=limit, store=receipt_store)
     return {"results": [r.to_dict() for r in receipts]}
 
+

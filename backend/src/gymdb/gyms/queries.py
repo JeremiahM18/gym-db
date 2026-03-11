@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from gymdb.domain import INFERRED, IS_24_7, LIFTER_FRIENDLY, TIER
+from gymdb.domain.constants import INFERRED, IS_24_7, LIFTER_FRIENDLY, TIER
 from gymdb.gyms.protocol import GymStoreProtocol
-from gymdb.processing import haversine_meters
+from gymdb.domain.processing import haversine_meters
 
 
 # Helpers
@@ -86,4 +86,5 @@ def get_gym_by_id(
     Fetch a single gym by ID.
     """
     return store.get_by_id(region, gym_id)
+
 

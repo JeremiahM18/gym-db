@@ -38,3 +38,4 @@ job_receipts = Table(
         name="job_receipts_time_order_check",
     ),
 )
+

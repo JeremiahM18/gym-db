@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from datetime import datetime, timezone
-from gymdb.models import Gym
+from gymdb.domain.models import Gym
 
 SCHEMA_VERSION = "1.2"
 
@@ -30,3 +30,4 @@ def write_json(gyms: list[Gym], path: Path) -> None:
     }
 
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+

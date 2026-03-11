@@ -8,8 +8,8 @@ the inference engine.
 
 from datetime import datetime, timezone
 
-from gymdb.models import Gym
-from gymdb.domain import (
+from gymdb.domain.models import Gym
+from gymdb.domain.constants import (
     INFERENCE_META,                  # storage slot (string key)
     INFERENCE_ENGINE,
     ENGINE_RULE_BASED,
@@ -86,4 +86,5 @@ def apply_inference(gym: Gym) -> None:
         generated_at = datetime.now(timezone.utc),
         deterministic_hash = deterministic_hash,
     )
+
 

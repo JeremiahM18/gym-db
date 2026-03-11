@@ -65,3 +65,4 @@ def test_internal_status(client, monkeypatch):
     assert data["database"]["reachable"] is True
 
     app.dependency_overrides.clear()
+

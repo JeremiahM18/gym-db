@@ -1,4 +1,4 @@
-from gymdb.processing import normalize_name
+from gymdb.domain.processing import normalize_name
 
 def test_normalize_basic():
     assert normalize_name("  Hello World  ") == "hello_world"
@@ -14,3 +14,4 @@ def test_normalize_symbols():
     assert normalize_name("Special@#%&*Characters") == "special_characters"
     assert normalize_name("Mix_of-Symbols_and Spaces!") == "mix_of_symbols_and_spaces"
     assert normalize_name("123Numbers456") == "123numbers456"
+

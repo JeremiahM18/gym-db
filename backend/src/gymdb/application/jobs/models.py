@@ -30,3 +30,4 @@ class IngestJob:
     
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+

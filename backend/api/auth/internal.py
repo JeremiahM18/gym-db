@@ -9,3 +9,4 @@ def require_internal_enabled():
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Not Found",
         )
+

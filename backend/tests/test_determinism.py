@@ -8,3 +8,4 @@ def test_inference_is_deterministic(gym_factory, infer):
 
     infer(gym)
     assert gym.inferred == first
+

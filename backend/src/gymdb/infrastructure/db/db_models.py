@@ -19,3 +19,4 @@ class GymNearby(BaseModel):
     lat: float = Field(..., description="Latitude")
     lon: float = Field(..., description="Longitude")
     distance_m: float = Field(..., ge=0.0, description="Distance in meters")
+

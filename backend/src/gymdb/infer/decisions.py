@@ -57,3 +57,4 @@ def compute_premium_score(
         reasons.append(reason)
 
     return min(score, PREMIUM_SCORE_MAX), reasons
+

@@ -59,3 +59,4 @@ def normalize_inference(inference: dict[str, Any] | None) -> dict[str, dict]:
 
     return out
     
+

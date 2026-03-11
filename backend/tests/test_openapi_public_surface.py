@@ -6,3 +6,4 @@ def test_openapi_public_surface_is_clean(client):
         assert not path.startswith("/internal")
         assert not path.startswith("/debug")
         assert not path.startswith("/metrics")
+

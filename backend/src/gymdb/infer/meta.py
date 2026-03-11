@@ -7,3 +7,4 @@ class InferenceMeta(BaseModel):
     version: str
     generated_at: datetime
     deterministic_hash: str
+

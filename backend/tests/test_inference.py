@@ -1,6 +1,6 @@
-from gymdb.models import Gym
-from gymdb.inference import apply_inference
-from gymdb.domain import (
+from gymdb.domain.models import Gym
+from gymdb.domain.inference import apply_inference
+from gymdb.domain.constants import (
     IS_24_7, LIFTER_FRIENDLY, PREMIUM_SCORE
 )
 
@@ -42,4 +42,5 @@ def test_premium_score_with_pool_and_website():
     assert result.value >= 3
     assert result.reasons
     
+
 

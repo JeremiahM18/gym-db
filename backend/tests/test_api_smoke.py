@@ -53,3 +53,4 @@
 
 #     gym = resp.json()
 #     assert gym["id"] == gym_id
+

@@ -1,4 +1,4 @@
-from gymdb.models import Gym
+from gymdb.domain.models import Gym
 
 GENERIC_NAMES = {
     "gym",
@@ -32,3 +32,4 @@ def compute_confidence(gym: Gym) -> float:
 
     gym.confidence_score = round(min(score, 1.0), 2)
     return gym.confidence_score
+

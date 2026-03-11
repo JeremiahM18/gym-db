@@ -7,8 +7,8 @@ from sqlalchemy.orm import sessionmaker
 from gymdb.infrastructure.db.db_engine import get_engine, reset_engine
 from gymdb.infrastructure.db.models.job_receipt import metadata as receipt_metadata
 
-from gymdb.models import Gym
-from gymdb.inference import apply_inference
+from gymdb.domain.models import Gym
+from gymdb.domain.inference import apply_inference
 
 from api.main import app
 from api.deps import get_gym_store
@@ -176,5 +176,6 @@ def db_session(monkeypatch):
         transaction.rollback()
         clear_test_connection()
         connection.close()
+
 
 

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from api.auth.dependencies import require_admin
 from api.auth.internal import require_internal_enabled
 from api.deps import get_gym_store
-from gymdb.domain import INFERRED
+from gymdb.domain.constants import INFERRED
 from gymdb.gyms.protocol import GymStoreProtocol
 from gymdb.observe.audit import diff_inference
 from gymdb.observe.metrics import snapshot_metrics
@@ -86,4 +86,5 @@ def debug_metrics():
     Safe to call without DB or dataset access.
     """
     return {"inference_hits": snapshot_metrics()}
+
 

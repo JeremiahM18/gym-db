@@ -31,3 +31,4 @@ def test_queries_round_trip(db_session):
         recent = list_job_receipts(limit=10, store=store)
         assert any(r.job_id == "job_q_1" for r in recent)
 
+

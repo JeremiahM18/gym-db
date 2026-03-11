@@ -55,3 +55,4 @@ def extract_features(tags: dict) -> dict[str, set[str]]:
         features["brand"].add(tags["name"].lower())
 
     return features
+

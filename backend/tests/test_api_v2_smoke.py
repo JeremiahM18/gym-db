@@ -22,3 +22,4 @@ def test_v2_requires_auth(client):
 
     client.app.dependency_overrides.pop(get_settings, None)
 
+

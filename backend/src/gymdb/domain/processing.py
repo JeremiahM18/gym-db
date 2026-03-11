@@ -1,7 +1,7 @@
 import math
 import re
 import hashlib
-from gymdb.models import Gym
+from gymdb.domain.models import Gym
 from gymdb.config import DEDUP_DISTANCE_METERS
 
 def normalize_name(name: str) -> str:
@@ -77,3 +77,4 @@ def deduplicate(elements: list[dict]) -> list[Gym]:
             )
 
     return gyms
+

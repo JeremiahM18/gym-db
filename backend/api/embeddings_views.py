@@ -52,3 +52,4 @@ def build_gym_embedding_text(gym: dict) -> str:
                 parts.append(f"{k}: {v}")
 
     return ". ".join(parts)
+

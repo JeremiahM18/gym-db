@@ -16,3 +16,4 @@ def test_nearby_shape(client):
         assert "count" in data
         assert "results" in data
         assert isinstance(data["results"], list)
+

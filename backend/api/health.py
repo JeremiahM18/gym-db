@@ -80,3 +80,4 @@ def readyz(db: Connection = Depends(get_db)):
         )
 
     return payload
+
