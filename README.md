@@ -89,8 +89,10 @@ The repo is intended to show not just working code, but deliberate architecture,
 ## Running The App
 
 Backend:
-- From `backend/`, start the API with:
-  `python -m uvicorn api.main:app --reload`
+- From `backend/`, install dependencies into your local virtual environment if needed.
+- Start the API with:
+  `.\.venv\Scripts\python.exe -m uvicorn api.main:app --reload`
+- For local frontend work without Cognito, set `ENABLE_DEV_AUTH_BYPASS=true` in `backend/.env`.
 
 Frontend:
 - From `frontend/`, install dependencies with:
@@ -155,7 +157,7 @@ This repository is organized by system responsibility:
   Published dataset artifacts, registries, and non-authoritative operational artifacts used for ingestion and offline inspection.
 
 - `frontend/`
-  Browser client for browsing gyms, running nearby search, and inspecting structured inference from the live API.
+  Browser client for browsing gyms, running nearby search, inspecting structured inference, and jumping to source-backed public actions like websites and maps.
 
 Each layer is independently testable and intentionally constrained.
 

@@ -36,12 +36,18 @@ body {
 
 button,
 input,
-select {
+select,
+a {
   font: inherit;
 }
 
 button {
   border: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
 #root {
@@ -127,7 +133,10 @@ button {
 .status-pill,
 .result-card span,
 .empty-state,
-label span {
+label span,
+.detail-copy,
+.result-subcopy,
+.detail-summary {
   color: var(--ink-soft);
 }
 
@@ -135,6 +144,19 @@ label span {
   max-width: 52rem;
   margin: 1rem 0 0;
   font-size: 1.05rem;
+}
+
+.hero-actions,
+.action-rail,
+.tag-cloud,
+.result-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.hero-actions {
+  margin-top: 1.2rem;
 }
 
 .hero-grid,
@@ -168,6 +190,42 @@ label span {
 
 .stat-card.cool {
   border-color: rgba(71, 197, 190, 0.28);
+}
+
+.action-pill,
+.tag-pill,
+.mini-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.72rem 0.98rem;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff7e6;
+  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.action-pill:hover,
+.tag-pill:hover {
+  transform: translateY(-1px);
+}
+
+.action-pill.warm {
+  border-color: rgba(233, 157, 63, 0.35);
+  background: rgba(233, 157, 63, 0.12);
+}
+
+.action-pill.cool {
+  border-color: rgba(71, 197, 190, 0.35);
+  background: rgba(71, 197, 190, 0.12);
+}
+
+.mini-chip,
+.tag-pill {
+  padding: 0.45rem 0.72rem;
+  font-size: 0.84rem;
 }
 
 .status-strip {
@@ -241,6 +299,14 @@ label span {
 
 .panel h2 {
   font-size: 2rem;
+}
+
+.panel h4 {
+  margin: 0 0 0.9rem;
+  color: #fff8eb;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .panel-subtitle {
@@ -363,7 +429,8 @@ select:focus {
 }
 
 .result-list,
-.inference-table {
+.inference-table,
+.fact-list {
   display: grid;
   gap: 0.75rem;
 }
@@ -384,7 +451,8 @@ select:focus {
 }
 
 .result-card strong,
-.inference-row strong {
+.inference-row strong,
+.fact-row strong {
   display: block;
   color: #fff8eb;
 }
@@ -392,6 +460,16 @@ select:focus {
 .result-card.active {
   border-color: rgba(233, 157, 63, 0.45);
   background: rgba(233, 157, 63, 0.09);
+}
+
+.result-primary {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.result-subcopy,
+.detail-summary {
+  margin: 0;
 }
 
 .result-metrics {
@@ -440,6 +518,36 @@ select:focus {
   color: #fff4df;
 }
 
+.detail-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.detail-section {
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.fact-row {
+  display: grid;
+  gap: 0.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.fact-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.fact-row span,
+.inference-meta {
+  color: var(--ink-muted);
+}
+
 .inference-key {
   margin: 0 0 0.2rem;
   color: var(--accent-cool);
@@ -450,7 +558,6 @@ select:focus {
 
 .inference-meta {
   margin: 0 0 0.25rem;
-  color: var(--ink-muted);
 }
 
 .inference-reasons {
@@ -460,7 +567,8 @@ select:focus {
 
 @media (max-width: 1080px) {
   .hero,
-  .workspace-grid {
+  .workspace-grid,
+  .detail-columns {
     grid-template-columns: 1fr;
   }
 

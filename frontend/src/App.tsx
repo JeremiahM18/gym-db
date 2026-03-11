@@ -2,6 +2,7 @@ import {
   startTransition,
   useDeferredValue,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import type { ReactNode } from "react";
@@ -34,6 +35,12 @@ type NearbyState = {
   lat: string;
   lon: string;
   radiusM: string;
+};
+
+type ActionLink = {
+  label: string;
+  href: string;
+  tone?: "warm" | "cool" | "ink";
 };
 
 const specialtyOptions = [
@@ -121,6 +128,114 @@ function inferBoolean(gym: GymOutV2, key: string): string {
   return result.value ? "Yes" : "No";
 }
 
+function normalizeUrl(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+}
+
+function getTagValue(gym: GymOutV2, keys: string[]): string | null {
+  const tags = gym.tags ?? {};
+  for (const key of keys) {
+    const value = tags[key];
+    if (value == null) {
+      continue;
+    }
+    const normalized = String(value).trim();
+    if (normalized) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
+function getWebsite(gym: GymOutV2): string | null {
+  return normalizeUrl(getTagValue(gym, ["website", "contact:website", "url"]));
+}
+
+function getPhone(gym: GymOutV2): string | null {
+  return getTagValue(gym, ["phone", "contact:phone"]);
+}
+
+function getEmail(gym: GymOutV2): string | null {
+  return getTagValue(gym, ["email", "contact:email"]);
+}
+
+function getOpeningHours(gym: GymOutV2): string | null {
+  return getTagValue(gym, ["opening_hours"]);
+}
+
+function getAddress(gym: GymOutV2): string | null {
+  const tags = gym.tags ?? {};
+  const parts = [
+    tags["addr:housenumber"],
+    tags["addr:street"],
+    tags["addr:city"],
+    tags["addr:state"],
+    tags["addr:postcode"],
+  ]
+    .filter((part) => part != null && String(part).trim())
+    .map((part) => String(part).trim());
+  return parts.length ? parts.join(", ") : null;
+}
+
+function buildMapsUrl(gym: GymOutV2): string {
+  const query = encodeURIComponent(`${gym.lat},${gym.lon} ${gym.name}`);
+  return `https://www.google.com/maps/search/?api=1&query=${query}`;
+}
+
+function buildOsmUrl(gym: GymOutV2): string {
+  return `https://www.openstreetmap.org/?mlat=${gym.lat}&mlon=${gym.lon}#map=18/${gym.lat}/${gym.lon}`;
+}
+
+function getAmenityChips(gym: GymOutV2): string[] {
+  const tags = gym.tags ?? {};
+  const amenitySignals: Array<[string, string]> = [
+    ["swimming_pool", "Pool"],
+    ["sauna", "Sauna"],
+    ["shower", "Showers"],
+    ["internet_access", "Wi-Fi"],
+    ["toilets:wheelchair", "Wheelchair toilets"],
+    ["wheelchair", "Wheelchair access"],
+    ["opening_hours", "Hours listed"],
+    ["website", "Website"],
+    ["contact:website", "Website"],
+    ["phone", "Phone"],
+    ["contact:phone", "Phone"],
+  ];
+
+  const chips = new Set<string>();
+  for (const [key, label] of amenitySignals) {
+    const value = tags[key];
+    if (value == null) {
+      continue;
+    }
+    const normalized = String(value).trim().toLowerCase();
+    if (!normalized || normalized === "no") {
+      continue;
+    }
+    chips.add(label);
+  }
+
+  const specialty = inferString(gym, "specialty", "");
+  if (specialty) {
+    chips.add(titleCase(specialty));
+  }
+  if (gym.inference_summary?.premium_score) {
+    chips.add(`Premium signal ${gym.inference_summary.premium_score}`);
+  }
+
+  return Array.from(chips).slice(0, 8);
+}
+
 function StatCard(props: { label: string; value: string; tone?: "warm" | "cool" | "ink" }) {
   return (
     <div className={`stat-card ${props.tone ?? "ink"}`}>
@@ -142,6 +257,14 @@ function Panel(props: { title: string; subtitle?: string; children: ReactNode; a
       </div>
       {props.children}
     </section>
+  );
+}
+
+function ActionPill(props: ActionLink) {
+  return (
+    <a className={`action-pill ${props.tone ?? "ink"}`} href={props.href} target="_blank" rel="noreferrer">
+      {props.label}
+    </a>
   );
 }
 
@@ -225,10 +348,21 @@ export function App() {
     return () => controller.abort();
   }, [filters.region, selectedGymId]);
 
-  const visibleCatalog = catalogResults.filter((gym) => {
-    const searchable = `${gym.name} ${gym.norm_name} ${inferString(gym, "specialty", "")}`.toLowerCase();
-    return searchable.includes(deferredQuery.trim().toLowerCase());
-  });
+  const visibleCatalog = useMemo(
+    () =>
+      catalogResults.filter((gym) => {
+        const searchable = [
+          gym.name,
+          gym.norm_name,
+          inferString(gym, "specialty", ""),
+          getTagValue(gym, ["addr:city", "addr:street"]) ?? "",
+        ]
+          .join(" ")
+          .toLowerCase();
+        return searchable.includes(deferredQuery.trim().toLowerCase());
+      }),
+    [catalogResults, deferredQuery],
+  );
 
   const averageConfidence = visibleCatalog.length
     ? `${Math.round(
@@ -238,9 +372,44 @@ export function App() {
       )}%`
     : "n/a";
 
-  const topSpecialty = visibleCatalog.length
-    ? titleCase(inferString(visibleCatalog[0], "specialty", "general_fitness"))
-    : "n/a";
+  const specialtyCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const gym of visibleCatalog) {
+      const specialty = inferString(gym, "specialty", "general_fitness");
+      counts.set(specialty, (counts.get(specialty) ?? 0) + 1);
+    }
+    return Array.from(counts.entries()).sort((left, right) => right[1] - left[1]);
+  }, [visibleCatalog]);
+
+  const topSpecialty = specialtyCounts.length ? titleCase(specialtyCounts[0][0]) : "n/a";
+
+  const selectedActionLinks = useMemo<ActionLink[]>(() => {
+    if (!selectedGym) {
+      return [];
+    }
+
+    const links: ActionLink[] = [
+      { label: "Open in Maps", href: buildMapsUrl(selectedGym), tone: "cool" },
+      { label: "Open in OpenStreetMap", href: buildOsmUrl(selectedGym) },
+    ];
+
+    const website = getWebsite(selectedGym);
+    if (website) {
+      links.unshift({ label: "Open website", href: website, tone: "warm" });
+    }
+
+    const phone = getPhone(selectedGym);
+    if (phone) {
+      links.push({ label: "Call gym", href: `tel:${phone.replace(/\s+/g, "")}` });
+    }
+
+    const email = getEmail(selectedGym);
+    if (email) {
+      links.push({ label: "Email gym", href: `mailto:${email}` });
+    }
+
+    return links;
+  }, [selectedGym]);
 
   async function handleCatalogSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -297,6 +466,10 @@ export function App() {
   }
 
   const activeRows = mode === "catalog" ? visibleCatalog : nearbyResults;
+  const visibleSelectedSpecialty = selectedGym ? titleCase(inferString(selectedGym, "specialty", "general_fitness")) : "n/a";
+  const visibleSelectedAddress = selectedGym ? getAddress(selectedGym) : null;
+  const visibleSelectedHours = selectedGym ? getOpeningHours(selectedGym) : null;
+  const visibleSelectedAmenities = selectedGym ? getAmenityChips(selectedGym) : [];
 
   return (
     <div className="app-shell">
@@ -305,12 +478,18 @@ export function App() {
       <main className="app-frame">
         <section className="hero">
           <div>
-            <p className="eyebrow">GymDB Operator Console</p>
-            <h1>Enterprise-grade gym intelligence, exposed through a frontend worth showing off.</h1>
+            <p className="eyebrow">GymDB Browser Client</p>
+            <h1>Find gyms, inspect inference, and jump straight to real-world destinations.</h1>
             <p className="hero-copy">
-              Browse published artifacts, inspect explainable inference, and run nearby search
-              against the same backend contracts you built for production.
+              This frontend is now a true browser experience over the GymDB backend: filter the
+              catalog, run nearby search, inspect explainable classification, and launch out to gym
+              websites or map views from the same live data contract.
             </p>
+            <div className="hero-actions">
+              {selectedActionLinks.slice(0, 3).map((link) => (
+                <ActionPill key={link.href} {...link} />
+              ))}
+            </div>
           </div>
           <div className="hero-grid">
             <StatCard label="Mode" value={mode === "catalog" ? "Catalog" : "Nearby"} tone="warm" />
@@ -329,7 +508,9 @@ export function App() {
             <span className="status-dot" />
             Backend ready: {health?.ready ? "yes" : "check readiness"}
           </div>
-          <div className="status-pill neutral">API base: {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}</div>
+          <div className="status-pill neutral">
+            API base: {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}
+          </div>
         </section>
 
         {error ? <div className="error-banner">{error}</div> : null}
@@ -413,7 +594,7 @@ export function App() {
 
           <Panel
             title="Result Grid"
-            subtitle="Client-side text query is deferred so browsing stays responsive while the live filters stay server-backed."
+            subtitle="Deferred local search keeps browsing responsive while live filters stay server-backed."
             accent="Browser Client"
           >
             <div className="toolbar-row">
@@ -421,7 +602,7 @@ export function App() {
                 className="search-input"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search loaded results by name or specialty"
+                placeholder="Search loaded results by name, city, street, or specialty"
               />
               <div className="mode-chip-row">
                 <button className={mode === "catalog" ? "chip active" : "chip"} type="button" onClick={() => setMode("catalog")}>Catalog</button>
@@ -430,26 +611,36 @@ export function App() {
             </div>
 
             <div className="result-list">
-              {loading ? <div className="empty-state">Loading live backend data…</div> : null}
+              {loading ? <div className="empty-state">Loading live backend data...</div> : null}
               {!loading && !activeRows.length ? <div className="empty-state">No gyms matched this query.</div> : null}
               {!loading && mode === "catalog"
-                ? visibleCatalog.map((gym) => (
-                    <button
-                      key={gym.id}
-                      type="button"
-                      className={selectedGymId === gym.id ? "result-card active" : "result-card"}
-                      onClick={() => setSelectedGymId(gym.id)}
-                    >
-                      <div>
-                        <strong>{gym.name}</strong>
-                        <span>{titleCase(inferString(gym, "specialty", "general_fitness"))}</span>
-                      </div>
-                      <div className="result-metrics">
-                        <span>{formatConfidence(gym.confidence_score)}</span>
-                        <span>{titleCase(inferString(gym, "tier", "unknown"))}</span>
-                      </div>
-                    </button>
-                  ))
+                ? visibleCatalog.map((gym) => {
+                    const website = getWebsite(gym);
+                    const phone = getPhone(gym);
+                    return (
+                      <button
+                        key={gym.id}
+                        type="button"
+                        className={selectedGymId === gym.id ? "result-card active" : "result-card"}
+                        onClick={() => setSelectedGymId(gym.id)}
+                      >
+                        <div className="result-primary">
+                          <strong>{gym.name}</strong>
+                          <span>{titleCase(inferString(gym, "specialty", "general_fitness"))}</span>
+                          <p className="result-subcopy">{getAddress(gym) ?? "Coordinates available"}</p>
+                          <div className="result-chip-row">
+                            {website ? <span className="mini-chip">Website</span> : null}
+                            {phone ? <span className="mini-chip">Phone</span> : null}
+                            {inferBoolean(gym, "is_24_7") === "Yes" ? <span className="mini-chip">24/7</span> : null}
+                          </div>
+                        </div>
+                        <div className="result-metrics">
+                          <span>{formatConfidence(gym.confidence_score)}</span>
+                          <span>{titleCase(inferString(gym, "tier", "unknown"))}</span>
+                        </div>
+                      </button>
+                    );
+                  })
                 : null}
               {!loading && mode === "nearby"
                 ? nearbyResults.map((gym) => (
@@ -459,9 +650,10 @@ export function App() {
                       className={selectedGymId === gym.id ? "result-card active" : "result-card"}
                       onClick={() => setSelectedGymId(gym.id)}
                     >
-                      <div>
+                      <div className="result-primary">
                         <strong>{gym.name}</strong>
                         <span>{gym.lat.toFixed(4)}, {gym.lon.toFixed(4)}</span>
+                        <p className="result-subcopy">Live nearby result from geospatial query.</p>
                       </div>
                       <div className="result-metrics">
                         <span>{Math.round(gym.distance_m)} m</span>
@@ -474,24 +666,33 @@ export function App() {
         </div>
 
         <Panel
-          title="Gym Detail"
-          subtitle="Structured inference, confidence, and reasoning from the live v2 contract."
+          title="Selected Gym"
+          subtitle="Action links, operator facts, public contact surface, and explainable inference from the live v2 contract."
           accent="Explainability"
         >
-          {detailLoading ? <div className="empty-state">Loading selected gym…</div> : null}
-          {!detailLoading && !selectedGym ? <div className="empty-state">Select a gym to inspect inference output.</div> : null}
+          {detailLoading ? <div className="empty-state">Loading selected gym...</div> : null}
+          {!detailLoading && !selectedGym ? <div className="empty-state">Select a gym to inspect the full public surface.</div> : null}
           {!detailLoading && selectedGym ? (
             <div className="detail-grid">
               <div className="detail-headline">
                 <div>
                   <p className="eyebrow">{selectedGym.id}</p>
                   <h3>{selectedGym.name}</h3>
+                  <p className="detail-summary">
+                    {selectedGym.inference_summary?.specialty ?? visibleSelectedSpecialty} · {selectedGym.inference_summary?.tier ?? inferString(selectedGym, "tier", "Unknown")}
+                  </p>
                 </div>
                 <div className="detail-badges">
-                  <span>{titleCase(inferString(selectedGym, "specialty", "general_fitness"))}</span>
+                  <span>{visibleSelectedSpecialty}</span>
                   <span>{titleCase(inferString(selectedGym, "tier", "unknown"))}</span>
                   <span>{formatConfidence(selectedGym.confidence_score)}</span>
                 </div>
+              </div>
+
+              <div className="action-rail">
+                {selectedActionLinks.map((link) => (
+                  <ActionPill key={link.href} {...link} />
+                ))}
               </div>
 
               <div className="detail-facts">
@@ -499,6 +700,42 @@ export function App() {
                 <StatCard label="24/7 access" value={inferBoolean(selectedGym, "is_24_7")} tone="warm" />
                 <StatCard label="Coordinates" value={`${selectedGym.lat.toFixed(4)}, ${selectedGym.lon.toFixed(4)}`} />
                 <StatCard label="Inference engine" value={selectedGym.inference_meta.engine} />
+              </div>
+
+              <div className="detail-columns">
+                <section className="detail-section">
+                  <h4>Visit and Contact</h4>
+                  <div className="fact-list">
+                    <div className="fact-row">
+                      <span>Address</span>
+                      <strong>{visibleSelectedAddress ?? "No structured address in source tags"}</strong>
+                    </div>
+                    <div className="fact-row">
+                      <span>Hours</span>
+                      <strong>{visibleSelectedHours ?? "Hours not published"}</strong>
+                    </div>
+                    <div className="fact-row">
+                      <span>Phone</span>
+                      <strong>{getPhone(selectedGym) ?? "No phone in source tags"}</strong>
+                    </div>
+                    <div className="fact-row">
+                      <span>Email</span>
+                      <strong>{getEmail(selectedGym) ?? "No email in source tags"}</strong>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="detail-section">
+                  <h4>Signals and Amenities</h4>
+                  <div className="tag-cloud">
+                    {visibleSelectedAmenities.length
+                      ? visibleSelectedAmenities.map((chip) => <span key={chip} className="tag-pill">{chip}</span>)
+                      : <p className="detail-copy">No prominent amenity tags were published for this gym.</p>}
+                  </div>
+                  <p className="detail-copy">
+                    OSM refs: {selectedGym.osm_refs.length} linked source record{selectedGym.osm_refs.length === 1 ? "" : "s"}.
+                  </p>
+                </section>
               </div>
 
               <div className="inference-table">
