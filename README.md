@@ -124,6 +124,7 @@ It supports:
 - detailed inference inspection for a selected gym, including field-level confidence and contradiction signals
 - stronger confidence scoring for richer real-world gym records like YMCA and Life Time
 - source provenance that distinguishes primary OSM facts from secondary TomTom confirmation
+- backend support for coverage-review workflows over matched, mismatched, and unconfirmed gyms
 
 ---
 
@@ -222,6 +223,7 @@ At a high level, the system:
 3. Scores data quality and reliability using structured business-signal heuristics
 4. Applies deterministic inference rules to enrich records, assign field-level confidence, and detect contradictory evidence
 5. Confirms matched gyms against secondary public sources such as TomTom and records explicit provenance
-6. Publishes deterministic dataset artifacts, SQLite read-model sidecars, and publish manifests
+6. Exposes review-ready coverage slices for matched, mismatched, and unconfirmed gyms
+7. Publishes deterministic dataset artifacts, SQLite read-model sidecars, and publish manifests
 
 Each stage is designed to be auditable and reproducible.

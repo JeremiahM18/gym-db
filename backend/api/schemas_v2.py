@@ -72,6 +72,22 @@ class GymOutV2(BaseModel):
     inference_summary: dict[str, str] | None = None
 
 
+class CoverageReviewSummaryV2(BaseModel):
+    matched: int
+    name_mismatch: int
+    unconfirmed: int
+    contradictions: int
+    low_confidence: int
+
+
+class CoverageReviewResponseV2(BaseModel):
+    api_version: str = Field(default="v2")
+    region: str
+    count: int
+    summary: CoverageReviewSummaryV2
+    results: list[GymOutV2]
+
+
 class GymNearbyOutV2(BaseModel):
     id: str
     name: str

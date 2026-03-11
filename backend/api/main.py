@@ -13,6 +13,7 @@ from api.health import router as health_router
 from api.internal_routes.internal import router as status_router
 from api.internal_routes.jobs import router as jobs_router
 from api.observability import request_logging_middleware
+from api.review_routes import router as review_router
 from api.routes_metrics import router as metrics_router
 from api.routes_v2 import router as v2_router
 from api.settings import get_settings
@@ -44,6 +45,7 @@ app = FastAPI(
     lifespan=lifespan,
     openapi_tags=[
         {"name": "gyms", "description": "Gym discovery and filtering"},
+        {"name": "review", "description": "Coverage and review workflows"},
         {"name": "embeddings", "descripton": "Vector embeddings"},
         {"name": "health", "description": "Service health checks"},
         {"name": "debug", "description": "Inference inspection and audits"},
@@ -127,6 +129,7 @@ app.middleware("http")(request_logging_middleware)
 # Public API
 app.include_router(nearby_router)
 app.include_router(v2_router)
+app.include_router(review_router)
 app.include_router(
     metrics_router,
     include_in_schema=False,

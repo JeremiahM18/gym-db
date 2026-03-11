@@ -15,6 +15,7 @@ The app lets a user:
 - use the geo canvas to select gyms from a live coordinate projection
 - see backend liveness and readiness at a glance
 - browse against your local published dataset artifacts and current scoring model without committing local data to git
+- build on a backend review API that can power matched, mismatched, and unconfirmed coverage dashboards
 
 ## Commands
 
