@@ -8,9 +8,9 @@ from sqlalchemy import insert, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import Connection
 
-from gymdb.infrastructure.db.models.job_receipt import job_receipts
 from gymdb.application.jobs.receipt import JobReceipt
 from gymdb.application.jobs.status import ALLOWED_TRANSITIONS
+from gymdb.infrastructure.db.models.job_receipt import job_receipts
 
 
 class JobReceiptError(Exception):
@@ -29,7 +29,11 @@ class InvalidJobStatusTransition(JobReceiptError):
     """Raised when an invalid lifecycle transition is attempted."""
 
     def __init__(self, prev_status: str, new_status: str):
-        super().__init__(f"Invalid status transition from {prev_status} to {new_status}")
+        message = (
+            "Invalid status transition "
+            f"from {prev_status} to {new_status}"
+        )
+        super().__init__(message)
         self.prev_status = prev_status
         self.new_status = new_status
 
@@ -123,17 +127,17 @@ class JobReceiptStoreDB:
         started_at: datetime = row[3]
 
         if prev_status == new_status:
-            values: dict[str, Any] = {}
+            existing_update_values: dict[str, Any] = {}
             if finished_at is not None:
-                values["finished_at"] = finished_at
+                existing_update_values["finished_at"] = finished_at
             if stats is not None:
-                values["stats"] = stats
+                existing_update_values["stats"] = stats
 
-            if values:
+            if existing_update_values:
                 self.conn.execute(
                     update(job_receipts)
                     .where(job_receipts.c.job_id == job_id)
-                    .values(**values)
+                    .values(**existing_update_values)
                 )
             return
 
@@ -152,19 +156,19 @@ class JobReceiptStoreDB:
             previous_status=prev_status,
         )
 
-        values: dict[str, Any] = {
+        status_update_values: dict[str, Any] = {
             "status": new_status,
             "finished_at": finished_at,
             "deterministic_hash": receipt.deterministic_hash,
         }
 
         if stats is not None:
-            values["stats"] = stats
+            status_update_values["stats"] = stats
 
         self.conn.execute(
             update(job_receipts)
             .where(job_receipts.c.job_id == job_id)
-            .values(**values)
+            .values(**status_update_values)
         )
 
     def get(self, job_id: str) -> JobReceipt:
@@ -195,19 +199,17 @@ class JobReceiptStoreDB:
 
         return [
             JobReceipt(
-                job_id=r["job_id"],
-                region=r["region"],
-                mode=r["mode"],
-                status=r["status"],
-                started_at=r["started_at"],
-                finished_at=r["finished_at"],
-                stats=r["stats"],
-                deterministic_hash=r["deterministic_hash"],
+                job_id=row["job_id"],
+                region=row["region"],
+                mode=row["mode"],
+                status=row["status"],
+                started_at=row["started_at"],
+                finished_at=row["finished_at"],
+                stats=row["stats"],
+                deterministic_hash=row["deterministic_hash"],
             )
-            for r in rows
+            for row in rows
         ]
 
     def list_receipts(self, limit: int) -> list[JobReceipt]:
         return self.list_recent(limit=limit)
-
-

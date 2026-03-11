@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 DATA_ROOT = Path("data")
 ARTIFACTS_ROOT = DATA_ROOT / "artifacts"
 JOBS_ROOT = ARTIFACTS_ROOT / "jobs"

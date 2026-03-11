@@ -1,8 +1,7 @@
-from gymdb.domain.models import Gym
+from gymdb.domain.constants import IS_24_7, LIFTER_FRIENDLY, PREMIUM_SCORE
 from gymdb.domain.inference import apply_inference
-from gymdb.domain.constants import (
-    IS_24_7, LIFTER_FRIENDLY, PREMIUM_SCORE
-)
+from gymdb.domain.models import Gym
+
 
 def make_gym(tags):
     return Gym(

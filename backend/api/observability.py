@@ -1,6 +1,7 @@
+import logging
 import time
 import uuid
-import logging
+
 from fastapi import Request
 
 logger = logging.getLogger("gymdb")

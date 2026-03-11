@@ -1,6 +1,7 @@
 import json
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, timezone
+
 from gymdb.domain.models import Gym
 
 SCHEMA_VERSION = "1.2"
@@ -10,7 +11,7 @@ def write_json(gyms: list[Gym], path: Path) -> None:
 
     payload = {
         "schema_version": SCHEMA_VERSION,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "count": len(gyms),
         "inference_meta": (gyms[0].inference_meta if gyms else {}),
         "results": [

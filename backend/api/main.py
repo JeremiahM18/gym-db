@@ -3,17 +3,17 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from api.debug_routes import router as debug_router
-from api.observability import request_logging_middleware
-from api.routes_v2 import router as v2_router
 from api.geo.nearby_routes import router as nearby_router
 from api.health import router as health_router
-from api.routes_metrics import router as metrics_router
 from api.internal_routes.internal import router as status_router
 from api.internal_routes.jobs import router as jobs_router
+from api.observability import request_logging_middleware
+from api.routes_metrics import router as metrics_router
+from api.routes_v2 import router as v2_router
 
 # Application lifecycle
 

@@ -1,15 +1,17 @@
 from typing import Any
+
 from gymdb.infer.result import InferenceResult
+
 
 class Gym:
     def __init__(
-            self,
-            name: str,
-            norm_name: str,
-            lat: float,
-            lon: float,
-            osm_refs: list[dict],
-            tags: dict,
+        self,
+        name: str,
+        norm_name: str,
+        lat: float,
+        lon: float,
+        osm_refs: list[dict[str, Any]],
+        tags: dict[str, Any],
     ):
         self.id: str | None = None
         self.name = name
@@ -20,8 +22,5 @@ class Gym:
         self.tags = tags
         self.confidence_score: float | None = None
 
-        # inference outputs
         self.inferred: dict[str, InferenceResult] = {}
-        # inference metadata
-        self.inference_meta: dict[str, str] = {}
-
+        self.inference_meta: dict[str, Any] = {}

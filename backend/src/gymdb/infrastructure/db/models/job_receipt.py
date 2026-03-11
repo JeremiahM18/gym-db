@@ -1,6 +1,4 @@
-from sqlalchemy import (
-    Table, Column, Text, TIMESTAMP, MetaData, CheckConstraint, func
-)
+from sqlalchemy import TIMESTAMP, CheckConstraint, Column, MetaData, Table, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 
 metadata = MetaData(schema="ops")

@@ -3,12 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from gymdb.config import DEFAULT_LAT, DEFAULT_LON, DEFAULT_RADIUS_MILES
-from gymdb.infrastructure.datasets.registry import DatasetRegistry
 from gymdb.domain.inference import apply_inference
+from gymdb.domain.processing import compute_gym_id, deduplicate
+from gymdb.domain.scoring import compute_confidence
+from gymdb.infrastructure.datasets.registry import DatasetRegistry
 from gymdb.infrastructure.io_json import write_json
 from gymdb.infrastructure.overpass_client import fetch_gyms
-from gymdb.domain.processing import deduplicate, compute_gym_id
-from gymdb.domain.scoring import compute_confidence
 
 
 def run_ingest(

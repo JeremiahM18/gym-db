@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from gymdb.application.jobs.queries import get_job_receipt, list_job_receipts
 from gymdb.application.jobs.receipt import JobReceipt
@@ -11,7 +11,7 @@ from gymdb.infrastructure.db.db_engine import get_engine
 def test_queries_round_trip(db_session):
     with get_engine().begin() as conn:
         store = JobReceiptStoreDB(conn)
-        now = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        now = datetime(2025, 1, 1, tzinfo=UTC)
 
         receipt = JobReceipt.build(
             job_id="job_q_1",

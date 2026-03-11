@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from gymdb.domain.constants import INFERRED, IS_24_7, LIFTER_FRIENDLY, TIER
-from gymdb.gyms.protocol import GymStoreProtocol
 from gymdb.domain.processing import haversine_meters
-
+from gymdb.gyms.protocol import GymStoreProtocol
 
 # Helpers
 

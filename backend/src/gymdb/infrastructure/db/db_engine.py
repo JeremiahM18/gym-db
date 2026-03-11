@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from sqlalchemy import create_engine
-from sqlalchemy.engine import Engine, Connection
+from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.exc import SQLAlchemyError
 
-from gymdb.infrastructure.settings import settings
 from gymdb.infrastructure.db.errors import DatabaseUnavailable
+from gymdb.infrastructure.settings import settings
 
 _engine: Engine | None = None
 _test_connection: Connection | None = None

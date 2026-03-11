@@ -1,20 +1,16 @@
 import pytest
 from fastapi.testclient import TestClient
-
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
+from api.auth.dependencies import require_user
+from api.deps import get_gym_store
+from api.main import app
+from api.settings import APISettings, get_settings
+from gymdb.domain.inference import apply_inference
+from gymdb.domain.models import Gym
 from gymdb.infrastructure.db.db_engine import get_engine, reset_engine
 from gymdb.infrastructure.db.models.job_receipt import metadata as receipt_metadata
-
-from gymdb.domain.models import Gym
-from gymdb.domain.inference import apply_inference
-
-from api.main import app
-from api.deps import get_gym_store
-from api.auth.dependencies import require_user
-from api.settings import APISettings, get_settings
-
 
 # Fake Gym Store
 
@@ -140,8 +136,11 @@ def db_session(monkeypatch):
     """
 
     # 1. Override the *actual* source of truth
+    from gymdb.infrastructure.db.db_engine import (
+        clear_test_connection,
+        set_test_connection,
+    )
     from gymdb.infrastructure.settings import settings
-    from gymdb.infrastructure.db.db_engine import set_test_connection, clear_test_connection
 
     monkeypatch.setattr(
         settings, 

@@ -1,8 +1,8 @@
 import argparse
 from pathlib import Path
 
-from gymdb.config import DEFAULT_LAT, DEFAULT_LON, DEFAULT_RADIUS_MILES
 from gymdb.application.ingest import run_ingest
+from gymdb.config import DEFAULT_LAT, DEFAULT_LON, DEFAULT_RADIUS_MILES
 
 
 def main():

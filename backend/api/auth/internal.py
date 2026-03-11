@@ -1,5 +1,7 @@
 import os
-from fastapi import Depends, HTTPException, status
+
+from fastapi import HTTPException, status
+
 
 def require_internal_enabled():
     enabled = os.getenv("ENABLE_INTERNAL", "false").lower() == "true"

@@ -5,18 +5,18 @@ Coordinates signal extraction and decision logic to produce
 deterministic, explainable inferred attributes.
 """
 
-from gymdb.domain.models import Gym
 from gymdb.domain.constants import (
     IS_24_7,
-    PREMIUM_SCORE,
     LIFTER_FRIENDLY,
+    PREMIUM_SCORE,
     TIER,
 )
-
-from gymdb.infer.result import InferenceResult
-from gymdb.infer.decisions import compute_premium_score
 from gymdb.domain.features import extract_features
-from gymdb.domain.rules import infer_24_7, infer_lifter_friendly, infer_tier 
+from gymdb.domain.models import Gym
+from gymdb.domain.rules import infer_24_7, infer_lifter_friendly, infer_tier
+from gymdb.infer.decisions import compute_premium_score
+from gymdb.infer.result import InferenceResult
+
 
 def run_inference(gym: Gym) -> None:
     """

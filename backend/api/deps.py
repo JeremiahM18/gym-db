@@ -1,20 +1,19 @@
 from __future__ import annotations
 
-from typing import Generator
+from collections.abc import Generator
 
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.engine import Connection
 
 from api.resources import create_store
 from api.settings import APISettings, get_settings
+from gymdb.gyms.store_dataset import DatasetGymStore
 from gymdb.infrastructure.db.db_engine import get_connection
 from gymdb.infrastructure.db.errors import DatabaseUnavailable, QueryFailed
-from gymdb.gyms.store_dataset import DatasetGymStore
-
 
 # Core application dependencies
 
-def get_db() -> Generator[Connection, None, None]:
+def get_db() -> Generator[Connection]:
     """
     FastAPI dependency providing a DB connection.
     """

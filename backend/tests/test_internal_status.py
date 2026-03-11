@@ -1,7 +1,7 @@
-from api.main import app
-from api.settings import APISettings, get_settings
 from api.auth.dependencies import require_admin
 from api.deps import get_db
+from api.main import app
+from api.settings import APISettings, get_settings
 
 
 class FakeResult:
@@ -38,7 +38,6 @@ def test_internal_status(client, monkeypatch):
     monkeypatch.setenv("ENABLE_INTERNAL", "true")
 
     # Override admin auth
-    from api.auth.dependencies import require_admin
     app.dependency_overrides[require_admin] = lambda: {
         "sub": "admin",
         "cognito:groups": ["admin"],

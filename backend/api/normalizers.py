@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
 import hashlib
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -8,7 +8,7 @@ def normalize_inference_meta(meta: dict | None) -> dict:
         return {
             "engine": "rule_based",
             "version": "1.0.0",
-            "generated_at": datetime.now(timezone.utc),
+            "generated_at": datetime.now(UTC),
             "deterministic_hash": hashlib.sha256(b"default").hexdigest(),
         }
     
@@ -17,7 +17,7 @@ def normalize_inference_meta(meta: dict | None) -> dict:
         "version": str(meta.get("version", "1.0.0")),
         "generated_at": meta.get(
             "generated_at",
-            datetime.now(timezone.utc),
+            datetime.now(UTC),
             ),
         "deterministic_hash": meta.get(
             "deterministic_hash",

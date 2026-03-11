@@ -27,14 +27,20 @@ dev = [
     "pytest==9.0.2",
     "pytest-env==1.2.0",
     "ruff==0.13.2",
+    "types-python-jose==3.5.0.20250531",
+    "types-requests==2.32.4.20250913",
 ]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["gymdb*"]
+
+[tool.setuptools.package-data]
+gymdb = ["py.typed"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
@@ -57,4 +63,6 @@ warn_unused_ignores = true
 strict_equality = true
 check_untyped_defs = true
 no_implicit_optional = true
+mypy_path = ["src"]
+explicit_package_bases = true
 exclude = ["^tests/"]

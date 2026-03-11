@@ -62,7 +62,7 @@ Backend quality workflow:
   Run the backend test suite.
 - `ruff check .`
   Run backend linting.
-- `mypy src api`
+- `mypy src/gymdb api`
   Run backend type checking.
 
 Frontend quality workflow:

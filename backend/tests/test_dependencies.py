@@ -1,14 +1,13 @@
+import hashlib
+from datetime import UTC, datetime
+
 from fastapi.testclient import TestClient
 
-from datetime import datetime, timezone
-import hashlib
-
-from api.main import app
-from api.deps import get_gym_store
 from api.auth.dependencies import require_user
-
-from gymdb.infer.result import InferenceResult
+from api.deps import get_gym_store
+from api.main import app
 from gymdb.gyms.store_dataset import GymStore
+from gymdb.infer.result import InferenceResult
 
 # Fake Gym Store
 
@@ -40,7 +39,7 @@ class FakeGymStore(GymStore):
             "inference_meta": {
                 "engine": "rule_based",
                 "version": "0.0",
-                "generated_at": datetime.now(timezone.utc),
+                "generated_at": datetime.now(UTC),
                 "deterministic_hash": hashlib.sha256(b"fake").hexdigest(),
             },
         }

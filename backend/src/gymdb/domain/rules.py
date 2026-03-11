@@ -1,7 +1,8 @@
-from gymdb.domain.constants import(
-    TIER_BASIC, TIER_MID, TIER_PREMIUM,
+from gymdb.domain.constants import (
+    TIER_BASIC,
+    TIER_MID,
+    TIER_PREMIUM,
 )
-
 from gymdb.domain.features import combined_capabilities
 
 

@@ -1,12 +1,13 @@
-from gymdb.infer.result import InferenceResult
 from gymdb.domain.constants import (
     IS_24_7,
     LIFTER_FRIENDLY,
     PREMIUM_SCORE,
     TIER,
-    TIER_PREMIUM,
     TIER_MID,
+    TIER_PREMIUM,
 )
+from gymdb.infer.result import InferenceResult
+
 
 def _value(inferred: dict[str, InferenceResult], key: str):
     """

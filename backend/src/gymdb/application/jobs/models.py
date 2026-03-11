@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
+
 
 class JobStatus(str, Enum):
     queued = "queued"
@@ -29,5 +30,5 @@ class IngestJob:
         return asdict(self)
     
 def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 

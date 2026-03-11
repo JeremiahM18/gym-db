@@ -1,16 +1,14 @@
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Sequence
+from typing import Any
 
 from sqlalchemy import text
-from sqlalchemy.engine import Connection
+from sqlalchemy.engine import Connection, RowMapping
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
 from gymdb.infrastructure.db.db_models import GymNearby
 from gymdb.infrastructure.db.errors import DatabaseUnavailable, QueryFailed
-
-
-# --- SQL ---
 
 SQL_NEARBY_GYMS = text("""
     SELECT
@@ -35,9 +33,7 @@ SQL_NEARBY_GYMS = text("""
 SQL_DB_PING = text("SELECT 1 AS ok;")
 
 
-# --- Helpers ---
-
-def _execute_scalar(conn: Connection, sql) -> None:
+def _execute_scalar(conn: Connection, sql: Any) -> None:
     try:
         conn.execute(sql).scalar_one()
     except OperationalError as exc:
@@ -48,9 +44,9 @@ def _execute_scalar(conn: Connection, sql) -> None:
 
 def _execute_query(
     conn: Connection,
-    sql,
-    params: dict,
-) -> Iterable[dict]:
+    sql: Any,
+    params: dict[str, Any],
+) -> Sequence[RowMapping]:
     try:
         return conn.execute(sql, params).mappings().all()
     except OperationalError as exc:
@@ -58,8 +54,6 @@ def _execute_query(
     except SQLAlchemyError as exc:
         raise QueryFailed("Database query failed") from exc
 
-
-# --- Public API ---
 
 def ping_db(conn: Connection) -> bool:
     """
@@ -92,6 +86,4 @@ def get_nearby_gyms(
         },
     )
 
-    return [GymNearby.model_validate(row) for row in rows]
-
-
+    return [GymNearby.model_validate(dict(row)) for row in rows]

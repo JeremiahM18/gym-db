@@ -11,7 +11,6 @@ from gymdb.gyms.protocol import GymStoreProtocol
 from gymdb.gyms.queries import get_gym_by_id, list_gyms
 from gymdb.observe.summaries import summarize_inference
 
-
 # v2 API contract is considered stable
 # Changes require schema + test updates
 

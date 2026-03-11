@@ -1,8 +1,10 @@
+import hashlib
 import math
 import re
-import hashlib
-from gymdb.domain.models import Gym
+
 from gymdb.config import DEDUP_DISTANCE_METERS
+from gymdb.domain.models import Gym
+
 
 def normalize_name(name: str) -> str:
     # Remove extra whitespace, newlines, etc.

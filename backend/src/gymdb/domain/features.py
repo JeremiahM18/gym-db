@@ -1,5 +1,6 @@
 import re
 
+
 def _truthy(v: str | None) -> bool:
     if v is None:
         return False

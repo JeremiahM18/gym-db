@@ -1,10 +1,11 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from api.auth.cognito import verify_jwt
-from api.settings import  APISettings, get_settings
+from api.settings import APISettings, get_settings
 
 security = HTTPBearer(auto_error=False)
+
 
 def require_user(
     creds: HTTPAuthorizationCredentials = Depends(security),
@@ -26,7 +27,7 @@ def require_user(
                 "cognito:groups": ["admin"],
                 "dev": True,
             }
-        
+
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing Authorization header",
@@ -34,11 +35,12 @@ def require_user(
 
     try:
         return verify_jwt(creds.credentials, settings)
-    except Exception:
+    except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
-        )
+        ) from exc
+
 
 def require_admin(
     claims: dict = Depends(require_user),
@@ -53,5 +55,3 @@ def require_admin(
             detail="Admin access required",
         )
     return claims
-
-

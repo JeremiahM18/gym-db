@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field
-from typing import Any, Literal
+from typing import Any
 
-from gymdb.infer.result import InferenceResult
+from pydantic import BaseModel, Field
+
 from gymdb.infer.meta import InferenceMeta
+from gymdb.infer.result import InferenceResult
 
 
 # Embedding Schemas (v2)

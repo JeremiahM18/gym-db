@@ -6,6 +6,7 @@ from dataclasses import replace
 from .models import IngestJob, JobStatus, utc_now_iso
 from .store import JobStore
 
+
 def new_job_id() -> str:
     return uuid.uuid4().hex
 

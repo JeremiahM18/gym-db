@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, status, Depends
-from sqlalchemy.engine import Connection
 import logging
 
-from api.deps import get_db
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.engine import Connection
 
-from api.readiness import (
-    check_database,
-    check_postgis,
-    check_schema,
-)
+from api.deps import get_db
+from api.readiness import check_database, check_postgis, check_schema
 
 router = APIRouter()
 logger = logging.getLogger("gymdb")
+
 
 @router.get("/healthz", tags=["health"])
 def healthz():
@@ -28,6 +25,7 @@ def healthz():
         "api_version": "v2",
     }
 
+
 @router.get("/readyz", tags=["health"])
 def readyz(db: Connection = Depends(get_db)):
     """
@@ -38,7 +36,7 @@ def readyz(db: Connection = Depends(get_db)):
     Returns 503 when NOT ready.
 
     503 responses are returned using the global error envelope:
-    
+
     {
         "error": {
             "code": 503,
@@ -55,12 +53,12 @@ def readyz(db: Connection = Depends(get_db)):
             "postgis": check_postgis(db),
             "schema": check_schema(db),
         }
-    except Exception:
+    except Exception as exc:
         logger.exception("Readiness check failed")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={"ready": False, "checks": {"database": False}},
-        )
+        ) from exc
 
     ready = all(checks.values())
 
@@ -80,4 +78,3 @@ def readyz(db: Connection = Depends(get_db)):
         )
 
     return payload
-

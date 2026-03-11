@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from pathlib import Path
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings
+
 
 class APISettings(BaseSettings):
     """
@@ -37,7 +38,7 @@ class APISettings(BaseSettings):
         "extra": "ignore",
     }
 
-@lru_cache()
+@lru_cache
 def get_settings() -> APISettings:
     """
     Cached API settings dependency.

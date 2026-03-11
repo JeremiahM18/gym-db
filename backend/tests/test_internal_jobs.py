@@ -1,3 +1,5 @@
+from datetime import UTC
+
 from fastapi.testclient import TestClient
 
 from api.internal_routes.jobs import get_ingest_fn
@@ -78,11 +80,11 @@ def test_internal_jobs_ingest_admin_allowed(monkeypatch):
 
 
 def test_job_receipt_deterministic_hash_stable():
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from gymdb.application.jobs.receipt import JobReceipt
 
-    now = datetime(2025, 1, 1, tzinfo=timezone.utc)
+    now = datetime(2025, 1, 1, tzinfo=UTC)
 
     r1 = JobReceipt.build(
         job_id="job1",

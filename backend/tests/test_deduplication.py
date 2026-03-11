@@ -1,4 +1,5 @@
-from gymdb.domain.processing import deduplicate, compute_gym_id
+from gymdb.domain.processing import compute_gym_id, deduplicate
+
 
 def test_dedup_same_name_close_distance():
     # Two gyms with the same name within dedup distance should deduplicate

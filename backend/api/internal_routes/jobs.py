@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.engine import Connection
@@ -18,7 +18,6 @@ from gymdb.application.jobs.receipt_artifacts import maybe_write_fs_receipt
 from gymdb.application.jobs.receipt_store import JobReceiptNotFound, JobReceiptStoreDB
 from gymdb.application.jobs.store import JobStore
 from gymdb.infrastructure.storage import JOBS_ROOT, ensure_storage_tree
-
 
 router = APIRouter(
     prefix="/internal/jobs",
@@ -66,7 +65,7 @@ def start_ingest(
     target_region = region or "nashville"
     job = runner.start(region=target_region, mode="manual")
 
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
 
     running_receipt = JobReceipt.build(
         job_id=job.job_id,
@@ -84,7 +83,7 @@ def start_ingest(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create job receipt: {exc}",
-        )
+        ) from exc
 
     failure: Exception | None = None
 
@@ -96,7 +95,7 @@ def start_ingest(
         final_status = "failed"
         failure = exc
     finally:
-        finished_at = datetime.now(timezone.utc)
+        finished_at = datetime.now(UTC)
 
     try:
         receipt_store.update_status(
@@ -109,7 +108,7 @@ def start_ingest(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to finalize job receipt: {exc}",
-        )
+        ) from exc
 
     try:
         final_receipt = JobReceipt.build(
@@ -146,11 +145,11 @@ def get_job(
     try:
         receipt = get_job_receipt(job_id, store=receipt_store)
         return receipt.to_dict()
-    except (KeyError, JobReceiptNotFound):
+    except (KeyError, JobReceiptNotFound) as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Job receipt not found",
-        )
+        ) from exc
 
 
 @router.get("/")
@@ -160,5 +159,3 @@ def list_jobs(
 ):
     receipts = list_job_receipts(limit=limit, store=receipt_store)
     return {"results": [r.to_dict() for r in receipts]}
-
-

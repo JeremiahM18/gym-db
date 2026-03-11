@@ -34,7 +34,7 @@ def nearby_gyms(
             limit=limit,
         )
     except DatabaseError as exc:
-        raise db_error_to_http(exc)
+        raise db_error_to_http(exc) from exc
 
     api_results = [
         GymNearbyOutV2(
@@ -52,5 +52,3 @@ def nearby_gyms(
         "count": len(api_results),
         "results": api_results,
     }
-
-

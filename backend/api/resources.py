@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from gymdb.infrastructure.datasets.registry import DatasetRegistry
-from gymdb.gyms.store_dataset import DatasetGymStore
-
 from api.settings import APISettings
+from gymdb.gyms.store_dataset import DatasetGymStore
+from gymdb.infrastructure.datasets.registry import DatasetRegistry
 
 
 def create_registry(settings: APISettings) -> DatasetRegistry:

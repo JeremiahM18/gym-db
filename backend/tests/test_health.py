@@ -35,8 +35,8 @@ class FakeDB:
 
 
 def test_readiness_success(client):
-    from api.settings import APISettings, get_settings
     from api.deps import get_db
+    from api.settings import APISettings, get_settings
 
     # Override settings (what the route actually depends on)
     client.app.dependency_overrides[get_settings] = lambda: APISettings(
@@ -73,8 +73,8 @@ class BrokenDB:
         return False
 
 def test_readiness_failure(client):
-    from api.settings import APISettings, get_settings
     from api.deps import get_db
+    from api.settings import APISettings, get_settings
 
     client.app.dependency_overrides[get_settings] = lambda: APISettings(
         postgres_dsn="postgresql://test",
