@@ -70,7 +70,7 @@ const MAP_PADDING = 28;
 
 const defaultFilters: FiltersState = {
   region: "",
-  minConf: "0.7",
+  minConf: "0.3",
   tier: "",
   specialty: "",
   lifterFriendly: "any",

@@ -15,15 +15,15 @@ __pychache__/
 **/.env
 
 # Runtime / generated data
-# Keep only intentional placeholders or small tracked demo/config fixtures in git.
+# Keep only intentional placeholders or small deterministic fixtures in git.
 data/**/*.json
 data/**/*.sqlite3
 data/**/*.lock
 !data/.gitkeep
+!data/README.md
 !data/gyms_test.json
 !data/registry_test.json
 !data/registry.json
-!data/gyms_raw.json
 
 data/artifacts/
 data/jobs/

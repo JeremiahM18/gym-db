@@ -1,6 +1,6 @@
 # GymDB
 
-GymDB is a backend data platform for discovering, normalizing, and enriching gym location data using deterministic geospatial querying and explainable rule-based inference.
+GymDB is a backend data platform for discovering, normalizing, and enriching gym location data using deterministic geospatial querying, explainable rule-based inference, and coverage auditing against secondary public sources.
 
 GymDB is intentionally designed as a **backend-first system** with a browser client that demonstrates the API and data model clearly.
 
@@ -71,6 +71,8 @@ Backend quality workflow:
   Run concurrency and throughput profiling for dataset queries and inference.
 - `python scripts/profile_postgis.py`
   Run a synthetic PostGIS query-plan profile for nearby-lookup behavior.
+- `python scripts/compare_osm_tomtom.py --lat <lat> --lon <lon>`
+  Run a coverage audit that compares the local OSM-derived dataset against TomTom places.
 
 Frontend quality workflow:
 - `npm run lint`
@@ -117,6 +119,7 @@ It supports:
 - website, phone, email, Google Maps, and OpenStreetMap actions when source tags exist
 - a live geo canvas that projects result coordinates into an interactive map-like panel
 - detailed inference inspection for a selected gym
+- stronger confidence scoring for richer real-world gym records like YMCA and Life Time
 
 ---
 
@@ -157,7 +160,7 @@ This repository is organized by system responsibility:
   Orchestration and use cases, including ingestion workflows and job execution.
 
 - `backend/src/gymdb/infrastructure/`
-  External systems and side effects: database adapters, dataset registry access, filesystem storage, and HTTP fetch clients.
+  External systems and side effects: database adapters, dataset registry access, filesystem storage, HTTP fetch clients, and comparison-source adapters like TomTom.
 
 - `backend/src/gymdb/infer/`
   Low-level rule engine components and inference primitives used by the domain layer.
@@ -185,11 +188,8 @@ GymDB keeps runtime file storage explicit and boring on purpose.
 - `backend/data/registry.json`
   Region registry describing which dataset artifact belongs to which region.
 
-- `backend/data/gyms_raw.json`
-  Intentionally tracked local sample dataset used for the browser demo and local development.
-
 - `backend/data/*.json`
-  Published deterministic dataset artifacts consumed by the read-only public API.
+  Published deterministic dataset artifacts consumed by the read-only public API. Local demo datasets are kept out of git.
 
 - `backend/data/*.sqlite3`
   Generated SQLite read-model sidecars built during dataset publication for indexed public API reads.
@@ -215,9 +215,10 @@ GymDB is intentionally backend-first and UI-agnostic.
 At a high level, the system:
 1. Queries raw gym data using geospatial constraints
 2. Normalizes and deduplicates entities
-3. Scores data quality and reliability
+3. Scores data quality and reliability using structured business-signal heuristics
 4. Applies deterministic inference rules to enrich records
 5. Publishes deterministic dataset artifacts, SQLite read-model sidecars, and publish manifests
-6. Exposes results through stable HTTP APIs and a browser client
+6. Audits coverage against secondary public sources such as TomTom
+7. Exposes results through stable HTTP APIs and a browser client
 
 Each stage is designed to be auditable and reproducible.

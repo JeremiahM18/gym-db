@@ -14,6 +14,7 @@ The app lets a user:
 - see city/state and distance-in-miles in the result flow
 - use the geo canvas to select gyms from a live coordinate projection
 - see backend liveness and readiness at a glance
+- browse against a refreshed local sample dataset whose confidence scores come from the current scoring model
 
 ## Commands
 

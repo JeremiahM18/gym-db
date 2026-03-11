@@ -11,6 +11,8 @@ class GymDBSettings(BaseSettings):
     """
 
     postgres_dsn: str = "postgresql+psycopg://gymdb:gymdb@localhost:5432/gymdb"
+    tomtom_api_key: str | None = None
+    tomtom_base_url: str = "https://api.tomtom.com"
 
     model_config = {
         "env_file": ".env",
