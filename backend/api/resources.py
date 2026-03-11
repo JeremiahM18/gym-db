@@ -1,8 +1,22 @@
 from __future__ import annotations
 
+from functools import lru_cache
+from pathlib import Path
+
 from api.settings import APISettings
 from gymdb.gyms.store_dataset import DatasetGymStore
 from gymdb.infrastructure.datasets.registry import DatasetRegistry
+
+
+@lru_cache(maxsize=8)
+def _load_registry(registry_path: str) -> DatasetRegistry:
+    return DatasetRegistry(Path(registry_path)).load()
+
+
+@lru_cache(maxsize=8)
+def _load_store(registry_path: str) -> DatasetGymStore:
+    registry = _load_registry(registry_path)
+    return DatasetGymStore(registry)
 
 
 def create_registry(settings: APISettings) -> DatasetRegistry:
@@ -13,7 +27,7 @@ def create_registry(settings: APISettings) -> DatasetRegistry:
     - touches registry paths
     - loads registry data
     """
-    return DatasetRegistry(settings.registry_path).load()
+    return _load_registry(str(settings.registry_path.resolve()))
 
 
 def create_store(settings: APISettings) -> DatasetGymStore:
@@ -24,7 +38,4 @@ def create_store(settings: APISettings) -> DatasetGymStore:
     - deps.py stays simple
     - lifecycle ownership is explicit
     """
-    registry = create_registry(settings)
-    return DatasetGymStore(registry)
-
-
+    return _load_store(str(settings.registry_path.resolve()))

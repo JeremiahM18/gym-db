@@ -1,10 +1,12 @@
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 from gymdb.domain.models import Gym
 
 SCHEMA_VERSION = "1.2"
+
 
 def write_json(gyms: list[Gym], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -30,5 +32,15 @@ def write_json(gyms: list[Gym], path: Path) -> None:
         ],
     }
 
-    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    with NamedTemporaryFile(
+        "w",
+        encoding="utf-8",
+        dir=path.parent,
+        prefix=f"{path.stem}.",
+        suffix=".tmp",
+        delete=False,
+    ) as temp_file:
+        json.dump(payload, temp_file, indent=2)
+        temp_path = Path(temp_file.name)
 
+    temp_path.replace(path)
