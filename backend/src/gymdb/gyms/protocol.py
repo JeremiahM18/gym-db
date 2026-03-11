@@ -2,7 +2,8 @@ from typing import Protocol
 
 
 class GymStoreProtocol(Protocol):
-    default_region: str
+    @property
+    def default_region(self) -> str: ...
 
     def filter(
         self,
@@ -14,5 +15,3 @@ class GymStoreProtocol(Protocol):
     ) -> list[dict]: ...
 
     def get_by_id(self, region: str, gym_id: str) -> dict | None: ...
-
-

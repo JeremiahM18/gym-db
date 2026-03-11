@@ -80,7 +80,7 @@ volumes:
 ```
 Notes:
 - PostGIS is enabled via the official postgis/postgis image
-- the schema/ directory contains migration and initialization scripts
+- the `schema/` directory contains migration and initialization scripts
 - data is persisted across restarts using a named volume
 
 ## Data Model Overview
@@ -89,9 +89,9 @@ The database stores **physical, verifiable facts only**.
 
 Currently represented concepts include:
 - `gyms`: canonical gym records
-    - stable identifier
-    - name and normalized name
-    - geographic location `geography(Point, 4326)`
+  - stable identifier
+  - name and normalized name
+  - geographic location `geography(Point, 4326)`
 - spatial indexes to support deterministic nearby queries
 - `ops.job_receipts`: durable operational audit records
 
@@ -108,13 +108,19 @@ These remain derived, reproducible outputs of the domain layer or filesystem-bac
 
 ## Geospatial Querying
 
-Nearby queries are exposed through API (e.g. `GET /v2/gyms/geo/nearby`).
+Nearby queries are exposed through the API (for example `GET /v2/gyms/geo/nearby`).
 
 Database design requirements:
 - store location as `geography(Point, 4326)` for geographic correctness
 - index location using a GIST index
-- always apply explicit `ORDER BY distance` for deterministic results
+- add a geometry expression GIST index for KNN ordering on `location::geometry`
+- use exact geography radius filtering with index-assisted nearest-neighbor ordering
 - keep spatial calculations in SQL; keep inference and enrichment in Python
+
+This gives GymDB a strong systems story:
+- `ST_DWithin` enforces accurate radius membership on geography
+- `ST_Distance` returns exact geographic distance
+- `ORDER BY location::geometry <-> point_geometry` allows fast candidate ordering through the geometry expression index
 
 ---
 
@@ -134,8 +140,8 @@ Schema stability is treated as part of the system's long-term contract.
 - deterministic query results
 - explicit, auditable data transformations
 - clear boundaries between:
-    - API layer
-    - query/storage layer
-    - domain and inference logic
-    - filesystem-backed published datasets
+  - API layer
+  - query/storage layer
+  - domain and inference logic
+  - filesystem-backed published datasets
 - safe, intentional schema evolution

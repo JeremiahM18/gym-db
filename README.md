@@ -66,6 +66,8 @@ Backend quality workflow:
   Run backend type checking.
 - `python scripts/profile_hotpaths.py`
   Run repeatable hot-path profiling for ingest and read-path algorithms.
+- `python scripts/profile_postgis.py`
+  Run a synthetic PostGIS query-plan profile for nearby-lookup behavior.
 
 Frontend quality workflow:
 - `npm run lint`

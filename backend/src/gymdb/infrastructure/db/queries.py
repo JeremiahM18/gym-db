@@ -11,22 +11,49 @@ from gymdb.infrastructure.db.db_models import GymNearby
 from gymdb.infrastructure.db.errors import DatabaseUnavailable, QueryFailed
 
 SQL_NEARBY_GYMS = text("""
+    WITH anchor AS (
+        SELECT
+            ST_SetSRID(ST_MakePoint(:lon, :lat), 4326) AS point_geometry,
+            ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography AS point_geography
+    )
     SELECT
         g.id,
         g.name,
         ST_Y(g.location::geometry) AS lat,
         ST_X(g.location::geometry) AS lon,
-        ST_Distance(
-            g.location,
-            ST_MakePoint(:lon, :lat)::geography
-        ) AS distance_m
+        ST_Distance(g.location, anchor.point_geography) AS distance_m
     FROM gyms g
+    CROSS JOIN anchor
     WHERE ST_DWithin(
         g.location,
-        ST_MakePoint(:lon, :lat)::geography,
+        anchor.point_geography,
         :radius_m
     )
-    ORDER BY distance_m ASC
+    ORDER BY g.location::geometry <-> anchor.point_geometry
+    LIMIT :limit;
+""")
+
+SQL_EXPLAIN_NEARBY_GYMS = text("""
+    EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+    WITH anchor AS (
+        SELECT
+            ST_SetSRID(ST_MakePoint(:lon, :lat), 4326) AS point_geometry,
+            ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography AS point_geography
+    )
+    SELECT
+        g.id,
+        g.name,
+        ST_Y(g.location::geometry) AS lat,
+        ST_X(g.location::geometry) AS lon,
+        ST_Distance(g.location, anchor.point_geography) AS distance_m
+    FROM gyms g
+    CROSS JOIN anchor
+    WHERE ST_DWithin(
+        g.location,
+        anchor.point_geography,
+        :radius_m
+    )
+    ORDER BY g.location::geometry <-> anchor.point_geometry
     LIMIT :limit;
 """)
 
@@ -74,6 +101,10 @@ def get_nearby_gyms(
 ) -> list[GymNearby]:
     """
     Return nearby gyms ordered by distance.
+
+    The query uses an exact geography radius filter and a geometry KNN order,
+    which lets PostGIS use the geometry expression index for fast nearest-neighbor
+    candidate ordering while still returning exact geographic distance.
     """
     rows = _execute_query(
         conn,
@@ -87,3 +118,27 @@ def get_nearby_gyms(
     )
 
     return [GymNearby.model_validate(dict(row)) for row in rows]
+
+
+def explain_nearby_gyms(
+    conn: Connection,
+    *,
+    lat: float,
+    lon: float,
+    radius_m: int,
+    limit: int,
+) -> list[str]:
+    """
+    Return the textual EXPLAIN ANALYZE plan for the nearby query.
+    """
+    rows = _execute_query(
+        conn,
+        SQL_EXPLAIN_NEARBY_GYMS,
+        {
+            "lat": lat,
+            "lon": lon,
+            "radius_m": radius_m,
+            "limit": limit,
+        },
+    )
+    return [row["QUERY PLAN"] for row in rows]
