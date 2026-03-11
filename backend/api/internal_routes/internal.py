@@ -55,3 +55,4 @@ def internal_status(db: Connection = Depends(get_db)):
             "rules_loaded": rules_loaded,
         },
     }
+

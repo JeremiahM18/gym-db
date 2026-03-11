@@ -21,3 +21,4 @@ def test_v2_requires_auth(client):
     assert resp.status_code == 401
 
     client.app.dependency_overrides.pop(get_settings, None)
+

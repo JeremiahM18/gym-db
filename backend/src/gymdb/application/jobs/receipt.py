@@ -6,7 +6,7 @@ import hashlib
 import json
 from typing import Dict, Any
 
-from gymdb.jobs.status import ALLOWED_TRANSITIONS
+from gymdb.application.jobs.status import ALLOWED_TRANSITIONS
 
 
 @dataclass
@@ -94,3 +94,4 @@ class JobReceipt:
             "stats": self.stats,
             "deterministic_hash": self.deterministic_hash,
         }
+

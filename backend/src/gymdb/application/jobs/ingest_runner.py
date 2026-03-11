@@ -52,3 +52,4 @@ class IngestRunner:
             )
             self.job_store.save(failed)
             return failed
+

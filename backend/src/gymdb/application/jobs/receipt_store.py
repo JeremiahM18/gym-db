@@ -8,9 +8,9 @@ from sqlalchemy import insert, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import Connection
 
-from gymdb.db.models.job_receipt import job_receipts
-from gymdb.jobs.receipt import JobReceipt
-from gymdb.jobs.status import ALLOWED_TRANSITIONS
+from gymdb.infrastructure.db.models.job_receipt import job_receipts
+from gymdb.application.jobs.receipt import JobReceipt
+from gymdb.application.jobs.status import ALLOWED_TRANSITIONS
 
 
 class JobReceiptError(Exception):
@@ -209,3 +209,4 @@ class JobReceiptStoreDB:
 
     def list_receipts(self, limit: int) -> list[JobReceipt]:
         return self.list_recent(limit=limit)
+

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from gymdb.jobs.queries import get_job_receipt, list_job_receipts
-from gymdb.jobs.receipt import JobReceipt
-from gymdb.jobs.receipt_store import JobReceiptStoreDB
-from gymdb.db.db_engine import get_engine
+from gymdb.application.jobs.queries import get_job_receipt, list_job_receipts
+from gymdb.application.jobs.receipt import JobReceipt
+from gymdb.application.jobs.receipt_store import JobReceiptStoreDB
+from gymdb.infrastructure.db.db_engine import get_engine
 
 
 def test_queries_round_trip(db_session):
@@ -30,3 +30,4 @@ def test_queries_round_trip(db_session):
 
         recent = list_job_receipts(limit=10, store=store)
         assert any(r.job_id == "job_q_1" for r in recent)
+

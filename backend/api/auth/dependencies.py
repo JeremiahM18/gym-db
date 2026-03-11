@@ -53,3 +53,4 @@ def require_admin(
             detail="Admin access required",
         )
     return claims
+

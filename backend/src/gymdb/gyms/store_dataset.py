@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from gymdb.datasets.registry import DatasetRegistry
+from gymdb.infrastructure.datasets.registry import DatasetRegistry
 
 
 class DatasetGymStore:
@@ -66,3 +66,4 @@ class DatasetGymStore:
 
 
 GymStore = DatasetGymStore
+

@@ -86,3 +86,4 @@ def apply_inference(gym: Gym) -> None:
         generated_at = datetime.now(timezone.utc),
         deterministic_hash = deterministic_hash,
     )
+

@@ -10,14 +10,14 @@ from api.auth.internal import require_internal_enabled
 from api.deps import get_db
 from api.resources import create_registry
 from api.settings import APISettings, get_settings
-from gymdb.ingest import run_ingest_for_region
-from gymdb.jobs.ingest_runner import IngestRunner
-from gymdb.jobs.queries import get_job_receipt, list_job_receipts
-from gymdb.jobs.receipt import JobReceipt
-from gymdb.jobs.receipt_artifacts import maybe_write_fs_receipt
-from gymdb.jobs.receipt_store import JobReceiptNotFound, JobReceiptStoreDB
-from gymdb.jobs.store import JobStore
-from gymdb.storage import JOBS_ROOT, ensure_storage_tree
+from gymdb.application.ingest import run_ingest_for_region
+from gymdb.application.jobs.ingest_runner import IngestRunner
+from gymdb.application.jobs.queries import get_job_receipt, list_job_receipts
+from gymdb.application.jobs.receipt import JobReceipt
+from gymdb.application.jobs.receipt_artifacts import maybe_write_fs_receipt
+from gymdb.application.jobs.receipt_store import JobReceiptNotFound, JobReceiptStoreDB
+from gymdb.application.jobs.store import JobStore
+from gymdb.infrastructure.storage import JOBS_ROOT, ensure_storage_tree
 
 
 router = APIRouter(
@@ -160,3 +160,4 @@ def list_jobs(
 ):
     receipts = list_job_receipts(limit=limit, store=receipt_store)
     return {"results": [r.to_dict() for r in receipts]}
+

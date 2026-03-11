@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from gymdb.jobs.receipt import JobReceipt
+from gymdb.application.jobs.receipt import JobReceipt
 
 
 class FakeReceiptStore:
@@ -53,3 +53,4 @@ class FakeReceiptStore:
 
     def list_receipts(self, limit: int) -> list[JobReceipt]:
         return self.list_recent(limit)
+

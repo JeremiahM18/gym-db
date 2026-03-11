@@ -12,3 +12,4 @@ RECEIPTS_ROOT = ARTIFACTS_ROOT / "receipts"
 def ensure_storage_tree() -> None:
     for path in (DATA_ROOT, ARTIFACTS_ROOT, JOBS_ROOT, RECEIPTS_ROOT):
         path.mkdir(parents=True, exist_ok=True)
+

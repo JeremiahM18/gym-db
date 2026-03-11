@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from gymdb.jobs.models import IngestJob
-from gymdb.storage import ensure_storage_tree
+from gymdb.application.jobs.models import IngestJob
+from gymdb.infrastructure.storage import ensure_storage_tree
 
 
 class JobStore:
@@ -32,3 +32,4 @@ class JobStore:
         for p in files[:limit]:
             out.append(json.loads(p.read_text(encoding="utf-8")))
         return out
+

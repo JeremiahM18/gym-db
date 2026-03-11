@@ -45,3 +45,4 @@ def has_opening_hours(attributes: Set[str]) -> Tuple[bool, Optional[str]]:
     if "opening_hours" in attributes:
         return True, "has opening hours"
     return False, None
+

@@ -1,8 +1,8 @@
 def test_job_receipt_round_trip(db_session):
-    from gymdb.jobs.receipt_store import JobReceiptStoreDB
-    from gymdb.jobs.receipt import JobReceipt
+    from gymdb.application.jobs.receipt_store import JobReceiptStoreDB
+    from gymdb.application.jobs.receipt import JobReceipt
     from datetime import datetime, timezone
-    from gymdb.db.db_engine import get_engine
+    from gymdb.infrastructure.db.db_engine import get_engine
 
     with get_engine().begin() as conn:
 
@@ -30,5 +30,6 @@ def test_job_receipt_round_trip(db_session):
         assert loaded.finished_at == receipt.finished_at
         assert loaded.stats == receipt.stats
         assert loaded.deterministic_hash == receipt.deterministic_hash
+
 
 

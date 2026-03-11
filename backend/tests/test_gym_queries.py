@@ -78,3 +78,4 @@ def test_list_gyms_radius_filter_keeps_only_nearby_results():
     )
 
     assert [gym["id"] for gym in results] == ["nearby"]
+

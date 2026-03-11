@@ -7,8 +7,8 @@ from sqlalchemy.engine import Connection
 
 from api.resources import create_store
 from api.settings import APISettings, get_settings
-from gymdb.db.db_engine import get_connection
-from gymdb.db.errors import DatabaseUnavailable, QueryFailed
+from gymdb.infrastructure.db.db_engine import get_connection
+from gymdb.infrastructure.db.errors import DatabaseUnavailable, QueryFailed
 from gymdb.gyms.store_dataset import DatasetGymStore
 
 
@@ -58,3 +58,4 @@ def db_error_to_http(exc: Exception) -> HTTPException:
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Internal server error",
     )
+

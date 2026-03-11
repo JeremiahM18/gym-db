@@ -24,3 +24,4 @@ def test_internal_enabled_admin_allowed(client, monkeypatch):
     assert resp.status_code == 200
 
     app.dependency_overrides.clear()
+

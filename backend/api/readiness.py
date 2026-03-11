@@ -35,3 +35,4 @@ def check_schema(db: Connection) -> bool:
         return result.scalar() is not None
     except Exception:
         return False
+

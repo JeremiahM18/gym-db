@@ -4,8 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.exc import SQLAlchemyError
 
-from gymdb.settings import settings
-from gymdb.db.errors import DatabaseUnavailable
+from gymdb.infrastructure.settings import settings
+from gymdb.infrastructure.db.errors import DatabaseUnavailable
 
 _engine: Engine | None = None
 _test_connection: Connection | None = None
@@ -69,3 +69,4 @@ def reset_engine() -> None:
     if _engine is not None:
         _engine.dispose()
     _engine = None
+

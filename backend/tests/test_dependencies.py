@@ -71,3 +71,4 @@ def test_store_dependency_override(override_auth):
     assert data["results"][0]["id"] == "fake-gym"
 
     app.dependency_overrides.pop(require_user, None)
+

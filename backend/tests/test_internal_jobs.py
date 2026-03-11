@@ -80,7 +80,7 @@ def test_internal_jobs_ingest_admin_allowed(monkeypatch):
 def test_job_receipt_deterministic_hash_stable():
     from datetime import datetime, timezone
 
-    from gymdb.jobs.receipt import JobReceipt
+    from gymdb.application.jobs.receipt import JobReceipt
 
     now = datetime(2025, 1, 1, tzinfo=timezone.utc)
 
@@ -105,3 +105,4 @@ def test_job_receipt_deterministic_hash_stable():
     )
 
     assert r1.deterministic_hash == r2.deterministic_hash
+

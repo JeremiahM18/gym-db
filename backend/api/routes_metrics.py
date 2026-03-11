@@ -17,3 +17,4 @@ def inference_metrics():
     return {
         "inference_hits": snapshot_metrics(),
     }
+

@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, Query
 
 from api.deps import db_error_to_http, get_db
 from api.schemas_v2 import GymNearbyOutV2, GymsNearbyResponseV2
-from gymdb.db.errors import DatabaseError
-from gymdb.db.queries import get_nearby_gyms
+from gymdb.infrastructure.db.errors import DatabaseError
+from gymdb.infrastructure.db.queries import get_nearby_gyms
 
 router = APIRouter(prefix="/v2/gyms/geo", tags=["gyms"])
 
@@ -52,3 +52,4 @@ def nearby_gyms(
         "count": len(api_results),
         "results": api_results,
     }
+

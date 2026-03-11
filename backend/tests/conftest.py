@@ -4,8 +4,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from gymdb.db.db_engine import get_engine, reset_engine
-from gymdb.db.models.job_receipt import metadata as receipt_metadata
+from gymdb.infrastructure.db.db_engine import get_engine, reset_engine
+from gymdb.infrastructure.db.models.job_receipt import metadata as receipt_metadata
 
 from gymdb.models import Gym
 from gymdb.inference import apply_inference
@@ -140,8 +140,8 @@ def db_session(monkeypatch):
     """
 
     # 1. Override the *actual* source of truth
-    from gymdb.settings import settings
-    from gymdb.db.db_engine import set_test_connection, clear_test_connection
+    from gymdb.infrastructure.settings import settings
+    from gymdb.infrastructure.db.db_engine import set_test_connection, clear_test_connection
 
     monkeypatch.setattr(
         settings, 
@@ -176,4 +176,5 @@ def db_session(monkeypatch):
         transaction.rollback()
         clear_test_connection()
         connection.close()
+
 

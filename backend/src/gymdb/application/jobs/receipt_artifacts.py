@@ -1,8 +1,8 @@
 import json
 import os
 
-from gymdb.jobs.receipt import JobReceipt
-from gymdb.storage import RECEIPTS_ROOT, ensure_storage_tree
+from gymdb.application.jobs.receipt import JobReceipt
+from gymdb.infrastructure.storage import RECEIPTS_ROOT, ensure_storage_tree
 
 
 def maybe_write_fs_receipt(receipt: JobReceipt) -> None:
@@ -20,3 +20,4 @@ def maybe_write_fs_receipt(receipt: JobReceipt) -> None:
         json.dumps(receipt.to_dict(), indent=2, sort_keys=True),
         encoding="utf-8",
     )
+

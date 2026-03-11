@@ -6,8 +6,8 @@ from sqlalchemy import text
 from sqlalchemy.engine import Connection
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
-from gymdb.db.db_models import GymNearby
-from gymdb.db.errors import DatabaseUnavailable, QueryFailed
+from gymdb.infrastructure.db.db_models import GymNearby
+from gymdb.infrastructure.db.errors import DatabaseUnavailable, QueryFailed
 
 
 # --- SQL ---
@@ -93,3 +93,4 @@ def get_nearby_gyms(
     )
 
     return [GymNearby.model_validate(row) for row in rows]
+

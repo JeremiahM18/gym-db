@@ -86,3 +86,4 @@ def get_gym_by_id(
     Fetch a single gym by ID.
     """
     return store.get_by_id(region, gym_id)
+

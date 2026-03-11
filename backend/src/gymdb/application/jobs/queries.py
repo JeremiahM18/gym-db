@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from gymdb.jobs.receipt import JobReceipt
-from gymdb.jobs.receipt_store import JobReceiptStoreDB
+from gymdb.application.jobs.receipt import JobReceipt
+from gymdb.application.jobs.receipt_store import JobReceiptStoreDB
 
 
 def get_job_receipt(job_id: str, *, store: JobReceiptStoreDB) -> JobReceipt:
@@ -19,3 +19,4 @@ def list_job_receipts(limit: int, *, store: JobReceiptStoreDB) -> list[JobReceip
     Read model: list recent job receipts in descending created_at order.
     """
     return store.list_receipts(limit=limit)
+

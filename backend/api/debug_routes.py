@@ -86,3 +86,4 @@ def debug_metrics():
     Safe to call without DB or dataset access.
     """
     return {"inference_hits": snapshot_metrics()}
+

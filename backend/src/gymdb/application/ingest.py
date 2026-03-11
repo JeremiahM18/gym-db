@@ -3,10 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from gymdb.config import DEFAULT_LAT, DEFAULT_LON, DEFAULT_RADIUS_MILES
-from gymdb.datasets.registry import DatasetRegistry
+from gymdb.infrastructure.datasets.registry import DatasetRegistry
 from gymdb.inference import apply_inference
-from gymdb.io_json import write_json
-from gymdb.overpass_client import fetch_gyms
+from gymdb.infrastructure.io_json import write_json
+from gymdb.infrastructure.overpass_client import fetch_gyms
 from gymdb.processing import deduplicate, compute_gym_id
 from gymdb.scoring import compute_confidence
 
@@ -57,3 +57,4 @@ def run_ingest_for_region(
         radius_miles=radius_miles or metadata.get("radius_miles", DEFAULT_RADIUS_MILES),
         out=registry.dataset_path(region),
     )
+

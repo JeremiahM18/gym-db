@@ -42,3 +42,4 @@ def test_premium_score_with_pool_and_website():
     assert result.value >= 3
     assert result.reasons
     
+

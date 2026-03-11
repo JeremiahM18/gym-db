@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from gymdb.datasets.registry import DatasetRegistry
+from gymdb.infrastructure.datasets.registry import DatasetRegistry
 from gymdb.gyms.store_dataset import DatasetGymStore
 
 from api.settings import APISettings
@@ -27,3 +27,4 @@ def create_store(settings: APISettings) -> DatasetGymStore:
     """
     registry = create_registry(settings)
     return DatasetGymStore(registry)
+
