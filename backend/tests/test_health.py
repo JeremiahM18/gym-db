@@ -4,6 +4,18 @@ def test_healthz(client):
     assert resp.json()["status"] == "ok"
 
 
+def test_cors_allows_local_frontend_origin(client):
+    resp = client.options(
+        "/healthz",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
 class FakeResult:
     def __init__(self, value):
         self._value = value
@@ -26,10 +38,10 @@ class FakeDB:
             return FakeResult(123)
 
         return FakeResult(None)
-    
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, exc_type, exc, tb):
         return False
 
@@ -65,12 +77,13 @@ def test_readiness_success(client):
 class BrokenDB:
     def execute(self, stmt):
         raise Exception("db down")
-    
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, exc_type, exc, tb):
         return False
+
 
 def test_readiness_failure(client):
     from api.deps import get_db
@@ -97,11 +110,4 @@ def test_readiness_failure(client):
     assert detail["ready"] is False
     assert detail["checks"]["database"] is False
 
-    # data = resp.json()["detail"]
-    # assert data["ready"] is False
-    # assert data["checks"]["database"] is False
-
     client.app.dependency_overrides.clear()
-
-    
-

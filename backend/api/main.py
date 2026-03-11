@@ -4,6 +4,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from api.debug_routes import router as debug_router
@@ -14,8 +15,10 @@ from api.internal_routes.jobs import router as jobs_router
 from api.observability import request_logging_middleware
 from api.routes_metrics import router as metrics_router
 from api.routes_v2 import router as v2_router
+from api.settings import get_settings
 
 # Application lifecycle
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -24,11 +27,12 @@ async def lifespan(app: FastAPI):
 
     All side-effectful initialization MUST happen here.
     """
-    logging.getLogger("gymdb" ).info("GymDB API starting up")
+    logging.getLogger("gymdb").info("GymDB API starting up")
 
-    yield   # application runs here
+    yield
 
     logging.getLogger("gymdb").info("GymDB API shutting down")
+
 
 # Application
 
@@ -46,6 +50,17 @@ app = FastAPI(
         {"name": "internal", "description": "Administrative and ops endpoints"},
     ],
 )
+
+settings = get_settings()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(
@@ -66,10 +81,11 @@ async def http_exception_handler(
                     exc.detail
                     if isinstance(exc.detail, (dict, list))
                     else {"detail": exc.detail}
-                )
+                ),
             }
         },
     )
+
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(
@@ -93,6 +109,7 @@ async def unhandled_exception_handler(
             }
         },
     )
+
 
 # Logging
 
@@ -132,4 +149,3 @@ app.include_router(
     debug_router,
     include_in_schema=False,
 )
-

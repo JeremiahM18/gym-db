@@ -13,7 +13,6 @@ import {
   listGyms,
   nearbyGyms,
   type GymFilters,
-  type GymNearbyOutV2,
   type GymOutV2,
   type HealthSnapshot,
 } from "./lib/api";
@@ -56,6 +55,8 @@ const specialtyOptions = [
 ] as const;
 
 const tierOptions = ["basic", "mid", "premium"] as const;
+const METERS_PER_MILE = 1609.344;
+const EARTH_RADIUS_METERS = 6_371_000;
 
 const defaultFilters: FiltersState = {
   region: "",
@@ -187,6 +188,21 @@ function getAddress(gym: GymOutV2): string | null {
   return parts.length ? parts.join(", ") : null;
 }
 
+function getCityState(gym: GymOutV2): string {
+  const city = getTagValue(gym, ["addr:city"]);
+  const state = getTagValue(gym, ["addr:state"]);
+  if (city && state) {
+    return `${city}, ${state}`;
+  }
+  if (city) {
+    return city;
+  }
+  if (state) {
+    return state;
+  }
+  return "City not published";
+}
+
 function buildMapsUrl(gym: GymOutV2): string {
   const query = encodeURIComponent(`${gym.lat},${gym.lon} ${gym.name}`);
   return `https://www.google.com/maps/search/?api=1&query=${query}`;
@@ -194,6 +210,28 @@ function buildMapsUrl(gym: GymOutV2): string {
 
 function buildOsmUrl(gym: GymOutV2): string {
   return `https://www.openstreetmap.org/?mlat=${gym.lat}&mlon=${gym.lon}#map=18/${gym.lat}/${gym.lon}`;
+}
+
+function toRadians(value: number): number {
+  return (value * Math.PI) / 180;
+}
+
+function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+  const originLat = toRadians(lat1);
+  const targetLat = toRadians(lat2);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(originLat) * Math.cos(targetLat) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return EARTH_RADIUS_METERS * c;
+}
+
+function formatMilesFromMeters(meters: number): string {
+  const miles = meters / METERS_PER_MILE;
+  return miles >= 10 ? `${miles.toFixed(0)} mi` : `${miles.toFixed(1)} mi`;
 }
 
 function getAmenityChips(gym: GymOutV2): string[] {
@@ -274,7 +312,7 @@ export function App() {
   const [nearby, setNearby] = useState<NearbyState>(defaultNearby);
   const [query, setQuery] = useState("");
   const [catalogResults, setCatalogResults] = useState<GymOutV2[]>([]);
-  const [nearbyResults, setNearbyResults] = useState<GymNearbyOutV2[]>([]);
+  const [nearbyResults, setNearbyResults] = useState<GymOutV2[]>([]);
   const [selectedGymId, setSelectedGymId] = useState<string | null>(null);
   const [selectedGym, setSelectedGym] = useState<GymOutV2 | null>(null);
   const [loading, setLoading] = useState(true);
@@ -283,6 +321,9 @@ export function App() {
   const [health, setHealth] = useState<HealthSnapshot | null>(null);
 
   const deferredQuery = useDeferredValue(query);
+  const nearbyLat = parseNumber(nearby.lat);
+  const nearbyLon = parseNumber(nearby.lon);
+  const nearbyRadiusMeters = parseNumber(nearby.radiusM);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -364,24 +405,43 @@ export function App() {
     [catalogResults, deferredQuery],
   );
 
-  const averageConfidence = visibleCatalog.length
+  const visibleNearby = useMemo(
+    () =>
+      nearbyResults.filter((gym) => {
+        const searchable = [
+          gym.name,
+          gym.norm_name,
+          inferString(gym, "specialty", ""),
+          getTagValue(gym, ["addr:city", "addr:street"]) ?? "",
+        ]
+          .join(" ")
+          .toLowerCase();
+        return searchable.includes(deferredQuery.trim().toLowerCase());
+      }),
+    [nearbyResults, deferredQuery],
+  );
+
+  const activeRows = mode === "catalog" ? visibleCatalog : visibleNearby;
+
+  const averageConfidence = activeRows.length
     ? `${Math.round(
-        (visibleCatalog.reduce((sum, gym) => sum + (gym.confidence_score ?? 0), 0) /
-          visibleCatalog.length) *
+        (activeRows.reduce((sum, gym) => sum + (gym.confidence_score ?? 0), 0) / activeRows.length) *
           100,
       )}%`
     : "n/a";
 
   const specialtyCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const gym of visibleCatalog) {
+    for (const gym of activeRows) {
       const specialty = inferString(gym, "specialty", "general_fitness");
       counts.set(specialty, (counts.get(specialty) ?? 0) + 1);
     }
     return Array.from(counts.entries()).sort((left, right) => right[1] - left[1]);
-  }, [visibleCatalog]);
+  }, [activeRows]);
 
   const topSpecialty = specialtyCounts.length ? titleCase(specialtyCounts[0][0]) : "n/a";
+
+  const nearbyRadiusLabel = nearbyRadiusMeters ? formatMilesFromMeters(nearbyRadiusMeters) : "n/a";
 
   const selectedActionLinks = useMemo<ActionLink[]>(() => {
     if (!selectedGym) {
@@ -436,11 +496,7 @@ export function App() {
     setLoading(true);
     setError(null);
 
-    const lat = parseNumber(nearby.lat);
-    const lon = parseNumber(nearby.lon);
-    const radiusM = parseNumber(nearby.radiusM);
-
-    if (lat == null || lon == null || radiusM == null) {
+    if (nearbyLat == null || nearbyLon == null || nearbyRadiusMeters == null) {
       setError("Nearby search requires numeric latitude, longitude, and radius.");
       setLoading(false);
       return;
@@ -449,9 +505,9 @@ export function App() {
     try {
       const response = await nearbyGyms({
         ...buildGymFilters(filters),
-        lat,
-        lon,
-        radiusM,
+        lat: nearbyLat,
+        lon: nearbyLon,
+        radiusM: nearbyRadiusMeters,
       });
       startTransition(() => {
         setMode("nearby");
@@ -465,11 +521,11 @@ export function App() {
     }
   }
 
-  const activeRows = mode === "catalog" ? visibleCatalog : nearbyResults;
   const visibleSelectedSpecialty = selectedGym ? titleCase(inferString(selectedGym, "specialty", "general_fitness")) : "n/a";
   const visibleSelectedAddress = selectedGym ? getAddress(selectedGym) : null;
   const visibleSelectedHours = selectedGym ? getOpeningHours(selectedGym) : null;
   const visibleSelectedAmenities = selectedGym ? getAmenityChips(selectedGym) : [];
+  const selectedCity = selectedGym ? getCityState(selectedGym) : "City not published";
 
   return (
     <div className="app-shell">
@@ -479,11 +535,10 @@ export function App() {
         <section className="hero">
           <div>
             <p className="eyebrow">GymDB Browser Client</p>
-            <h1>Find gyms, inspect inference, and jump straight to real-world destinations.</h1>
+            <h1>Find gyms, inspect inference, and jump straight into places you can actually visit.</h1>
             <p className="hero-copy">
-              This frontend is now a true browser experience over the GymDB backend: filter the
-              catalog, run nearby search, inspect explainable classification, and launch out to gym
-              websites or map views from the same live data contract.
+              Browse the live catalog, filter by specialty and quality, run nearby search without a
+              database-only dependency, and jump out to maps or official gym sites in one flow.
             </p>
             <div className="hero-actions">
               {selectedActionLinks.slice(0, 3).map((link) => (
@@ -495,6 +550,7 @@ export function App() {
             <StatCard label="Mode" value={mode === "catalog" ? "Catalog" : "Nearby"} tone="warm" />
             <StatCard label="Visible gyms" value={String(activeRows.length)} tone="cool" />
             <StatCard label="Avg confidence" value={averageConfidence} />
+            <StatCard label="Search radius" value={mode === "nearby" ? nearbyRadiusLabel : "Catalog"} />
             <StatCard label="Lead specialty" value={topSpecialty} />
           </div>
         </section>
@@ -585,6 +641,7 @@ export function App() {
               <label>
                 <span>Radius (meters)</span>
                 <input value={nearby.radiusM} onChange={(event) => setNearby((current) => ({ ...current, radiusM: event.target.value }))} inputMode="numeric" />
+                <small className="field-hint">About {nearbyRadiusLabel}</small>
               </label>
               <div className="controls-actions">
                 <button className="secondary-button" type="submit" disabled={loading}>Run nearby search</button>
@@ -625,7 +682,10 @@ export function App() {
                         onClick={() => setSelectedGymId(gym.id)}
                       >
                         <div className="result-primary">
-                          <strong>{gym.name}</strong>
+                          <div className="result-topline">
+                            <strong>{gym.name}</strong>
+                            <span className="city-pill">{getCityState(gym)}</span>
+                          </div>
                           <span>{titleCase(inferString(gym, "specialty", "general_fitness"))}</span>
                           <p className="result-subcopy">{getAddress(gym) ?? "Coordinates available"}</p>
                           <div className="result-chip-row">
@@ -643,23 +703,32 @@ export function App() {
                   })
                 : null}
               {!loading && mode === "nearby"
-                ? nearbyResults.map((gym) => (
-                    <button
-                      key={gym.id}
-                      type="button"
-                      className={selectedGymId === gym.id ? "result-card active" : "result-card"}
-                      onClick={() => setSelectedGymId(gym.id)}
-                    >
-                      <div className="result-primary">
-                        <strong>{gym.name}</strong>
-                        <span>{gym.lat.toFixed(4)}, {gym.lon.toFixed(4)}</span>
-                        <p className="result-subcopy">Live nearby result from geospatial query.</p>
-                      </div>
-                      <div className="result-metrics">
-                        <span>{Math.round(gym.distance_m)} m</span>
-                      </div>
-                    </button>
-                  ))
+                ? visibleNearby.map((gym) => {
+                    const miles = nearbyLat != null && nearbyLon != null
+                      ? formatMilesFromMeters(haversineMeters(nearbyLat, nearbyLon, gym.lat, gym.lon))
+                      : null;
+                    return (
+                      <button
+                        key={gym.id}
+                        type="button"
+                        className={selectedGymId === gym.id ? "result-card active" : "result-card"}
+                        onClick={() => setSelectedGymId(gym.id)}
+                      >
+                        <div className="result-primary">
+                          <div className="result-topline">
+                            <strong>{gym.name}</strong>
+                            <span className="city-pill">{getCityState(gym)}</span>
+                          </div>
+                          <span>{titleCase(inferString(gym, "specialty", "general_fitness"))}</span>
+                          <p className="result-subcopy">{getAddress(gym) ?? "Coordinates available"}</p>
+                        </div>
+                        <div className="result-metrics">
+                          <span>{miles ?? "n/a"}</span>
+                          <span>{titleCase(inferString(gym, "tier", "unknown"))}</span>
+                        </div>
+                      </button>
+                    );
+                  })
                 : null}
             </div>
           </Panel>
@@ -679,7 +748,7 @@ export function App() {
                   <p className="eyebrow">{selectedGym.id}</p>
                   <h3>{selectedGym.name}</h3>
                   <p className="detail-summary">
-                    {selectedGym.inference_summary?.specialty ?? visibleSelectedSpecialty} · {selectedGym.inference_summary?.tier ?? inferString(selectedGym, "tier", "Unknown")}
+                    {selectedCity} · {selectedGym.inference_summary?.specialty ?? visibleSelectedSpecialty} · {selectedGym.inference_summary?.tier ?? inferString(selectedGym, "tier", "Unknown")}
                   </p>
                 </div>
                 <div className="detail-badges">
@@ -698,7 +767,7 @@ export function App() {
               <div className="detail-facts">
                 <StatCard label="Lifter friendly" value={inferBoolean(selectedGym, "lifter_friendly")} tone="cool" />
                 <StatCard label="24/7 access" value={inferBoolean(selectedGym, "is_24_7")} tone="warm" />
-                <StatCard label="Coordinates" value={`${selectedGym.lat.toFixed(4)}, ${selectedGym.lon.toFixed(4)}`} />
+                <StatCard label="City" value={selectedCity} />
                 <StatCard label="Inference engine" value={selectedGym.inference_meta.engine} />
               </div>
 
@@ -759,3 +828,4 @@ export function App() {
     </div>
   );
 }
+

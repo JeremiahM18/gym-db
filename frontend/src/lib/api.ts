@@ -1,8 +1,6 @@
-import type { GymNearbyOutV2 } from "../api/models/GymNearbyOutV2";
 import type { GymOutV2 } from "../api/models/GymOutV2";
 import type { GymResponseV2 } from "../api/models/GymResponseV2";
 import type { GymsListResponseV2 } from "../api/models/GymsListResponseV2";
-import type { GymsNearbyResponseV2 } from "../api/models/GymsNearbyResponseV2";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
@@ -13,15 +11,14 @@ type GymFilters = {
   specialty?: string;
   lifterFriendly?: boolean;
   is247?: boolean;
+  lat?: number;
+  lon?: number;
+  radiusM?: number;
   limit?: number;
   offset?: number;
 };
 
-type NearbyFilters = GymFilters & {
-  lat: number;
-  lon: number;
-  radiusM: number;
-};
+type NearbyFilters = Required<Pick<GymFilters, "lat" | "lon" | "radiusM">> & GymFilters;
 
 type HealthSnapshot = {
   live: boolean;
@@ -77,6 +74,9 @@ export async function listGyms(
       specialty: filters.specialty,
       lifter_friendly: filters.lifterFriendly,
       is_24_7: filters.is247,
+      lat: filters.lat,
+      lon: filters.lon,
+      radius_m: filters.radiusM,
       limit: filters.limit,
       offset: filters.offset,
     },
@@ -87,17 +87,8 @@ export async function listGyms(
 export async function nearbyGyms(
   filters: NearbyFilters,
   signal?: AbortSignal,
-): Promise<GymsNearbyResponseV2> {
-  return requestJson<GymsNearbyResponseV2>(
-    "/v2/gyms/geo/nearby",
-    {
-      lat: filters.lat,
-      lon: filters.lon,
-      radius_m: filters.radiusM,
-      limit: filters.limit,
-    },
-    signal,
-  );
+): Promise<GymsListResponseV2> {
+  return listGyms(filters, signal);
 }
 
 export async function getGym(
@@ -132,4 +123,4 @@ export async function getHealth(signal?: AbortSignal): Promise<HealthSnapshot> {
   };
 }
 
-export type { GymFilters, GymNearbyOutV2, GymOutV2, HealthSnapshot, NearbyFilters };
+export type { GymFilters, GymOutV2, HealthSnapshot, NearbyFilters };

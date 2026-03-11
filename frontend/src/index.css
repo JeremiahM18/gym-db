@@ -50,6 +50,10 @@ a {
   text-decoration: none;
 }
 
+small {
+  font: inherit;
+}
+
 #root {
   min-height: 100vh;
 }
@@ -98,7 +102,9 @@ a {
   padding: 2rem;
   border: 1px solid var(--panel-border);
   border-radius: 28px;
-  background: linear-gradient(135deg, rgba(14, 23, 32, 0.9), rgba(14, 23, 32, 0.55));
+  background:
+    linear-gradient(135deg, rgba(14, 23, 32, 0.95), rgba(14, 23, 32, 0.58)),
+    radial-gradient(circle at top right, rgba(71, 197, 190, 0.12), transparent 30%);
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
 }
@@ -136,7 +142,8 @@ a {
 label span,
 .detail-copy,
 .result-subcopy,
-.detail-summary {
+.detail-summary,
+.field-hint {
   color: var(--ink-soft);
 }
 
@@ -194,7 +201,8 @@ label span,
 
 .action-pill,
 .tag-pill,
-.mini-chip {
+.mini-chip,
+.city-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -223,9 +231,16 @@ label span,
 }
 
 .mini-chip,
-.tag-pill {
+.tag-pill,
+.city-pill {
   padding: 0.45rem 0.72rem;
   font-size: 0.84rem;
+}
+
+.city-pill {
+  border-color: rgba(71, 197, 190, 0.32);
+  background: rgba(71, 197, 190, 0.12);
+  color: #d7fffb;
 }
 
 .status-strip {
@@ -356,6 +371,11 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(71, 197, 190, 0.15);
 }
 
+.field-hint {
+  margin-top: 0.15rem;
+  font-size: 0.82rem;
+}
+
 .controls-actions {
   display: flex;
   align-items: end;
@@ -445,7 +465,7 @@ select:focus {
   padding: 1rem;
   border: 1px solid var(--panel-border);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.025));
   color: inherit;
   text-align: left;
 }
@@ -459,12 +479,19 @@ select:focus {
 
 .result-card.active {
   border-color: rgba(233, 157, 63, 0.45);
-  background: rgba(233, 157, 63, 0.09);
+  background: linear-gradient(180deg, rgba(233, 157, 63, 0.13), rgba(233, 157, 63, 0.06));
 }
 
 .result-primary {
   display: grid;
   gap: 0.35rem;
+}
+
+.result-topline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
 }
 
 .result-subcopy,

@@ -10,7 +10,7 @@ class APISettings(BaseSettings):
     """
     API-specific configuration.
 
-    Owns: 
+    Owns:
     - database connectivity
     - auth configuration
     - operational feature flags
@@ -33,10 +33,17 @@ class APISettings(BaseSettings):
     enable_internal: bool = False
     enable_dev_auth_bypass: bool = False
 
+    # Browser clients
+    cors_allowed_origins: list[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+
     model_config = {
         "env_file": ".env",
         "extra": "ignore",
     }
+
 
 @lru_cache
 def get_settings() -> APISettings:
@@ -48,7 +55,3 @@ def get_settings() -> APISettings:
         app.dependency_overrides[get_settings] = lambda: APISettings(...)
     """
     return APISettings()
-
-
-
-

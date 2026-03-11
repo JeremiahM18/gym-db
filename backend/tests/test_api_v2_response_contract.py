@@ -28,6 +28,8 @@ def test_v2_gyms_response_contract(client):
     assert "lat" in gym
     assert "lon" in gym
     assert "osm_refs" in gym
+    assert "norm_name" in gym
+    assert gym["norm_name"]
 
     assert "inference" in gym
     assert isinstance(gym["inference"], dict)

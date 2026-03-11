@@ -7,6 +7,7 @@ from api.deps import get_gym_store
 from api.embeddings_views import serialize_gym_embedding_v2
 from api.normalizers import normalize_inference, normalize_inference_meta
 from api.schemas_v2 import GymEmbeddingV2, GymResponseV2, GymsListResponseV2
+from gymdb.domain.processing import normalize_name
 from gymdb.gyms.protocol import GymStoreProtocol
 from gymdb.gyms.queries import get_gym_by_id, list_gyms
 from gymdb.observe.summaries import summarize_inference
@@ -25,6 +26,17 @@ def _translate_store_error(exc: Exception) -> HTTPException:
     if isinstance(exc, RuntimeError):
         return HTTPException(status_code=503, detail=str(exc))
     return HTTPException(status_code=500, detail="Internal server error")
+
+
+def _serialize_gym(gym: dict) -> dict:
+    out = dict(gym)
+    out["norm_name"] = str(out.get("norm_name") or normalize_name(out["name"]))
+
+    raw = out.pop("inferred", None) or out.get("inference")
+    out["inference"] = normalize_inference(raw)
+    out["inference_meta"] = normalize_inference_meta(gym.get("inference_meta"))
+    out["inference_summary"] = summarize_inference(out["inference"])
+    return out
 
 
 @router.get("/gyms", response_model=GymsListResponseV2)
@@ -62,15 +74,7 @@ def list_gyms_v2(
     except Exception as exc:
         raise _translate_store_error(exc) from exc
 
-    results = []
-    for g in gyms:
-        out = dict(g)
-
-        raw = out.pop("inferred", None) or out.get("inference")
-        out["inference"] = normalize_inference(raw)
-        out["inference_meta"] = normalize_inference_meta(g.get("inference_meta"))
-        out["inference_summary"] = summarize_inference(out["inference"])
-        results.append(out)
+    results = [_serialize_gym(gym) for gym in gyms]
 
     return {
         "api_version": "v2",
@@ -102,16 +106,7 @@ def list_gym_embeddings_v2(
     except Exception as exc:
         raise _translate_store_error(exc) from exc
 
-    results = []
-    for g in gyms:
-        inferred = normalize_inference(g.get("inferred") or g.get("inference"))
-
-        out = dict(g)
-        out["inference"] = inferred
-        out["inference_meta"] = normalize_inference_meta(g.get("inference_meta"))
-        results.append(serialize_gym_embedding_v2(out, region=region))
-
-    return results
+    return [serialize_gym_embedding_v2(_serialize_gym(gym), region=region) for gym in gyms]
 
 
 @router.get("/gyms/{gym_id}", response_model=GymResponseV2)
@@ -129,13 +124,7 @@ def get_gym_v2(
     if gym is None:
         raise HTTPException(status_code=404, detail="Gym not found")
 
-    out = dict(gym)
-    raw = out.pop("inferred", None) or out.get("inference")
-    out["inference"] = normalize_inference(raw)
-    out["inference_meta"] = normalize_inference_meta(gym.get("inference_meta"))
-    out["inference_summary"] = summarize_inference(out["inference"])
-
     return {
         "api_version": "v2",
-        "gym": out,
+        "gym": _serialize_gym(gym),
     }
