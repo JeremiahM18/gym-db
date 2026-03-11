@@ -71,6 +71,10 @@ Frontend quality workflow:
 - `npm run build`
   Build the frontend client.
 
+Continuous integration:
+- GitHub Actions runs the same backend and frontend quality gates on pushes and pull requests.
+- The backend CI job provisions PostGIS so integration tests validate against a database environment that matches production assumptions more closely.
+
 The repo is intended to show not just working code, but deliberate architecture, test discipline, and maintainable tooling.
 
 ---
