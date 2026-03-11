@@ -50,6 +50,9 @@ class FakeGymStore(GymStore):
     def filter(self, **kwargs):
         return [self._gym()]
 
+    def nearby(self, **kwargs):
+        return self.filter(**kwargs)
+
     def get_by_id(self, region: str, gym_id: str):
         if gym_id == "fake-gym":
             return self._gym()

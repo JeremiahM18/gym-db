@@ -31,6 +31,7 @@ def test_v2_gyms_response_contract(client):
 
     assert "inference" in gym
     assert isinstance(gym["inference"], dict)
+    assert "specialty" in gym["inference"]
 
     for _key, value in gym["inference"].items():
         assert "value" in value

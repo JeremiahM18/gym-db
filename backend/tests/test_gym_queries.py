@@ -10,6 +10,13 @@ class StubStore:
     def filter(self, **kwargs):
         return list(self._gyms)
 
+    def nearby(self, **kwargs):
+        lat = kwargs["lat"]
+        radius_m = kwargs["radius_m"]
+        if radius_m < 1_000:
+            return [gym for gym in self._gyms if gym["lat"] == lat]
+        return list(self._gyms)
+
     def get_by_id(self, region: str, gym_id: str):
         for gym in self._gyms:
             if gym["id"] == gym_id:
@@ -17,7 +24,7 @@ class StubStore:
         return None
 
 
-def test_list_gyms_filters_by_tier_and_lifter_friendly():
+def test_list_gyms_filters_by_tier_lifter_and_specialty():
     store = StubStore(
         [
             {
@@ -27,6 +34,7 @@ def test_list_gyms_filters_by_tier_and_lifter_friendly():
                 "inferred": {
                     "tier": {"value": "premium"},
                     "lifter_friendly": {"value": True},
+                    "specialty": {"value": "powerlifting"},
                 },
             },
             {
@@ -36,6 +44,7 @@ def test_list_gyms_filters_by_tier_and_lifter_friendly():
                 "inferred": {
                     "tier": {"value": "basic"},
                     "lifter_friendly": {"value": False},
+                    "specialty": {"value": "general_fitness"},
                 },
             },
         ]
@@ -45,13 +54,14 @@ def test_list_gyms_filters_by_tier_and_lifter_friendly():
         store=store,
         region="test",
         tier="premium",
+        specialty="powerlifting",
         lifter_friendly=True,
     )
 
     assert [gym["id"] for gym in results] == ["premium-a"]
 
 
-def test_list_gyms_radius_filter_keeps_only_nearby_results():
+def test_list_gyms_radius_filter_uses_store_nearby_candidates():
     store = StubStore(
         [
             {
@@ -78,5 +88,3 @@ def test_list_gyms_radius_filter_keeps_only_nearby_results():
     )
 
     assert [gym["id"] for gym in results] == ["nearby"]
-
-

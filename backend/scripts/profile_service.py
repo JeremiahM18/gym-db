@@ -6,9 +6,11 @@ import statistics
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import Any
 
 from gymdb.domain.inference import apply_inference
 from gymdb.domain.models import Gym
+from gymdb.domain.processing import haversine_meters
 from gymdb.gyms.queries import list_gyms
 from gymdb.gyms.store_dataset import DatasetGymStore
 from gymdb.infrastructure.datasets.registry import DatasetRegistry
@@ -20,7 +22,35 @@ INFERENCE_WORKERS = 16
 INFERENCE_TASKS = 4_000
 QUERY_CENTER_LAT = 36.10
 QUERY_CENTER_LON = -86.10
-QUERY_RADIUS_M = 20_000
+BROAD_QUERY_RADIUS_M = 20_000
+FOCUSED_QUERY_RADIUS_M = 2_500
+
+
+class NaiveDatasetGymStore:
+    def __init__(self, gyms: tuple[dict[str, Any], ...]):
+        self._gyms = gyms
+
+    def nearby(
+        self,
+        *,
+        region: str,
+        lat: float,
+        lon: float,
+        radius_m: float,
+        min_conf: float | None = None,
+    ) -> list[dict[str, Any]]:
+        del region
+
+        candidates: list[tuple[float, dict[str, Any]]] = []
+        for gym in self._gyms:
+            if min_conf is not None and gym.get("confidence_score", 0.0) < min_conf:
+                continue
+            distance = haversine_meters(lat, lon, gym["lat"], gym["lon"])
+            if distance <= radius_m:
+                candidates.append((distance, gym))
+
+        candidates.sort(key=lambda item: item[0])
+        return [gym for _, gym in candidates]
 
 
 def _build_store_fixture(root: Path) -> DatasetGymStore:
@@ -57,6 +87,9 @@ def _build_store_fixture(root: Path) -> DatasetGymStore:
                     "tier": {"value": "premium" if idx % 10 == 0 else "basic"},
                     "is_24_7": {"value": idx % 7 == 0},
                     "lifter_friendly": {"value": idx % 5 == 0},
+                    "specialty": {
+                        "value": "powerlifting" if idx % 9 == 0 else "general_fitness"
+                    },
                 },
             }
         )
@@ -94,16 +127,21 @@ def _latency_summary(samples: list[float]) -> tuple[float, float, float]:
     return statistics.mean(samples), statistics.median(samples), ordered[p95_index]
 
 
-def benchmark_query_concurrency(store: DatasetGymStore) -> None:
+def _run_query_workload(
+    store: Any,
+    *,
+    radius_m: float,
+) -> tuple[list[int], list[float], float]:
     def _task(_: int) -> tuple[int, float]:
         started = time.perf_counter()
         results = list_gyms(
             store=store,
             region="profile",
             min_conf=0.7,
+            specialty="powerlifting",
             lat=QUERY_CENTER_LAT,
             lon=QUERY_CENTER_LON,
-            radius_m=QUERY_RADIUS_M,
+            radius_m=radius_m,
             limit=100,
             offset=0,
         )
@@ -117,16 +155,47 @@ def benchmark_query_concurrency(store: DatasetGymStore) -> None:
 
     counts = [count for count, _ in outputs]
     samples = [sample for _, sample in outputs]
-    mean_s, median_s, p95_s = _latency_summary(samples)
+    return counts, samples, total
 
-    print("Concurrent Query Throughput")
-    print(f"  tasks:      {QUERY_TASKS}")
-    print(f"  workers:    {QUERY_WORKERS}")
-    print(f"  mean size:  {statistics.mean(counts):.1f} results")
-    print(f"  throughput: {QUERY_TASKS / total:.2f} ops/sec")
-    print(f"  mean:       {mean_s * 1000:.2f} ms")
-    print(f"  median:     {median_s * 1000:.2f} ms")
-    print(f"  p95:        {p95_s * 1000:.2f} ms")
+
+def _print_query_summary(
+    label: str,
+    counts: list[int],
+    samples: list[float],
+    total: float,
+) -> None:
+    mean_s, median_s, p95_s = _latency_summary(samples)
+    print(f"  {label} mean size:    {statistics.mean(counts):.1f} results")
+    print(f"  {label} throughput:   {QUERY_TASKS / total:.2f} ops/sec")
+    print(f"  {label} mean:         {mean_s * 1000:.2f} ms")
+    print(f"  {label} median:       {median_s * 1000:.2f} ms")
+    print(f"  {label} p95:          {p95_s * 1000:.2f} ms")
+
+
+def benchmark_query_concurrency(indexed_store: DatasetGymStore) -> None:
+    snapshot = indexed_store._load_dataset("profile")
+    naive_store = NaiveDatasetGymStore(snapshot.gyms)
+
+    for label, radius_m in (
+        ("Broad Radius", BROAD_QUERY_RADIUS_M),
+        ("Focused Radius", FOCUSED_QUERY_RADIUS_M),
+    ):
+        indexed_counts, indexed_samples, indexed_total = _run_query_workload(
+            indexed_store,
+            radius_m=radius_m,
+        )
+        naive_counts, naive_samples, naive_total = _run_query_workload(
+            naive_store,
+            radius_m=radius_m,
+        )
+
+        print("Concurrent Query Throughput")
+        print(f"  scenario:             {label}")
+        print(f"  radius_m:             {radius_m}")
+        print(f"  tasks:                {QUERY_TASKS}")
+        print(f"  workers:              {QUERY_WORKERS}")
+        _print_query_summary("indexed", indexed_counts, indexed_samples, indexed_total)
+        _print_query_summary("naive", naive_counts, naive_samples, naive_total)
 
 
 def benchmark_inference_concurrency() -> None:
@@ -166,3 +235,4 @@ if __name__ == "__main__":
         "postgresql+psycopg://gymdb:gymdb_password@localhost:5432/gymdb",
     )
     main()
+

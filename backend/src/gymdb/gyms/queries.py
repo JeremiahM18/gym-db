@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import math
-
-from gymdb.domain.constants import INFERRED, IS_24_7, LIFTER_FRIENDLY, TIER
-from gymdb.domain.processing import haversine_meters
+from gymdb.domain.constants import (
+    INFERRED,
+    IS_24_7,
+    LIFTER_FRIENDLY,
+    SPECIALTY,
+    TIER,
+)
 from gymdb.gyms.protocol import GymStoreProtocol
-
-_EARTH_RADIUS_METERS = 6_371_000.0
 
 
 def _infer_value(gym: dict, key: str):
@@ -23,28 +24,13 @@ def _infer_value(gym: dict, key: str):
     return None
 
 
-def _bounding_box(
-    lat: float,
-    lon: float,
-    radius_m: float,
-) -> tuple[float, float, float, float]:
-    lat_delta = math.degrees(radius_m / _EARTH_RADIUS_METERS)
-    cos_lat = math.cos(math.radians(lat))
-    lon_delta = 180.0 if abs(cos_lat) < 1e-12 else lat_delta / cos_lat
-    return (
-        lat - lat_delta,
-        lat + lat_delta,
-        lon - lon_delta,
-        lon + lon_delta,
-    )
-
-
 def list_gyms(
     *,
     store: GymStoreProtocol,
     region: str,
     min_conf: float | None = None,
     tier: str | None = None,
+    specialty: str | None = None,
     lifter_friendly: bool | None = None,
     is_24_7: bool | None = None,
     lat: float | None = None,
@@ -61,15 +47,27 @@ def list_gyms(
     - no FastAPI imports
     - no global state
     """
-    gyms = store.filter(
-        region=region,
-        min_conf=min_conf,
-        limit=10_000,
-        offset=0,
-    )
+    if lat is not None and lon is not None and radius_m is not None:
+        gyms = store.nearby(
+            region=region,
+            lat=lat,
+            lon=lon,
+            radius_m=radius_m,
+            min_conf=min_conf,
+        )
+    else:
+        gyms = store.filter(
+            region=region,
+            min_conf=min_conf,
+            limit=10_000,
+            offset=0,
+        )
 
     if tier is not None:
         gyms = [g for g in gyms if _infer_value(g, TIER) == tier]
+
+    if specialty is not None:
+        gyms = [g for g in gyms if _infer_value(g, SPECIALTY) == specialty]
 
     if lifter_friendly is not None:
         gyms = [
@@ -81,15 +79,6 @@ def list_gyms(
         gyms = [
             g for g in gyms
             if _infer_value(g, IS_24_7) is is_24_7
-        ]
-
-    if lat is not None and lon is not None and radius_m is not None:
-        min_lat, max_lat, min_lon, max_lon = _bounding_box(lat, lon, radius_m)
-        gyms = [
-            gym for gym in gyms
-            if min_lat <= gym["lat"] <= max_lat
-            and min_lon <= gym["lon"] <= max_lon
-            and haversine_meters(lat, lon, gym["lat"], gym["lon"]) <= radius_m
         ]
 
     return gyms[offset : offset + limit]

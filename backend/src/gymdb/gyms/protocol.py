@@ -14,4 +14,14 @@ class GymStoreProtocol(Protocol):
         offset: int = ...,
     ) -> list[dict]: ...
 
+    def nearby(
+        self,
+        *,
+        region: str,
+        lat: float,
+        lon: float,
+        radius_m: float,
+        min_conf: float | None = ...,
+    ) -> list[dict]: ...
+
     def get_by_id(self, region: str, gym_id: str) -> dict | None: ...

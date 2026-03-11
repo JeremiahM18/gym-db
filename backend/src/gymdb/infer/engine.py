@@ -2,13 +2,24 @@
 Inference engine.
 
 Coordinates signal extraction and decision logic to produce
- deterministic, explainable inferred attributes.
+deterministic, explainable inferred attributes.
 """
 
-from gymdb.domain.constants import IS_24_7, LIFTER_FRIENDLY, PREMIUM_SCORE, TIER
+from gymdb.domain.constants import (
+    IS_24_7,
+    LIFTER_FRIENDLY,
+    PREMIUM_SCORE,
+    SPECIALTY,
+    TIER,
+)
 from gymdb.domain.features import extract_features
 from gymdb.domain.models import Gym
-from gymdb.domain.rules import infer_24_7, infer_lifter_friendly, infer_tier
+from gymdb.domain.rules import (
+    infer_24_7,
+    infer_lifter_friendly,
+    infer_specialty,
+    infer_tier,
+)
 from gymdb.infer.decisions import compute_premium_score
 from gymdb.infer.result import InferenceResult
 
@@ -37,6 +48,10 @@ def run_inference(gym: Gym) -> None:
         features,
         capabilities=capabilities,
     )
+    specialty_value, specialty_reasons = infer_specialty(
+        features,
+        capabilities=capabilities,
+    )
     tier_value, tier_reasons = infer_tier(
         premium_score=premium_value,
         is_24_7=is_24_7_value,
@@ -56,6 +71,11 @@ def run_inference(gym: Gym) -> None:
         LIFTER_FRIENDLY: InferenceResult(
             value=lifter_value,
             reasons=lifter_reasons,
+        ),
+        SPECIALTY: InferenceResult(
+            value=specialty_value,
+            reasons=specialty_reasons,
+            confidence=0.9 if specialty_value != "general_fitness" else 0.5,
         ),
         TIER: InferenceResult(
             value=tier_value,
