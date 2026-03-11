@@ -1,24 +1,28 @@
 import re
+from typing import Any
+
+_TRUTHY_VALUES = frozenset({"yes", "true", "1"})
+_SPLIT_SEPARATOR = ";"
+_OPEN_24_7_RE = re.compile(r"\b0{1,2}:?00\s*-\s*24:?00\b")
 
 
-def _truthy(v: str | None) -> bool:
-    if v is None:
+def _truthy(value: Any) -> bool:
+    if not isinstance(value, str):
         return False
-    return v.strip().lower() in {"yes", "true", "1"}
+    return value.strip().lower() in _TRUTHY_VALUES
 
-def has_any(feature_set: set[str], candidates: set[str]) -> bool:
-    return not feature_set.isdisjoint(candidates)
 
-def split_semicolon(v: str | None) -> set[str]:
-    if not v:
+def split_semicolon(value: Any) -> set[str]:
+    if not isinstance(value, str) or not value:
         return set()
-    return {x.strip().lower() for x in v.split(";")}
+    return {part.strip().lower() for part in value.split(_SPLIT_SEPARATOR)}
 
-def combined_capabilities(features: dict) -> set[str]:
+
+def combined_capabilities(features: dict[str, set[str]]) -> set[str]:
     return features["amenities"] | features["sports"] | features["attributes"]
 
-def extract_features(tags: dict) -> dict[str, set[str]]:
-    # Normalize OSM tags into semantic feature sets
+
+def extract_features(tags: dict[str, Any]) -> dict[str, set[str]]:
     features: dict[str, set[str]] = {
         "amenities": set(),
         "sports": set(),
@@ -26,34 +30,35 @@ def extract_features(tags: dict) -> dict[str, set[str]]:
         "brand": set(),
     }
 
-    # Amenity-style boolean tags
-    for k, v in tags.items():
-        if _truthy(v):
-            features["amenities"].add(k.lower())
+    for key, value in tags.items():
+        if _truthy(value):
+            features["amenities"].add(key.lower())
 
-    # Handle sport=swimming; fitness; basketball
-    if "sport" in tags:
-        features["sports"] |= split_semicolon(tags["sport"])
+    sport = tags.get("sport")
+    if sport is not None:
+        features["sports"].update(split_semicolon(sport))
 
-    # Handle other attributes
-    if "leisure" in tags:
-        features["amenities"].add(tags["leisure"].lower())
+    leisure = tags.get("leisure")
+    if isinstance(leisure, str):
+        features["amenities"].add(leisure.lower())
 
     if "website" in tags or "contact:website" in tags:
         features["attributes"].add("website")
 
-    if "opening_hours" in tags:
+    opening_hours = tags.get("opening_hours")
+    if isinstance(opening_hours, str):
         features["attributes"].add("opening_hours")
 
-        oh = tags["opening_hours"].lower()
-        if "24/7" in oh or re.search(r"\b0{1,2}:?00\s*-\s*24:?00\b", oh):
+        normalized_hours = opening_hours.lower()
+        if "24/7" in normalized_hours or _OPEN_24_7_RE.search(normalized_hours):
             features["attributes"].add("24_7")
 
-    # Brand tags
-    if "brand" in tags:
-        features["brand"].add(tags["brand"].lower())
-    if "name" in tags:
-        features["brand"].add(tags["name"].lower())
+    brand = tags.get("brand")
+    if isinstance(brand, str):
+        features["brand"].add(brand.lower())
+
+    name = tags.get("name")
+    if isinstance(name, str):
+        features["brand"].add(name.lower())
 
     return features
-

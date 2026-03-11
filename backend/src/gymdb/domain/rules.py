@@ -1,9 +1,16 @@
-from gymdb.domain.constants import (
-    TIER_BASIC,
-    TIER_MID,
-    TIER_PREMIUM,
-)
+from gymdb.domain.constants import TIER_BASIC, TIER_MID, TIER_PREMIUM
 from gymdb.domain.features import combined_capabilities
+
+_STRENGTH_CAPABILITIES = frozenset(
+    {
+        "weightlifting",
+        "powerlifting",
+        "strongman",
+        "olympic_weightlifting",
+        "fitness",
+    }
+)
+_STRENGTH_BRAND_KEYWORDS = ("barbell", "power", "strength")
 
 
 def infer_24_7(features: dict) -> tuple[bool, list[str]]:
@@ -11,27 +18,26 @@ def infer_24_7(features: dict) -> tuple[bool, list[str]]:
         return True, ["derived from opening_hours"]
     return False, []
 
-def infer_lifter_friendly(features: dict) -> tuple[bool, list[str]]:
-    reasons: list[str] = []
-    caps = combined_capabilities(features)
 
-    if caps & {
-        "weightlifting",
-        "powerlifting",
-        "strongman",
-        "olympic_weightlifting",
-        "fitness",
-    }:
+def infer_lifter_friendly(
+    features: dict,
+    *,
+    capabilities: set[str] | None = None,
+) -> tuple[bool, list[str]]:
+    reasons: list[str] = []
+    active_capabilities = capabilities or combined_capabilities(features)
+
+    if active_capabilities & _STRENGTH_CAPABILITIES:
         reasons.append("has strength training amenities")
         return True, reasons
-        
-    # Name-based fallback
-    for b in features["brand"]:
-        if any(word in b for word in ["barbell", "power", "strength"]):
+
+    for brand in features["brand"]:
+        if any(keyword in brand for keyword in _STRENGTH_BRAND_KEYWORDS):
             reasons.append("name suggests strength focus")
             return True, reasons
-    
+
     return False, reasons
+
 
 def infer_tier(premium_score: int, is_24_7: bool) -> tuple[str, list[str]]:
     reasons = [f"premium_score={premium_score}"]
@@ -43,4 +49,3 @@ def infer_tier(premium_score: int, is_24_7: bool) -> tuple[str, list[str]]:
     if premium_score >= 3:
         return TIER_MID, reasons
     return TIER_BASIC, reasons
-

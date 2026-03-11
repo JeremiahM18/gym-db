@@ -4,6 +4,19 @@ from gymdb.infer.result import InferenceResult
 
 
 class Gym:
+    __slots__ = (
+        "id",
+        "name",
+        "norm_name",
+        "lat",
+        "lon",
+        "osm_refs",
+        "tags",
+        "confidence_score",
+        "inferred",
+        "inference_meta",
+    )
+
     def __init__(
         self,
         name: str,

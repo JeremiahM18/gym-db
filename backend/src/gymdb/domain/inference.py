@@ -3,7 +3,7 @@ Public inference entrypoint.
 
 Provides a stable API for running inference and stamping
 inference metadata. All inference logic is delegated to
-the inference engine.
+ the inference engine.
 """
 
 import hashlib
@@ -24,7 +24,7 @@ def _canonicalize_tags(tags: dict[str, Any]) -> dict[str, str]:
     """
     Convert gym tags into a JSON-serializable, deterministic form.
 
-    Removes non-primitive values and sorts keys.
+    Removes non-primitive values.
     """
     clean: dict[str, str] = {}
 
@@ -32,7 +32,7 @@ def _canonicalize_tags(tags: dict[str, Any]) -> dict[str, str]:
         if isinstance(value, (str, int, float, bool)):
             clean[key] = str(value)
 
-    return dict(sorted(clean.items()))
+    return clean
 
 
 def _compute_deterministic_hash(
