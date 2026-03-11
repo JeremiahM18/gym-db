@@ -8,14 +8,22 @@ __pychache__/
 # Test/cache/logs
 **/.pytest_cache/
 **/*.log
+.tmp/
 
 # Env files / secrets
 .env
 **/.env
 
-# Data outputs
-data/*.json
+# Runtime / generated data
+# Keep only intentional placeholders or tiny fixtures in git.
+data/**/*.json
+!data/.gitkeep
+!data/gyms_test.json
+!data/registry_test.json
+!data/registry.json
+
 data/artifacts/
+data/jobs/
 
 # Generated OpenAPI spec
 openapi.json

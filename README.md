@@ -64,6 +64,8 @@ Backend quality workflow:
   Run backend linting.
 - `mypy src/gymdb api`
   Run backend type checking.
+- `python scripts/profile_hotpaths.py`
+  Run repeatable hot-path profiling for ingest and read-path algorithms.
 
 Frontend quality workflow:
 - `npm run lint`

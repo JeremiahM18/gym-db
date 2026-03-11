@@ -1,0 +1,10 @@
+{
+  "default": "test",
+  "datasets": {
+    "test": {
+      "file": "gyms_test.json",
+      "lat": 0.0,
+      "lon": 0.0
+    }
+  }
+}

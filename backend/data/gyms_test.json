@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.2",
+  "generated_at": "test",
+  "count": 1,
+  "inference_meta": {
+    "engine": "rule_based",
+    "version": "1.0.0"
+  },
+  "results": [
+    {
+      "id": "test-gym-1",
+      "name": "Test Gym",
+      "norm_name": "test gym",
+      "lat": 36.0,
+      "lon": -86.0,
+      "confidence_score": 0.5,
+      "osm_refs": [],
+      "tags": {},
+      "inferred": {},
+      "inference_reasons": {},
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+    "default": "nashville",
+    "datasets": {
+        "nashville": {
+            "file": "gyms_nashville.json", 
+            "lat": 36.16, 
+            "lon": -86.78},
+        "seattle": {
+            "file": "gyms_seattle.json", 
+            "lat": 47.60, 
+            "lon": -122.33 }
+    }
+}
