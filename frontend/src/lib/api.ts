@@ -3,6 +3,7 @@ import type { GymResponseV2 } from "../api/models/GymResponseV2";
 import type { GymsListResponseV2 } from "../api/models/GymsListResponseV2";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API_TOKEN = import.meta.env.VITE_API_TOKEN;
 
 type GymFilters = {
   region?: string;
@@ -49,6 +50,7 @@ async function requestJson<T>(
   const response = await fetch(buildUrl(path, params), {
     headers: {
       Accept: "application/json",
+      ...(API_TOKEN ? { Authorization: `Bearer ${API_TOKEN}` } : {}),
     },
     signal,
   });

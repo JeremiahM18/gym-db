@@ -39,6 +39,8 @@ Example local setup in `.env.local`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
+# Optional when backend auth bypass is disabled:
+# VITE_API_TOKEN=<bearer token>
 ```
 
 ## Run Locally

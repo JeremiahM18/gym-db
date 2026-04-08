@@ -241,6 +241,8 @@ Create `frontend/.env.local`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
+# Optional when dev auth bypass is disabled:
+# VITE_API_TOKEN=<bearer token>
 ```
 
 Then run:

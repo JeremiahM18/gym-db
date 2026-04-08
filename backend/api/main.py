@@ -46,7 +46,7 @@ app = FastAPI(
     openapi_tags=[
         {"name": "gyms", "description": "Gym discovery and filtering"},
         {"name": "review", "description": "Coverage and review workflows"},
-        {"name": "embeddings", "descripton": "Vector embeddings"},
+        {"name": "embeddings", "description": "Vector embeddings"},
         {"name": "health", "description": "Service health checks"},
         {"name": "debug", "description": "Inference inspection and audits"},
         {"name": "internal", "description": "Administrative and ops endpoints"},
