@@ -5,410 +5,51 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { ReactNode } from "react";
 
+import { ActionPill } from "./components/ActionPill";
+import { GeoMap } from "./components/GeoMap";
+import { Panel } from "./components/Panel";
+import { StatCard } from "./components/StatCard";
+import {
+  defaultFilters,
+  defaultNearby,
+  specialtyOptions,
+  tierOptions,
+  type ActionLink,
+  type FiltersState,
+  type Mode,
+  type NearbyState,
+  type ToggleChoice,
+} from "./features/gym-browser/types";
+import {
+  buildGymFilters,
+  buildSelectedActionLinks,
+  filterGymsByQuery,
+  formatConfidence,
+  formatMilesFromMeters,
+  getAddress,
+  getAmenityChips,
+  getAverageConfidence,
+  getCityState,
+  getEmail,
+  getOpeningHours,
+  getPhone,
+  getTopSpecialty,
+  getWebsite,
+  haversineMeters,
+  inferBoolean,
+  inferString,
+  parseNumber,
+  titleCase,
+} from "./features/gym-browser/utils";
 import {
   getGym,
   getHealth,
   listGyms,
   nearbyGyms,
-  type GymFilters,
   type GymOutV2,
   type HealthSnapshot,
 } from "./lib/api";
-
-type Mode = "catalog" | "nearby";
-type ToggleChoice = "any" | "yes" | "no";
-
-type FiltersState = {
-  region: string;
-  minConf: string;
-  tier: string;
-  specialty: string;
-  lifterFriendly: ToggleChoice;
-  is247: ToggleChoice;
-  limit: string;
-};
-
-type NearbyState = {
-  lat: string;
-  lon: string;
-  radiusM: string;
-};
-
-type ActionLink = {
-  label: string;
-  href: string;
-  tone?: "warm" | "cool" | "ink";
-};
-
-type MapPoint = {
-  gym: GymOutV2;
-  x: number;
-  y: number;
-  distanceLabel: string | null;
-};
-
-const specialtyOptions = [
-  "general_fitness",
-  "crossfit",
-  "powerlifting",
-  "olympic_weightlifting",
-  "bodybuilding",
-  "boxing",
-  "martial_arts",
-  "yoga",
-  "climbing",
-] as const;
-
-const tierOptions = ["basic", "mid", "premium"] as const;
-const METERS_PER_MILE = 1609.344;
-const EARTH_RADIUS_METERS = 6_371_000;
-const MAP_WIDTH = 720;
-const MAP_HEIGHT = 420;
-const MAP_PADDING = 28;
-
-const defaultFilters: FiltersState = {
-  region: "",
-  minConf: "0.3",
-  tier: "",
-  specialty: "",
-  lifterFriendly: "any",
-  is247: "any",
-  limit: "100",
-};
-
-const defaultNearby: NearbyState = {
-  lat: "36.1627",
-  lon: "-86.7816",
-  radiusM: "2500",
-};
-
-function choiceToBoolean(choice: ToggleChoice): boolean | undefined {
-  if (choice === "yes") {
-    return true;
-  }
-  if (choice === "no") {
-    return false;
-  }
-  return undefined;
-}
-
-function parseNumber(value: string): number | undefined {
-  if (!value.trim()) {
-    return undefined;
-  }
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
-
-function buildGymFilters(filters: FiltersState): GymFilters {
-  return {
-    region: filters.region || undefined,
-    minConf: parseNumber(filters.minConf),
-    tier: filters.tier || undefined,
-    specialty: filters.specialty || undefined,
-    lifterFriendly: choiceToBoolean(filters.lifterFriendly),
-    is247: choiceToBoolean(filters.is247),
-    limit: parseNumber(filters.limit) ?? 100,
-    offset: 0,
-  };
-}
-
-function formatConfidence(value: number | null | undefined): string {
-  if (value == null) {
-    return "n/a";
-  }
-  return `${Math.round(value * 100)}%`;
-}
-
-function titleCase(value: string): string {
-  return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function inferString(gym: GymOutV2, key: string, fallback = "Unknown"): string {
-  const result = gym.inference[key];
-  return result ? String(result.value) : fallback;
-}
-
-function inferBoolean(gym: GymOutV2, key: string): string {
-  const result = gym.inference[key];
-  if (!result) {
-    return "Unknown";
-  }
-  return result.value ? "Yes" : "No";
-}
-
-function normalizeUrl(value: string | null): string | null {
-  if (!value) {
-    return null;
-  }
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return null;
-  }
-  if (/^https?:\/\//i.test(trimmed)) {
-    return trimmed;
-  }
-  return `https://${trimmed}`;
-}
-
-function getTagValue(gym: GymOutV2, keys: string[]): string | null {
-  const tags = gym.tags ?? {};
-  for (const key of keys) {
-    const value = tags[key];
-    if (value == null) {
-      continue;
-    }
-    const normalized = String(value).trim();
-    if (normalized) {
-      return normalized;
-    }
-  }
-  return null;
-}
-
-function getWebsite(gym: GymOutV2): string | null {
-  return normalizeUrl(getTagValue(gym, ["website", "contact:website", "url"]));
-}
-
-function getPhone(gym: GymOutV2): string | null {
-  return getTagValue(gym, ["phone", "contact:phone"]);
-}
-
-function getEmail(gym: GymOutV2): string | null {
-  return getTagValue(gym, ["email", "contact:email"]);
-}
-
-function getOpeningHours(gym: GymOutV2): string | null {
-  return getTagValue(gym, ["opening_hours"]);
-}
-
-function getAddress(gym: GymOutV2): string | null {
-  const tags = gym.tags ?? {};
-  const parts = [
-    tags["addr:housenumber"],
-    tags["addr:street"],
-    tags["addr:city"],
-    tags["addr:state"],
-    tags["addr:postcode"],
-  ]
-    .filter((part) => part != null && String(part).trim())
-    .map((part) => String(part).trim());
-  return parts.length ? parts.join(", ") : null;
-}
-
-function getCityState(gym: GymOutV2): string {
-  const city = getTagValue(gym, ["addr:city"]);
-  const state = getTagValue(gym, ["addr:state"]);
-  if (city && state) {
-    return `${city}, ${state}`;
-  }
-  if (city) {
-    return city;
-  }
-  if (state) {
-    return state;
-  }
-  return "City not published";
-}
-
-function buildMapsUrl(gym: GymOutV2): string {
-  const query = encodeURIComponent(`${gym.lat},${gym.lon} ${gym.name}`);
-  return `https://www.google.com/maps/search/?api=1&query=${query}`;
-}
-
-function buildOsmUrl(gym: GymOutV2): string {
-  return `https://www.openstreetmap.org/?mlat=${gym.lat}&mlon=${gym.lon}#map=18/${gym.lat}/${gym.lon}`;
-}
-
-function toRadians(value: number): number {
-  return (value * Math.PI) / 180;
-}
-
-function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const dLat = toRadians(lat2 - lat1);
-  const dLon = toRadians(lon2 - lon1);
-  const originLat = toRadians(lat1);
-  const targetLat = toRadians(lat2);
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(originLat) * Math.cos(targetLat) * Math.sin(dLon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return EARTH_RADIUS_METERS * c;
-}
-
-function formatMilesFromMeters(meters: number): string {
-  const miles = meters / METERS_PER_MILE;
-  return miles >= 10 ? `${miles.toFixed(0)} mi` : `${miles.toFixed(1)} mi`;
-}
-
-function getAmenityChips(gym: GymOutV2): string[] {
-  const tags = gym.tags ?? {};
-  const amenitySignals: Array<[string, string]> = [
-    ["swimming_pool", "Pool"],
-    ["sauna", "Sauna"],
-    ["shower", "Showers"],
-    ["internet_access", "Wi-Fi"],
-    ["toilets:wheelchair", "Wheelchair toilets"],
-    ["wheelchair", "Wheelchair access"],
-    ["opening_hours", "Hours listed"],
-    ["website", "Website"],
-    ["contact:website", "Website"],
-    ["phone", "Phone"],
-    ["contact:phone", "Phone"],
-  ];
-
-  const chips = new Set<string>();
-  for (const [key, label] of amenitySignals) {
-    const value = tags[key];
-    if (value == null) {
-      continue;
-    }
-    const normalized = String(value).trim().toLowerCase();
-    if (!normalized || normalized === "no") {
-      continue;
-    }
-    chips.add(label);
-  }
-
-  const specialty = inferString(gym, "specialty", "");
-  if (specialty) {
-    chips.add(titleCase(specialty));
-  }
-  if (gym.inference_summary?.premium_score) {
-    chips.add(`Premium signal ${gym.inference_summary.premium_score}`);
-  }
-
-  return Array.from(chips).slice(0, 8);
-}
-
-function getBounds(gyms: GymOutV2[]) {
-  const lats = gyms.map((gym) => gym.lat);
-  const lons = gyms.map((gym) => gym.lon);
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const minLon = Math.min(...lons);
-  const maxLon = Math.max(...lons);
-
-  return {
-    minLat,
-    maxLat,
-    minLon,
-    maxLon,
-    latSpan: Math.max(maxLat - minLat, 0.01),
-    lonSpan: Math.max(maxLon - minLon, 0.01),
-  };
-}
-
-function buildMapPoints(gyms: GymOutV2[], nearbyLat?: number, nearbyLon?: number): MapPoint[] {
-  if (!gyms.length) {
-    return [];
-  }
-
-  const bounds = getBounds(gyms);
-  return gyms.map((gym) => {
-    const x = MAP_PADDING + ((gym.lon - bounds.minLon) / bounds.lonSpan) * (MAP_WIDTH - MAP_PADDING * 2);
-    const y = MAP_PADDING + (1 - (gym.lat - bounds.minLat) / bounds.latSpan) * (MAP_HEIGHT - MAP_PADDING * 2);
-    const distanceLabel = nearbyLat != null && nearbyLon != null
-      ? formatMilesFromMeters(haversineMeters(nearbyLat, nearbyLon, gym.lat, gym.lon))
-      : null;
-    return { gym, x, y, distanceLabel };
-  });
-}
-
-function StatCard(props: { label: string; value: string; tone?: "warm" | "cool" | "ink" }) {
-  return (
-    <div className={`stat-card ${props.tone ?? "ink"}`}>
-      <span>{props.label}</span>
-      <strong>{props.value}</strong>
-    </div>
-  );
-}
-
-function Panel(props: { title: string; subtitle?: string; children: ReactNode; accent?: string }) {
-  return (
-    <section className="panel">
-      <div className="panel-header">
-        <div>
-          <p className="eyebrow">{props.accent ?? "Operator Surface"}</p>
-          <h2>{props.title}</h2>
-        </div>
-        {props.subtitle ? <p className="panel-subtitle">{props.subtitle}</p> : null}
-      </div>
-      {props.children}
-    </section>
-  );
-}
-
-function ActionPill(props: ActionLink) {
-  return (
-    <a className={`action-pill ${props.tone ?? "ink"}`} href={props.href} target="_blank" rel="noreferrer">
-      {props.label}
-    </a>
-  );
-}
-
-function GeoMap(props: {
-  gyms: GymOutV2[];
-  selectedGymId: string | null;
-  onSelect: (gymId: string) => void;
-  nearbyLat?: number;
-  nearbyLon?: number;
-}) {
-  const points = useMemo(
-    () => buildMapPoints(props.gyms, props.nearbyLat, props.nearbyLon),
-    [props.gyms, props.nearbyLat, props.nearbyLon],
-  );
-
-  if (!points.length) {
-    return <div className="map-empty">Run a query to populate the geo panel.</div>;
-  }
-
-  const bounds = getBounds(props.gyms);
-
-  return (
-    <div className="geo-stage">
-      <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} className="geo-map" role="img" aria-label="Gym coordinate map">
-        <rect x="0" y="0" width={MAP_WIDTH} height={MAP_HEIGHT} rx="28" className="geo-map-bg" />
-        {Array.from({ length: 6 }).map((_, index) => {
-          const x = MAP_PADDING + index * ((MAP_WIDTH - MAP_PADDING * 2) / 5);
-          const y = MAP_PADDING + index * ((MAP_HEIGHT - MAP_PADDING * 2) / 5);
-          return (
-            <g key={`grid-${index}`}>
-              <line x1={x} y1={MAP_PADDING} x2={x} y2={MAP_HEIGHT - MAP_PADDING} className="geo-grid-line" />
-              <line x1={MAP_PADDING} y1={y} x2={MAP_WIDTH - MAP_PADDING} y2={y} className="geo-grid-line" />
-            </g>
-          );
-        })}
-        {points.map((point) => {
-          const selected = point.gym.id === props.selectedGymId;
-          return (
-            <g key={point.gym.id} className="geo-point-group" onClick={() => props.onSelect(point.gym.id)}>
-              {selected ? <circle cx={point.x} cy={point.y} r="13" className="geo-point-halo" /> : null}
-              <circle cx={point.x} cy={point.y} r={selected ? 7 : 5} className={selected ? "geo-point selected" : "geo-point"} />
-            </g>
-          );
-        })}
-      </svg>
-      <div className="geo-legend-row">
-        <div className="geo-legend-card">
-          <span>Latitude span</span>
-          <strong>{bounds.minLat.toFixed(2)} to {bounds.maxLat.toFixed(2)}</strong>
-        </div>
-        <div className="geo-legend-card">
-          <span>Longitude span</span>
-          <strong>{bounds.minLon.toFixed(2)} to {bounds.maxLon.toFixed(2)}</strong>
-        </div>
-        <div className="geo-legend-card">
-          <span>Rendered pins</span>
-          <strong>{points.length}</strong>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function App() {
   const [mode, setMode] = useState<Mode>("catalog");
@@ -494,86 +135,24 @@ export function App() {
   }, [filters.region, selectedGymId]);
 
   const visibleCatalog = useMemo(
-    () =>
-      catalogResults.filter((gym) => {
-        const searchable = [
-          gym.name,
-          gym.norm_name,
-          inferString(gym, "specialty", ""),
-          getTagValue(gym, ["addr:city", "addr:street"]) ?? "",
-        ]
-          .join(" ")
-          .toLowerCase();
-        return searchable.includes(deferredQuery.trim().toLowerCase());
-      }),
+    () => filterGymsByQuery(catalogResults, deferredQuery),
     [catalogResults, deferredQuery],
   );
 
   const visibleNearby = useMemo(
-    () =>
-      nearbyResults.filter((gym) => {
-        const searchable = [
-          gym.name,
-          gym.norm_name,
-          inferString(gym, "specialty", ""),
-          getTagValue(gym, ["addr:city", "addr:street"]) ?? "",
-        ]
-          .join(" ")
-          .toLowerCase();
-        return searchable.includes(deferredQuery.trim().toLowerCase());
-      }),
+    () => filterGymsByQuery(nearbyResults, deferredQuery),
     [nearbyResults, deferredQuery],
   );
 
   const activeRows = mode === "catalog" ? visibleCatalog : visibleNearby;
-
-  const averageConfidence = activeRows.length
-    ? `${Math.round(
-        (activeRows.reduce((sum, gym) => sum + (gym.confidence_score ?? 0), 0) / activeRows.length) *
-          100,
-      )}%`
-    : "n/a";
-
-  const specialtyCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const gym of activeRows) {
-      const specialty = inferString(gym, "specialty", "general_fitness");
-      counts.set(specialty, (counts.get(specialty) ?? 0) + 1);
-    }
-    return Array.from(counts.entries()).sort((left, right) => right[1] - left[1]);
-  }, [activeRows]);
-
-  const topSpecialty = specialtyCounts.length ? titleCase(specialtyCounts[0][0]) : "n/a";
+  const averageConfidence = useMemo(() => getAverageConfidence(activeRows), [activeRows]);
+  const topSpecialty = useMemo(() => getTopSpecialty(activeRows), [activeRows]);
 
   const nearbyRadiusLabel = nearbyRadiusMeters ? formatMilesFromMeters(nearbyRadiusMeters) : "n/a";
-
-  const selectedActionLinks = useMemo<ActionLink[]>(() => {
-    if (!selectedGym) {
-      return [];
-    }
-
-    const links: ActionLink[] = [
-      { label: "Open in Maps", href: buildMapsUrl(selectedGym), tone: "cool" },
-      { label: "Open in OpenStreetMap", href: buildOsmUrl(selectedGym) },
-    ];
-
-    const website = getWebsite(selectedGym);
-    if (website) {
-      links.unshift({ label: "Open website", href: website, tone: "warm" });
-    }
-
-    const phone = getPhone(selectedGym);
-    if (phone) {
-      links.push({ label: "Call gym", href: `tel:${phone.replace(/\s+/g, "")}` });
-    }
-
-    const email = getEmail(selectedGym);
-    if (email) {
-      links.push({ label: "Email gym", href: `mailto:${email}` });
-    }
-
-    return links;
-  }, [selectedGym]);
+  const selectedActionLinks = useMemo<ActionLink[]>(
+    () => buildSelectedActionLinks(selectedGym),
+    [selectedGym],
+  );
 
   async function handleCatalogSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
