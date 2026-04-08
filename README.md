@@ -1,229 +1,268 @@
 # GymDB
 
-GymDB is a backend data platform for discovering, normalizing, and enriching gym location data using deterministic geospatial querying, explainable rule-based inference, and provenance-aware coverage auditing against secondary public sources.
+GymDB is a backend-first geospatial data platform for discovering, normalizing, enriching, and serving gym location data.
 
-GymDB is intentionally designed as a **backend-first system** with a browser client that demonstrates the API and data model clearly.
+The project combines a FastAPI backend, PostGIS-backed spatial querying, deterministic inference, provenance-aware review workflows, and a React browser client that demonstrates the public API on top of published datasets.
 
-The primary goal is to produce clean, auditable, and stable datasets that downstream systems can trust.
+This is not a CRUD demo. It is a systems-oriented project focused on data quality, stable contracts, explainability, and operational discipline.
 
----
+## What Problem It Solves
 
-## Why GymDB Exists
+There is no single clean, authoritative database of gyms.
 
-There is no single authoritative database of gyms.
+Public sources such as OpenStreetMap are useful, but they are noisy:
 
-Public datasets (including OpenStreetMap) often suffer from:
-- Duplicate entries (nodes, ways, relations representing the same location)
-- Inconsistent naming and tagging conventions
-- Missing or incomplete business metadata
+- the same gym can appear multiple times
+- names and tags are inconsistent
+- business metadata is often missing or incomplete
+- nearby search needs real geospatial correctness, not rough math
+- downstream apps need stable contracts, not shifting response shapes
 
-GymDB exists to address these issues by building a deterministic, end-to-end pipeline that transforms noisy geospatial data into a reliable foundation for APIs, analytics, and client applications.
+GymDB exists to turn messy location data into a trustworthy platform that downstream clients can browse, query, audit, and build on.
 
----
+## Why This Project Is Strong
 
-## System Guarantees
+- Backend-first architecture with clear boundaries between domain, application, infrastructure, database, and API layers
+- Real geospatial querying with PostgreSQL + PostGIS
+- Deterministic, explainable inference instead of opaque heuristics
+- Stable versioned API contracts with generated frontend client bindings
+- Review workflows for matched, mismatched, and unconfirmed coverage results
+- Job receipts and operational auditability for ingest runs
+- CI-backed quality gates across backend and frontend
 
-GymDB is built around explicit, enforceable guarantees:
+## Implemented Today
 
-- **Deterministic behavior**
-  Identical inputs always produce identical outputs.
+GymDB already includes:
 
-- **Explainable inference**
-  All inferred attributes include readable reasoning, field-level confidence scoring, and contradiction diagnostics when signals disagree.
+- a FastAPI public API under `/v2`
+- a separate internal job surface for controlled ingestion and job receipt inspection
+- deterministic dataset publication and read-model access
+- PostGIS nearby search using exact radius filtering and indexed candidate ordering
+- rule-based inference with reasons, confidence scoring, and contradiction diagnostics
+- coverage review endpoints for audit-style inspection of source agreement
+- a React/Vite frontend that exercises the public API and shows inference details visually
+- database schema and migration scripts for canonical gyms and job receipts
+- backend tests covering API contracts, inference, determinism, nearby search, review flows, deduplication, persistence, and error handling
 
-- **Stable, versioned APIs**
-  API response shapes are treated as contracts; breaking changes require a new version.
+## Tech Stack
 
-- **Read-only public API layer**
-  Public HTTP APIs never mutate database state.
-  All writes occur via controlled ingestion or pipeline jobs executed through internal routes.
+- Python 3.13
+- FastAPI
+- Pydantic v2
+- SQLAlchemy
+- PostgreSQL 16 + PostGIS
+- React 19
+- TypeScript
+- Vite
+- ESLint
+- Pytest
+- Ruff
+- MyPy
+- GitHub Actions
 
-- **Geospatial correctness**
-  Nearby geospatial queries use PostGIS with exact distance filtering and indexed candidate selection.
-  Published dataset reads use deterministic JSON artifacts plus SQLite read-model sidecars for fast filterable API access.
+## Architecture
 
-- **Auditable job execution**
-  All ingestion jobs produce deterministic receipts persisted to the database. Job outcomes can be inspected, verified, and replayed independently of runtime execution.
+```text
+OpenStreetMap / Secondary Public Sources
+                |
+                v
+      Ingest + Normalize + Deduplicate
+                |
+                v
+   Deterministic Inference + Coverage Review
+                |
+                +-----------------------------+
+                |                             |
+                v                             v
+ PostgreSQL/PostGIS                    Published JSON datasets
+  - canonical facts                    SQLite read-model sidecars
+  - spatial indexes                    dataset manifests
+  - job receipts                              |
+                |                             |
+                +-------------+---------------+
+                              |
+                              v
+                     FastAPI Public API (/v2)
+                              |
+                              v
+                     React Browser Client
+```
 
-- **Explicit source provenance**
-  Published gym records keep OSM as the primary source of record and attach secondary-source confirmation metadata instead of silently merging external data.
+## Public API Examples
 
-These guarantees are enforced through code structure, testing, and documented contracts.
+The public API is versioned and treated as a contract.
 
-### Contracts
+### List gyms
 
-- Inference contract (frozen): `docs/inference.md`
-- API behavior is versioned; breaking changes require a new API version.
+```bash
+curl -H "Authorization: Bearer <token>" \
+  "http://localhost:8000/v2/gyms?region=tn_nashville&min_conf=0.6&specialty=powerlifting&limit=20"
+```
 
----
+### Run nearby search
 
-## Development Quality
+```bash
+curl -H "Authorization: Bearer <token>" \
+  "http://localhost:8000/v2/gyms?lat=36.1627&lon=-86.7816&radius_m=2500&limit=25"
+```
 
-GymDB treats engineering discipline as part of the product.
+### Get one gym with inference details
 
-Backend quality workflow:
-- `python -m pytest`
-  Run the backend test suite.
-- `ruff check .`
-  Run backend linting.
-- `mypy src/gymdb api scripts`
-  Run backend type checking.
-- `python scripts/profile_hotpaths.py`
-  Run repeatable hot-path profiling for ingest and read-path algorithms.
-- `python scripts/profile_service.py`
-  Run concurrency and throughput profiling for dataset queries and inference.
-- `python scripts/profile_postgis.py`
-  Run a synthetic PostGIS query-plan profile for nearby-lookup behavior.
-- `python scripts/compare_osm_tomtom.py --lat <lat> --lon <lon>`
-  Run a coverage audit that compares the local OSM-derived dataset against TomTom places using the same matching logic as publish-time enrichment.
+```bash
+curl -H "Authorization: Bearer <token>" \
+  "http://localhost:8000/v2/gyms/gym_123?region=tn_nashville"
+```
 
-Frontend quality workflow:
-- `npm run lint`
-  Run frontend linting.
-- `npm run build`
-  Build the frontend client.
+### Review source coverage
 
-Continuous integration:
-- GitHub Actions runs the same backend and frontend quality gates on pushes and pull requests.
-- The backend CI job provisions PostGIS so integration tests validate against a database environment that matches production assumptions more closely.
+```bash
+curl -H "Authorization: Bearer <token>" \
+  "http://localhost:8000/v2/review/coverage?status=unconfirmed&contradictions_only=true"
+```
 
-The repo is intended to show not just working code, but deliberate architecture, test discipline, and maintainable tooling.
+If you enable `ENABLE_DEV_AUTH_BYPASS=true` locally, you can exercise the frontend and public endpoints without Cognito during development.
 
----
+## Frontend Demo Surface
 
-## Running The App
-
-Backend:
-- From `backend/`, install dependencies into your local virtual environment if needed.
-- Start the API with:
-  `.\.venv\Scripts\python.exe -m uvicorn api.main:app --reload`
-- For local frontend work without Cognito, set `ENABLE_DEV_AUTH_BYPASS=true` in `backend/.env`.
-- The backend now includes CORS for the local Vite frontend origins.
-
-Frontend:
-- From `frontend/`, install dependencies with:
-  `npm install`
-- Start the Vite app with:
-  `npm run dev`
-- Open the local URL shown by Vite, typically `http://localhost:5173`
-
-The frontend reads `VITE_API_BASE_URL` from `frontend/src/.env.local` and defaults to `http://localhost:8000`.
-
----
-
-## Browser Client
-
-The current frontend is a real demo surface, not a placeholder shell.
+The frontend is not filler. It is a real operator/demo client for the backend.
 
 It supports:
+
 - catalog browsing over `/v2/gyms`
-- dataset-backed nearby search using `/v2/gyms` with `lat`, `lon`, and `radius_m`
-- city/state and miles-first result cards
-- website, phone, email, Google Maps, and OpenStreetMap actions when source tags exist
-- a live geo canvas that projects result coordinates into an interactive map-like panel
-- detailed inference inspection for a selected gym, including field-level confidence and contradiction signals
-- stronger confidence scoring for richer real-world gym records like YMCA and Life Time
-- source provenance that distinguishes primary OSM facts from secondary TomTom confirmation
-- backend support for coverage-review workflows over matched, mismatched, and unconfirmed gyms
+- nearby search using coordinates and radius filters
+- filtering by confidence, tier, specialty, 24/7 access, and lifter friendliness
+- drill-in inspection of inference details, confidence, and reasons
+- source-backed actions like website, phone, Google Maps, and OpenStreetMap
+- a geo canvas that renders result coordinates into an interactive map-like panel
+- service liveness and readiness visibility from the browser
 
----
+## Database Story
 
-## API Stability Rules (v2)
+The database is a first-class part of the system, not just a persistence afterthought.
 
-GymDB treats its public APIs as **versioned contracts**.
-Once an API version is published, its response shape and semantics are considered stable.
+Current database design includes:
 
-### Allowed Without Version Bump
-The following changes are backward-compatible and may be introduced within the same API version:
-- Adding new optional response fields
-- Adding new inference attributes
-- Adding new optional query parameters
-- Internal performance or implementation improvements
+- PostgreSQL + PostGIS for durable geospatial storage
+- canonical gym storage with spatial indexes
+- exact nearby lookup support using spatial SQL
+- deterministic schema evolution through checked-in SQL files
+- operational job receipt persistence
 
-### Requires a New API Version
-The following changes are considered breaking and require a new API version:
-- Removing existing fields
-- Changing field types
-- Changing the semantic meaning of a field or inference result
+GymDB also deliberately separates durable operational facts in PostgreSQL from published read-only dataset artifacts and SQLite sidecars under `backend/data/`.
 
-Breaking changes are never introduced silently.
+## Repository Layout
 
----
+```text
+gym-db/
+  backend/
+    api/                 FastAPI entrypoints, auth, versioned routes
+    src/gymdb/domain/    Deterministic business logic and models
+    src/gymdb/application/
+    src/gymdb/infrastructure/
+    src/gymdb/infer/     Rule engine primitives and inference helpers
+    src/gymdb/observe/   Metrics, audit, and summaries
+    tests/               Backend tests and contract coverage
+    docs/                Inference and API contract notes
+  database/
+    schema/              SQL schema and migration scripts
+    bootstrap/           Local/dev bootstrap SQL
+  frontend/
+    src/                 React browser client
+```
 
-## Repository Structure & Responsibility Boundaries
+## Quality and Verification
 
-This repository is organized by system responsibility:
+GymDB is strongest when judged as an engineering project, not just a feature checklist.
 
-- `database/`
-  Physical storage layer. Stores **verifiable facts only** and enforces hard invariants.
-  No inference, no enrichment, no interpretation logic.
+The repo includes:
 
-- `backend/src/gymdb/domain/`
-  Deterministic business logic: canonical models, normalization, scoring, inference orchestration, and core constants.
+- backend tests for API contracts, inference, determinism, query logic, nearby search, receipts, and review flows
+- strict linting and typing setup in the backend
+- frontend linting and production build checks
+- CI that runs backend and frontend quality gates
+- a PostGIS-backed CI service so geospatial behavior is validated in a realistic environment
 
-- `backend/src/gymdb/application/`
-  Orchestration and use cases, including ingestion workflows, job execution, and source-comparison logic.
+Backend quality commands:
 
-- `backend/src/gymdb/infrastructure/`
-  External systems and side effects: database adapters, dataset registry access, filesystem storage, HTTP fetch clients, and comparison-source adapters like TomTom.
+```bash
+cd backend
+python -m pytest
+ruff check .
+mypy src/gymdb api
+```
 
-- `backend/src/gymdb/infer/`
-  Low-level rule engine components and inference primitives used by the domain layer.
+Frontend quality commands:
 
-- `backend/src/gymdb/observe/`
-  Internal summaries, metrics, and audit helpers.
+```bash
+cd frontend
+npm run lint
+npm run build
+```
 
-- `backend/api/`
-  Versioned HTTP interface exposing stable, read-only views over domain outputs.
+## Run Locally
 
-- `backend/data/`
-  Published dataset artifacts, registries, and non-authoritative operational artifacts used for ingestion and offline inspection.
+### 1. Start PostgreSQL + PostGIS
 
-- `frontend/`
-  Browser client for browsing gyms, running nearby search, inspecting structured inference, and jumping to source-backed public actions like websites, maps, city/location views, and the geo canvas.
+```bash
+docker compose up -d postgres
+```
 
-Each layer is independently testable and intentionally constrained.
+### 2. Configure the backend
 
----
+```powershell
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements-dev.txt
+Copy-Item .env.example .env
+```
 
-## Storage Tree
+For local frontend work without Cognito, add this to `backend/.env`:
 
-GymDB keeps runtime file storage explicit and boring on purpose.
+```env
+ENABLE_DEV_AUTH_BYPASS=true
+POSTGRES_DSN=postgresql+psycopg://gymdb:gymdb_password@localhost:5432/gymdb
+```
 
-- `backend/data/registry.json`
-  Region registry describing which dataset artifact belongs to which region.
+Then start the API:
 
-- `backend/data/*.json`
-  Published deterministic dataset artifacts consumed by the read-only public API. Each record may include source provenance showing OSM as primary and secondary-source confirmation metadata. Local demo datasets are kept out of git.
+```bash
+python -m uvicorn api.main:app --reload
+```
 
-- `backend/data/*.sqlite3`
-  Generated SQLite read-model sidecars built during dataset publication for indexed public API reads.
+### 3. Start the frontend
 
-- `backend/data/*.manifest.json`
-  Publish manifests that tie each dataset artifact to its generated SQLite read model.
+```bash
+cd frontend
+npm install
+```
 
-- `backend/data/artifacts/jobs/`
-  Ephemeral job lifecycle snapshots used for local operational inspection.
+Create `frontend/.env.local`:
 
-- `backend/data/artifacts/receipts/`
-  Optional filesystem copies of job receipts for debugging only.
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
 
-The database remains authoritative for durable operational receipts.
-Filesystem artifacts are intentionally secondary and replaceable.
+Then run:
 
----
+```bash
+npm run dev
+```
 
-## Architecture Overview
+## Contracts and Design Notes
 
-GymDB is intentionally backend-first and UI-agnostic.
+- Backend API stability notes: [backend/docs/api_status.md](backend/docs/api_status.md)
+- Inference contract: [backend/docs/inference.md](backend/docs/inference.md)
+- Database design notes: [database/README_DATABASE.md](database/README_DATABASE.md)
 
-At a high level, the system:
-1. Queries raw gym data using geospatial constraints
-2. Normalizes and deduplicates entities
-3. Scores data quality and reliability using structured business-signal heuristics
-4. Applies deterministic inference rules to enrich records, assign field-level confidence, and detect contradictory evidence
-5. Confirms matched gyms against secondary public sources such as TomTom and records explicit provenance
-6. Exposes review-ready coverage slices for matched, mismatched, and unconfirmed gyms
-7. Publishes deterministic dataset artifacts, SQLite read-model sidecars, and publish manifests
+## What This Project Demonstrates
 
-Each stage is designed to be auditable and reproducible.
+GymDB shows the kind of engineering work that matters in backend and systems-heavy roles:
+
+- designing stable interfaces instead of ad hoc responses
+- treating data quality and provenance as product features
+- separating durable facts from derived interpretations
+- building geospatial and operational concerns into the architecture early
+- using tests and contracts to protect behavior over time
+
+It is not “done,” but it is already a serious, credible project with clear depth.

@@ -35,7 +35,7 @@ The app lets a user:
 
 The frontend reads `VITE_API_BASE_URL`.
 
-Example local setup in `src/.env.local`:
+Example local setup in `.env.local`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
