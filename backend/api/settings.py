@@ -3,27 +3,22 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic_settings import BaseSettings
+from gymdb.settings import GymDBSettings
 
 
-class APISettings(BaseSettings):
+class APISettings(GymDBSettings):
     """
     API-specific configuration.
 
     Owns:
-    - database connectivity
     - auth configuration
     - operational feature flags
+    - API-facing filesystem and browser configuration
     """
 
     # Filesystem / registry
     registry_path: Path = Path("data/registry.json")
     dataset_root: Path = Path("data")
-
-    # Database
-    postgres_dsn: str = (
-        "postgresql+psycopg://gymdb_app:gymdb_app_password@localhost:5432/gymdb"
-    )
 
     # Auth (Cognito)
     aws_region: str = "us-east-1"
@@ -40,12 +35,6 @@ class APISettings(BaseSettings):
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ]
-
-    model_config = {
-        "env_file": ".env",
-        "extra": "ignore",
-    }
-
 
 @lru_cache
 def get_settings() -> APISettings:
