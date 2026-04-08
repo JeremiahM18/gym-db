@@ -8,39 +8,26 @@ import {
 
 import { ActionPill } from "./components/ActionPill";
 import { GeoMap } from "./components/GeoMap";
-import { Panel } from "./components/Panel";
 import { StatCard } from "./components/StatCard";
 import {
   defaultFilters,
   defaultNearby,
-  specialtyOptions,
-  tierOptions,
   type ActionLink,
   type FiltersState,
   type Mode,
   type NearbyState,
-  type ToggleChoice,
 } from "./features/gym-browser/types";
+import { QueryControlsPanel } from "./features/gym-browser/QueryControlsPanel";
+import { ResultsPanel } from "./features/gym-browser/ResultsPanel";
+import { SelectedGymPanel } from "./features/gym-browser/SelectedGymPanel";
 import {
   buildGymFilters,
   buildSelectedActionLinks,
   filterGymsByQuery,
-  formatConfidence,
   formatMilesFromMeters,
-  getAddress,
-  getAmenityChips,
   getAverageConfidence,
-  getCityState,
-  getEmail,
-  getOpeningHours,
-  getPhone,
   getTopSpecialty,
-  getWebsite,
-  haversineMeters,
-  inferBoolean,
-  inferString,
   parseNumber,
-  titleCase,
 } from "./features/gym-browser/utils";
 import {
   getGym,
@@ -204,12 +191,6 @@ export function App() {
     }
   }
 
-  const visibleSelectedSpecialty = selectedGym ? titleCase(inferString(selectedGym, "specialty", "general_fitness")) : "n/a";
-  const visibleSelectedAddress = selectedGym ? getAddress(selectedGym) : null;
-  const visibleSelectedHours = selectedGym ? getOpeningHours(selectedGym) : null;
-  const visibleSelectedAmenities = selectedGym ? getAmenityChips(selectedGym) : [];
-  const selectedCity = selectedGym ? getCityState(selectedGym) : "City not published";
-
   return (
     <div className="app-shell">
       <div className="ambient ambient-left" />
@@ -255,173 +236,42 @@ export function App() {
         {error ? <div className="error-banner">{error}</div> : null}
 
         <div className="workspace-grid">
-          <Panel
-            title="Query Controls"
-            subtitle="Run catalog filters or nearby search against the live backend."
-            accent="Read Surface"
-          >
-            <form className="controls-grid" onSubmit={handleCatalogSubmit}>
-              <label>
-                <span>Region</span>
-                <input value={filters.region} onChange={(event) => setFilters((current) => ({ ...current, region: event.target.value }))} placeholder="default region" />
-              </label>
-              <label>
-                <span>Min confidence</span>
-                <input value={filters.minConf} onChange={(event) => setFilters((current) => ({ ...current, minConf: event.target.value }))} inputMode="decimal" />
-              </label>
-              <label>
-                <span>Tier</span>
-                <select value={filters.tier} onChange={(event) => setFilters((current) => ({ ...current, tier: event.target.value }))}>
-                  <option value="">Any</option>
-                  {tierOptions.map((tier) => (
-                    <option key={tier} value={tier}>{titleCase(tier)}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <span>Specialty</span>
-                <select value={filters.specialty} onChange={(event) => setFilters((current) => ({ ...current, specialty: event.target.value }))}>
-                  <option value="">Any</option>
-                  {specialtyOptions.map((specialty) => (
-                    <option key={specialty} value={specialty}>{titleCase(specialty)}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <span>Lifter friendly</span>
-                <select value={filters.lifterFriendly} onChange={(event) => setFilters((current) => ({ ...current, lifterFriendly: event.target.value as ToggleChoice }))}>
-                  <option value="any">Any</option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                </select>
-              </label>
-              <label>
-                <span>24/7</span>
-                <select value={filters.is247} onChange={(event) => setFilters((current) => ({ ...current, is247: event.target.value as ToggleChoice }))}>
-                  <option value="any">Any</option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                </select>
-              </label>
-              <label>
-                <span>Result limit</span>
-                <input value={filters.limit} onChange={(event) => setFilters((current) => ({ ...current, limit: event.target.value }))} inputMode="numeric" />
-              </label>
-              <div className="controls-actions">
-                <button className="primary-button" type="submit" disabled={loading}>Refresh catalog</button>
-              </div>
-            </form>
+          <QueryControlsPanel
+            filters={filters}
+            nearby={nearby}
+            loading={loading}
+            nearbyRadiusLabel={nearbyRadiusLabel}
+            onCatalogSubmit={handleCatalogSubmit}
+            onNearbySubmit={handleNearbySubmit}
+            setFilters={setFilters}
+            setNearby={setNearby}
+          />
 
-            <form className="controls-grid nearby-grid" onSubmit={handleNearbySubmit}>
-              <label>
-                <span>Latitude</span>
-                <input value={nearby.lat} onChange={(event) => setNearby((current) => ({ ...current, lat: event.target.value }))} inputMode="decimal" />
-              </label>
-              <label>
-                <span>Longitude</span>
-                <input value={nearby.lon} onChange={(event) => setNearby((current) => ({ ...current, lon: event.target.value }))} inputMode="decimal" />
-              </label>
-              <label>
-                <span>Radius (meters)</span>
-                <input value={nearby.radiusM} onChange={(event) => setNearby((current) => ({ ...current, radiusM: event.target.value }))} inputMode="numeric" />
-                <small className="field-hint">About {nearbyRadiusLabel}</small>
-              </label>
-              <div className="controls-actions">
-                <button className="secondary-button" type="submit" disabled={loading}>Run nearby search</button>
-              </div>
-            </form>
-          </Panel>
-
-          <Panel
-            title="Result Grid"
-            subtitle="Deferred local search keeps browsing responsive while live filters stay server-backed."
-            accent="Browser Client"
-          >
-            <div className="toolbar-row">
-              <input
-                className="search-input"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search loaded results by name, city, street, or specialty"
-              />
-              <div className="mode-chip-row">
-                <button className={mode === "catalog" ? "chip active" : "chip"} type="button" onClick={() => setMode("catalog")}>Catalog</button>
-                <button className={mode === "nearby" ? "chip active" : "chip"} type="button" onClick={() => setMode("nearby")} disabled={!nearbyResults.length}>Nearby</button>
-              </div>
-            </div>
-
-            <div className="result-list">
-              {loading ? <div className="empty-state">Loading live backend data...</div> : null}
-              {!loading && !activeRows.length ? <div className="empty-state">No gyms matched this query.</div> : null}
-              {!loading && mode === "catalog"
-                ? visibleCatalog.map((gym) => {
-                    const website = getWebsite(gym);
-                    const phone = getPhone(gym);
-                    return (
-                      <button
-                        key={gym.id}
-                        type="button"
-                        className={selectedGymId === gym.id ? "result-card active" : "result-card"}
-                        onClick={() => setSelectedGymId(gym.id)}
-                      >
-                        <div className="result-primary">
-                          <div className="result-topline">
-                            <strong>{gym.name}</strong>
-                            <span className="city-pill">{getCityState(gym)}</span>
-                          </div>
-                          <span>{titleCase(inferString(gym, "specialty", "general_fitness"))}</span>
-                          <p className="result-subcopy">{getAddress(gym) ?? "Coordinates available"}</p>
-                          <div className="result-chip-row">
-                            {website ? <span className="mini-chip">Website</span> : null}
-                            {phone ? <span className="mini-chip">Phone</span> : null}
-                            {inferBoolean(gym, "is_24_7") === "Yes" ? <span className="mini-chip">24/7</span> : null}
-                          </div>
-                        </div>
-                        <div className="result-metrics">
-                          <span>{formatConfidence(gym.confidence_score)}</span>
-                          <span>{titleCase(inferString(gym, "tier", "unknown"))}</span>
-                        </div>
-                      </button>
-                    );
-                  })
-                : null}
-              {!loading && mode === "nearby"
-                ? visibleNearby.map((gym) => {
-                    const miles = nearbyLat != null && nearbyLon != null
-                      ? formatMilesFromMeters(haversineMeters(nearbyLat, nearbyLon, gym.lat, gym.lon))
-                      : null;
-                    return (
-                      <button
-                        key={gym.id}
-                        type="button"
-                        className={selectedGymId === gym.id ? "result-card active" : "result-card"}
-                        onClick={() => setSelectedGymId(gym.id)}
-                      >
-                        <div className="result-primary">
-                          <div className="result-topline">
-                            <strong>{gym.name}</strong>
-                            <span className="city-pill">{getCityState(gym)}</span>
-                          </div>
-                          <span>{titleCase(inferString(gym, "specialty", "general_fitness"))}</span>
-                          <p className="result-subcopy">{getAddress(gym) ?? "Coordinates available"}</p>
-                        </div>
-                        <div className="result-metrics">
-                          <span>{miles ?? "n/a"}</span>
-                          <span>{titleCase(inferString(gym, "tier", "unknown"))}</span>
-                        </div>
-                      </button>
-                    );
-                  })
-                : null}
-            </div>
-          </Panel>
+          <ResultsPanel
+            query={query}
+            mode={mode}
+            loading={loading}
+            selectedGymId={selectedGymId}
+            visibleCatalog={visibleCatalog}
+            visibleNearby={visibleNearby}
+            nearbyLat={nearbyLat}
+            nearbyLon={nearbyLon}
+            onQueryChange={setQuery}
+            onModeChange={setMode}
+            onSelectGym={setSelectedGymId}
+          />
         </div>
 
-        <Panel
-          title="Geo Canvas"
-          subtitle="A live coordinate projection of the current result set with selectable gym pins."
-          accent="Spatial Surface"
-        >
+        <div className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Spatial Surface</p>
+              <h2>Geo Canvas</h2>
+            </div>
+            <p className="panel-subtitle">
+              A live coordinate projection of the current result set with selectable gym pins.
+            </p>
+          </div>
           <GeoMap
             gyms={activeRows}
             selectedGymId={selectedGymId}
@@ -429,98 +279,13 @@ export function App() {
             nearbyLat={mode === "nearby" ? nearbyLat : undefined}
             nearbyLon={mode === "nearby" ? nearbyLon : undefined}
           />
-        </Panel>
+        </div>
 
-        <Panel
-          title="Selected Gym"
-          subtitle="Action links, operator facts, public contact surface, and explainable inference from the live v2 contract."
-          accent="Explainability"
-        >
-          {detailLoading ? <div className="empty-state">Loading selected gym...</div> : null}
-          {!detailLoading && !selectedGym ? <div className="empty-state">Select a gym to inspect the full public surface.</div> : null}
-          {!detailLoading && selectedGym ? (
-            <div className="detail-grid">
-              <div className="detail-headline">
-                <div>
-                  <p className="eyebrow">{selectedGym.id}</p>
-                  <h3>{selectedGym.name}</h3>
-                  <p className="detail-summary">
-                    {selectedCity} · {selectedGym.inference_summary?.specialty ?? visibleSelectedSpecialty} · {selectedGym.inference_summary?.tier ?? inferString(selectedGym, "tier", "Unknown")}
-                  </p>
-                </div>
-                <div className="detail-badges">
-                  <span>{visibleSelectedSpecialty}</span>
-                  <span>{titleCase(inferString(selectedGym, "tier", "unknown"))}</span>
-                  <span>{formatConfidence(selectedGym.confidence_score)}</span>
-                </div>
-              </div>
-
-              <div className="action-rail">
-                {selectedActionLinks.map((link) => (
-                  <ActionPill key={link.href} {...link} />
-                ))}
-              </div>
-
-              <div className="detail-facts">
-                <StatCard label="Lifter friendly" value={inferBoolean(selectedGym, "lifter_friendly")} tone="cool" />
-                <StatCard label="24/7 access" value={inferBoolean(selectedGym, "is_24_7")} tone="warm" />
-                <StatCard label="City" value={selectedCity} />
-                <StatCard label="Inference engine" value={selectedGym.inference_meta.engine} />
-              </div>
-
-              <div className="detail-columns">
-                <section className="detail-section">
-                  <h4>Visit and Contact</h4>
-                  <div className="fact-list">
-                    <div className="fact-row">
-                      <span>Address</span>
-                      <strong>{visibleSelectedAddress ?? "No structured address in source tags"}</strong>
-                    </div>
-                    <div className="fact-row">
-                      <span>Hours</span>
-                      <strong>{visibleSelectedHours ?? "Hours not published"}</strong>
-                    </div>
-                    <div className="fact-row">
-                      <span>Phone</span>
-                      <strong>{getPhone(selectedGym) ?? "No phone in source tags"}</strong>
-                    </div>
-                    <div className="fact-row">
-                      <span>Email</span>
-                      <strong>{getEmail(selectedGym) ?? "No email in source tags"}</strong>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="detail-section">
-                  <h4>Signals and Amenities</h4>
-                  <div className="tag-cloud">
-                    {visibleSelectedAmenities.length
-                      ? visibleSelectedAmenities.map((chip) => <span key={chip} className="tag-pill">{chip}</span>)
-                      : <p className="detail-copy">No prominent amenity tags were published for this gym.</p>}
-                  </div>
-                  <p className="detail-copy">
-                    OSM refs: {selectedGym.osm_refs.length} linked source record{selectedGym.osm_refs.length === 1 ? "" : "s"}.
-                  </p>
-                </section>
-              </div>
-
-              <div className="inference-table">
-                {Object.entries(selectedGym.inference).map(([key, value]) => (
-                  <article key={key} className="inference-row">
-                    <div>
-                      <p className="inference-key">{titleCase(key)}</p>
-                      <strong>{String(value.value)}</strong>
-                    </div>
-                    <div>
-                      <p className="inference-meta">Confidence {formatConfidence(value.confidence ?? null)}</p>
-                      <p className="inference-reasons">{value.reasons.join(" • ") || "No explicit reasons"}</p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </Panel>
+        <SelectedGymPanel
+          detailLoading={detailLoading}
+          selectedGym={selectedGym}
+          selectedActionLinks={selectedActionLinks}
+        />
       </main>
     </div>
   );
