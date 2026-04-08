@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "generate:api": "openapi-typescript-codegen --input http://localhost:8000/openapi.json --output src/api --client fetch"
+    "generate:api": "powershell -ExecutionPolicy Bypass -File ..\\scripts\\generate-frontend-api.ps1"
   },
   "dependencies": {
     "react": "^19.2.0",
