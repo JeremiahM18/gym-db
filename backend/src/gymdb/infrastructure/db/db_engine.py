@@ -11,7 +11,6 @@ _engine: Engine | None = None
 _test_connection: Connection | None = None
 
 # Test hooks
-
 def set_test_connection(conn: Connection | None) -> None:
     global _test_connection
     _test_connection = conn
@@ -21,12 +20,12 @@ def clear_test_connection() -> None:
     global _test_connection
     _test_connection = None
 
+
 def get_engine() -> Engine:
     """
     Process-wide singleton SQLAlchemy engine.
 
-
-    - Uses connection pooling 
+    - Uses connection pooling
     - Detects stale connections
     - Fails fast if DB is unavailable
     """
@@ -37,7 +36,7 @@ def get_engine() -> Engine:
                 settings.postgres_dsn,
                 pool_size=5,
                 max_overflow=10,
-                pool_pre_ping=True,    # auto-detect dead connections
+                pool_pre_ping=True,  # auto-detect dead connections
                 echo=False,
                 future=True,
             )
@@ -45,18 +44,19 @@ def get_engine() -> Engine:
             raise DatabaseUnavailable("Failed to create database engine") from exc
     return _engine
 
+
 # Core engine / connection API
 
 def get_connection() -> Connection:
     """
-    Return an actice DB connection.
+    Return an active DB connection.
 
     - Uses test connection if set (for tests)
     - Otherwise uses engine to get a new connection
     """
     if _test_connection is not None:
         return _test_connection
-    
+
     return get_engine().connect()
 
 

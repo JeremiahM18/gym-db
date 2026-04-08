@@ -8,7 +8,7 @@ The `/v2` API is considered stable and safe for external client generation.
 ### Allowed Changes (No Version Bump)
 - Adding new optional fields
 - Adding new inference attributes
-- Adding new optional query paramenters
+- Adding new optional query parameters
 - Internal performance improvements
 
 ### Breaking Changes (Require v3)

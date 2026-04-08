@@ -1,0 +1,23 @@
+.DS_Store
+Thumbs.db
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+
+# Python / backend
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/*.egg-info/
+*.pyc
+
+# Local env / secrets
+**/.env
+**/.env.local
+
+# Misc runtime output
+coverage/
+**/.tmp/

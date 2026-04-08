@@ -1,7 +1,8 @@
 # Python / venv
 .venv/
 **/.venv/
-__pychache__/
+*.egg-info/
+__pycache__/
 **/__pycache__/
 *.pyc
 
