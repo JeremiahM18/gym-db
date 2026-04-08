@@ -10,7 +10,9 @@ class GymDBSettings(BaseSettings):
     This module must remain HTTP-agnostic.
     """
 
-    postgres_dsn: str = "postgresql+psycopg://gymdb:gymdb_password@localhost:5432/gymdb"
+    postgres_dsn: str = (
+        "postgresql+psycopg://gymdb_app:gymdb_app_password@localhost:5432/gymdb"
+    )
     tomtom_api_key: str | None = None
     tomtom_base_url: str = "https://api.tomtom.com"
 

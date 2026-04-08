@@ -147,6 +147,7 @@ Current database design includes:
 - exact nearby lookup support using spatial SQL
 - deterministic schema evolution through checked-in SQL files
 - operational job receipt persistence
+- a dedicated local runtime role for the app instead of using the bootstrap database user directly
 
 GymDB also deliberately separates durable operational facts in PostgreSQL from published read-only dataset artifacts and SQLite sidecars under `backend/data/`.
 
@@ -207,6 +208,13 @@ npm run build
 docker compose up -d postgres
 ```
 
+For a completely fresh local database after schema or role changes, recreate the volume:
+
+```bash
+docker compose down -v
+docker compose up -d postgres
+```
+
 ### 2. Configure the backend
 
 ```powershell
@@ -217,11 +225,17 @@ pip install -r requirements-dev.txt
 Copy-Item .env.example .env
 ```
 
+Or bootstrap the local env files automatically from the repo root:
+
+```powershell
+.\scripts\bootstrap-local.ps1
+```
+
 For local frontend work without Cognito, add this to `backend/.env`:
 
 ```env
 ENABLE_DEV_AUTH_BYPASS=true
-POSTGRES_DSN=postgresql+psycopg://gymdb:gymdb_password@localhost:5432/gymdb
+POSTGRES_DSN=postgresql+psycopg://gymdb_app:gymdb_app_password@localhost:5432/gymdb
 ```
 
 Then start the API:
@@ -256,6 +270,15 @@ npm run dev
 - Backend API stability notes: [backend/docs/api_status.md](backend/docs/api_status.md)
 - Inference contract: [backend/docs/inference.md](backend/docs/inference.md)
 - Database design notes: [database/README_DATABASE.md](database/README_DATABASE.md)
+
+## Local Security Model
+
+For local development, GymDB now distinguishes between:
+
+- the container bootstrap database user, which initializes schema objects
+- the app runtime role, `gymdb_app`, which the backend uses through `POSTGRES_DSN`
+
+That is still a development setup, but it is cleaner than running the application as the bootstrap user and better reflects production-minded separation of concerns.
 
 ## What This Project Demonstrates
 

@@ -292,6 +292,6 @@ def main() -> None:
 if __name__ == "__main__":
     os.environ.setdefault(
         "POSTGRES_DSN",
-        "postgresql+psycopg://gymdb:gymdb_password@localhost:5432/gymdb",
+        "postgresql+psycopg://gymdb_app:gymdb_app_password@localhost:5432/gymdb",
     )
     main()

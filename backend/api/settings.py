@@ -21,7 +21,9 @@ class APISettings(BaseSettings):
     dataset_root: Path = Path("data")
 
     # Database
-    postgres_dsn: str = "postgresql+psycopg://gymdb:gymdb_password@localhost:5432/gymdb"
+    postgres_dsn: str = (
+        "postgresql+psycopg://gymdb_app:gymdb_app_password@localhost:5432/gymdb"
+    )
 
     # Auth (Cognito)
     aws_region: str = "us-east-1"
