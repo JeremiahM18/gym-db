@@ -1,9 +1,13 @@
+import { CancelError, OpenAPI } from "../api";
+import type { CancelablePromise } from "../api";
 import type { GymOutV2 } from "../api/models/GymOutV2";
 import type { GymResponseV2 } from "../api/models/GymResponseV2";
 import type { GymsListResponseV2 } from "../api/models/GymsListResponseV2";
+import { GymsService } from "../api/services/GymsService";
+import { HealthService } from "../api/services/HealthService";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
-const API_TOKEN = import.meta.env.VITE_API_TOKEN;
+OpenAPI.BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+OpenAPI.TOKEN = import.meta.env.VITE_API_TOKEN;
 
 type GymFilters = {
   region?: string;
@@ -27,61 +31,54 @@ type HealthSnapshot = {
   readinessPayload: unknown;
 };
 
-function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>) {
-  const url = new URL(path, API_BASE);
-
-  if (params) {
-    for (const [key, value] of Object.entries(params)) {
-      if (value === undefined || value === "") {
-        continue;
-      }
-      url.searchParams.set(key, String(value));
-    }
-  }
-
-  return url;
-}
-
-async function requestJson<T>(
-  path: string,
-  params?: Record<string, string | number | boolean | undefined>,
+function bindAbort<T>(
+  promise: CancelablePromise<T>,
   signal?: AbortSignal,
 ): Promise<T> {
-  const response = await fetch(buildUrl(path, params), {
-    headers: {
-      Accept: "application/json",
-      ...(API_TOKEN ? { Authorization: `Bearer ${API_TOKEN}` } : {}),
-    },
-    signal,
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(body || `${response.status} ${response.statusText}`);
+  if (!signal) {
+    return promise;
   }
 
-  return (await response.json()) as T;
+  if (signal.aborted) {
+    promise.cancel();
+  } else {
+    signal.addEventListener("abort", () => promise.cancel(), { once: true });
+  }
+
+  return promise.catch((error: unknown) => {
+    if (error instanceof CancelError && signal.aborted) {
+      throw new DOMException("Request aborted", "AbortError");
+    }
+    throw error;
+  });
+}
+
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
 }
 
 export async function listGyms(
   filters: GymFilters,
   signal?: AbortSignal,
 ): Promise<GymsListResponseV2> {
-  return requestJson<GymsListResponseV2>(
-    "/v2/gyms",
-    {
-      region: filters.region,
-      min_conf: filters.minConf,
-      tier: filters.tier,
-      specialty: filters.specialty,
-      lifter_friendly: filters.lifterFriendly,
-      is_24_7: filters.is247,
-      lat: filters.lat,
-      lon: filters.lon,
-      radius_m: filters.radiusM,
-      limit: filters.limit,
-      offset: filters.offset,
-    },
+  return bindAbort(
+    GymsService.listGymsV2V2GymsGet(
+      filters.region,
+      filters.minConf,
+      filters.tier,
+      filters.specialty,
+      filters.lifterFriendly,
+      filters.is247,
+      filters.lat,
+      filters.lon,
+      filters.radiusM,
+      filters.limit ?? 100,
+      filters.offset,
+    ),
     signal,
   );
 }
@@ -98,31 +95,35 @@ export async function getGym(
   region?: string,
   signal?: AbortSignal,
 ): Promise<GymResponseV2> {
-  return requestJson<GymResponseV2>(
-    `/v2/gyms/${encodeURIComponent(gymId)}`,
-    { region },
-    signal,
-  );
+  return bindAbort(GymsService.getGymV2V2GymsGymIdGet(gymId, region), signal);
 }
 
 export async function getHealth(signal?: AbortSignal): Promise<HealthSnapshot> {
-  const livePromise = fetch(buildUrl("/healthz"), { signal });
-  const readyPromise = fetch(buildUrl("/readyz"), { signal });
+  const [liveResponse, readinessPayload] = await Promise.all([
+    bindAbort(HealthService.healthzHealthzGet(), signal)
+      .then(() => true)
+      .catch(() => false),
+    bindAbort(HealthService.readyzReadyzGet(), signal)
+      .then((payload) => ({ ok: true, payload }))
+      .catch((error: unknown) => ({
+        ok: false,
+        payload: extractErrorMessage(error, "Readiness request failed"),
+      })),
+  ]);
 
-  const [liveResponse, readyResponse] = await Promise.all([livePromise, readyPromise]);
-
-  let readinessPayload: unknown = null;
   try {
-    readinessPayload = await readyResponse.json();
+    return {
+      live: liveResponse,
+      ready: readinessPayload.ok,
+      readinessPayload: readinessPayload.payload,
+    };
   } catch {
-    readinessPayload = null;
+    return {
+      live: liveResponse,
+      ready: false,
+      readinessPayload: null,
+    };
   }
-
-  return {
-    live: liveResponse.ok,
-    ready: readyResponse.ok,
-    readinessPayload,
-  };
 }
 
 export type { GymFilters, GymOutV2, HealthSnapshot, NearbyFilters };

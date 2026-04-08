@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { InferenceMeta } from './InferenceMeta';
 import type { InferenceResult } from './InferenceResult';
+import type { SourceProvenanceV2 } from './SourceProvenanceV2';
 /**
  * v2 Gym representation.
  *
@@ -23,6 +24,7 @@ export type GymOutV2 = {
     tags?: (Record<string, any> | null);
     inference: Record<string, InferenceResult>;
     inference_meta: InferenceMeta;
+    source_provenance: SourceProvenanceV2;
     inference_summary?: (Record<string, string> | null);
 };
 

@@ -45,6 +45,13 @@ export class GymsService {
      * List Gyms V2
      * @param region
      * @param minConf
+     * @param tier
+     * @param specialty
+     * @param lifterFriendly
+     * @param is247
+     * @param lat
+     * @param lon
+     * @param radiusM
      * @param limit
      * @param offset
      * @returns GymsListResponseV2 Successful Response
@@ -53,6 +60,13 @@ export class GymsService {
     public static listGymsV2V2GymsGet(
         region?: (string | null),
         minConf?: (number | null),
+        tier?: (string | null),
+        specialty?: (string | null),
+        lifterFriendly?: (boolean | null),
+        is247?: (boolean | null),
+        lat?: (number | null),
+        lon?: (number | null),
+        radiusM?: (number | null),
         limit: number = 100,
         offset?: number,
     ): CancelablePromise<GymsListResponseV2> {
@@ -62,6 +76,13 @@ export class GymsService {
             query: {
                 'region': region,
                 'min_conf': minConf,
+                'tier': tier,
+                'specialty': specialty,
+                'lifter_friendly': lifterFriendly,
+                'is_24_7': is247,
+                'lat': lat,
+                'lon': lon,
+                'radius_m': radiusM,
                 'limit': limit,
                 'offset': offset,
             },

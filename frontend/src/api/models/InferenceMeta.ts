@@ -7,5 +7,7 @@ export type InferenceMeta = {
     version: string;
     generated_at: string;
     deterministic_hash: string;
+    field_confidence?: Record<string, number>;
+    contradictions?: Record<string, Array<string>>;
 };
 
