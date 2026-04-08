@@ -17,4 +17,4 @@ The `/v2` API is considered stable and safe for external client generation.
 - Changing field types
 - Changing semantic meaning of existing fields
 
-Frontend clients may safely generate SDKs from `/openapi.json`.
+Frontend clients may safely generate SDKs from the exported backend OpenAPI schema.

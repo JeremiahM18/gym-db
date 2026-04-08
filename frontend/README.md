@@ -29,7 +29,7 @@ The app lets a user:
   Build the frontend bundle.
 
 - `npm run generate:api`
-  Regenerate the typed API client from the backend OpenAPI document.
+  Regenerate the typed API client from the checked-out backend using `backend/.venv`.
 
 ## Environment
 
@@ -48,6 +48,7 @@ VITE_API_BASE_URL=http://localhost:8000
 1. Start the backend from `backend/`.
 2. If you are not using Cognito locally, set `ENABLE_DEV_AUTH_BYPASS=true` in `backend/.env`.
 3. Run `npm install` in `frontend/`.
-4. Run `npm run dev`.
-5. Open the local Vite URL shown in the terminal.
-6. Hard refresh if the browser cached an older frontend bundle.
+4. If backend routes or schemas changed, run `npm run generate:api`.
+5. Run `npm run dev`.
+6. Open the local Vite URL shown in the terminal.
+7. Hard refresh if the browser cached an older frontend bundle.

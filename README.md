@@ -198,7 +198,10 @@ Frontend quality commands:
 cd frontend
 npm run lint
 npm run build
+npm run generate:api
 ```
+
+The API client generation script exports the backend OpenAPI schema from the checked-out FastAPI app and regenerates the frontend SDK locally, so the frontend contract stays aligned with the repo instead of a separately running server.
 
 ## Run Locally
 

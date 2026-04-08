@@ -108,7 +108,9 @@ These remain derived, reproducible outputs of the domain layer or filesystem-bac
 
 ## Geospatial Querying
 
-Nearby queries are exposed through the API (for example `GET /v2/gyms/geo/nearby`).
+Nearby capabilities are exposed through the API in two forms:
+- `GET /v2/gyms` with `lat`, `lon`, and `radius_m` for the canonical browser-facing contract
+- `GET /v2/gyms/geo/nearby` for a narrower distance-first nearby surface
 
 Database design requirements:
 - store location as `geography(Point, 4326)` for geographic correctness
