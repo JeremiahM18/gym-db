@@ -6,9 +6,6 @@ import {
   useState,
 } from "react";
 
-import { ActionPill } from "./components/ActionPill";
-import { GeoMap } from "./components/GeoMap";
-import { StatCard } from "./components/StatCard";
 import {
   defaultFilters,
   defaultNearby,
@@ -17,9 +14,12 @@ import {
   type Mode,
   type NearbyState,
 } from "./features/gym-browser/types";
+import { GeoCanvasPanel } from "./features/gym-browser/GeoCanvasPanel";
+import { HeroSection } from "./features/gym-browser/HeroSection";
 import { QueryControlsPanel } from "./features/gym-browser/QueryControlsPanel";
 import { ResultsPanel } from "./features/gym-browser/ResultsPanel";
 import { SelectedGymPanel } from "./features/gym-browser/SelectedGymPanel";
+import { StatusStrip } from "./features/gym-browser/StatusStrip";
 import {
   buildGymFilters,
   buildSelectedActionLinks,
@@ -196,42 +196,19 @@ export function App() {
       <div className="ambient ambient-left" />
       <div className="ambient ambient-right" />
       <main className="app-frame">
-        <section className="hero">
-          <div>
-            <p className="eyebrow">GymDB Browser Client</p>
-            <h1>Find gyms, inspect inference, and jump straight into places you can actually visit.</h1>
-            <p className="hero-copy">
-              Browse the live catalog, filter by specialty and quality, run nearby search without a
-              database-only dependency, and jump out to maps or official gym sites in one flow.
-            </p>
-            <div className="hero-actions">
-              {selectedActionLinks.slice(0, 3).map((link) => (
-                <ActionPill key={link.href} {...link} />
-              ))}
-            </div>
-          </div>
-          <div className="hero-grid">
-            <StatCard label="Mode" value={mode === "catalog" ? "Catalog" : "Nearby"} tone="warm" />
-            <StatCard label="Visible gyms" value={String(activeRows.length)} tone="cool" />
-            <StatCard label="Avg confidence" value={averageConfidence} />
-            <StatCard label="Search radius" value={mode === "nearby" ? nearbyRadiusLabel : "Catalog"} />
-            <StatCard label="Lead specialty" value={topSpecialty} />
-          </div>
-        </section>
+        <HeroSection
+          mode={mode}
+          activeRowCount={activeRows.length}
+          averageConfidence={averageConfidence}
+          nearbyRadiusLabel={nearbyRadiusLabel}
+          topSpecialty={topSpecialty}
+          selectedActionLinks={selectedActionLinks}
+        />
 
-        <section className="status-strip">
-          <div className={`status-pill ${health?.live ? "healthy" : "degraded"}`}>
-            <span className="status-dot" />
-            API live: {health?.live ? "yes" : "unknown"}
-          </div>
-          <div className={`status-pill ${health?.ready ? "healthy" : "degraded"}`}>
-            <span className="status-dot" />
-            Backend ready: {health?.ready ? "yes" : "check readiness"}
-          </div>
-          <div className="status-pill neutral">
-            API base: {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}
-          </div>
-        </section>
+        <StatusStrip
+          health={health}
+          apiBaseUrl={import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}
+        />
 
         {error ? <div className="error-banner">{error}</div> : null}
 
@@ -262,24 +239,13 @@ export function App() {
           />
         </div>
 
-        <div className="panel">
-          <div className="panel-header">
-            <div>
-              <p className="eyebrow">Spatial Surface</p>
-              <h2>Geo Canvas</h2>
-            </div>
-            <p className="panel-subtitle">
-              A live coordinate projection of the current result set with selectable gym pins.
-            </p>
-          </div>
-          <GeoMap
-            gyms={activeRows}
-            selectedGymId={selectedGymId}
-            onSelect={setSelectedGymId}
-            nearbyLat={mode === "nearby" ? nearbyLat : undefined}
-            nearbyLon={mode === "nearby" ? nearbyLon : undefined}
-          />
-        </div>
+        <GeoCanvasPanel
+          gyms={activeRows}
+          selectedGymId={selectedGymId}
+          onSelectGym={setSelectedGymId}
+          nearbyLat={mode === "nearby" ? nearbyLat : undefined}
+          nearbyLon={mode === "nearby" ? nearbyLon : undefined}
+        />
 
         <SelectedGymPanel
           detailLoading={detailLoading}
