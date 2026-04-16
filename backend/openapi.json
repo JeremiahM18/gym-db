@@ -601,6 +601,11 @@
             "type": "integer",
             "title": "Count"
           },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "default": false
+          },
           "summary": {
             "$ref": "#/components/schemas/CoverageReviewSummaryV2"
           },
@@ -885,6 +890,11 @@
           "count": {
             "type": "integer",
             "title": "Count"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "default": false
           },
           "results": {
             "items": {

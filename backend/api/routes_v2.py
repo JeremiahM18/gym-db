@@ -57,6 +57,7 @@ def list_gyms_v2(
         "api_version": "v2",
         "region": region,
         "count": len(results),
+        "has_more": len(results) == limit,
         "results": results,
     }
 

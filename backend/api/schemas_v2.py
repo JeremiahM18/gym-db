@@ -84,6 +84,7 @@ class CoverageReviewResponseV2(BaseModel):
     api_version: str = Field(default="v2")
     region: str
     count: int
+    has_more: bool = False
     summary: CoverageReviewSummaryV2
     results: list[GymOutV2]
 
@@ -100,6 +101,7 @@ class GymsListResponseV2(BaseModel):
     api_version: str = Field(default="v2")
     region: str
     count: int
+    has_more: bool = False
     results: list[GymOutV2]
 
 
