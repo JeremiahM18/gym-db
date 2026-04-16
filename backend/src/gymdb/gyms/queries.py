@@ -1,23 +1,6 @@
 from __future__ import annotations
 
-from gymdb.domain.constants import IS_24_7, LIFTER_FRIENDLY, SPECIALTY, TIER
 from gymdb.gyms.protocol import GymStoreProtocol
-
-
-def _infer_value(gym: dict, key: str):
-    """
-    Safely extract the inferred value for a given inference key.
-    """
-    item = gym.get("inferred", {}).get(key)
-    if item is None:
-        item = gym.get("inference", {}).get(key)
-    if item is None:
-        return None
-    if hasattr(item, "value"):
-        return item.value
-    if isinstance(item, dict):
-        return item.get("value")
-    return None
 
 
 def list_gyms(
@@ -38,13 +21,17 @@ def list_gyms(
     """
     Query gyms with optional inference and geospatial filters.
 
+    Filtering, pagination, and distance ordering are all delegated to the
+    store. The store owns the query contract; this function is a thin
+    dispatch layer with no filtering logic of its own.
+
     This is a PURE query function:
     - no filesystem access
     - no FastAPI imports
     - no global state
     """
     if lat is not None and lon is not None and radius_m is not None:
-        gyms = store.nearby(
+        return store.nearby(
             region=region,
             lat=lat,
             lon=lon,
@@ -57,39 +44,16 @@ def list_gyms(
             limit=limit,
             offset=offset,
         )
-    else:
-        gyms = store.filter(
-            region=region,
-            min_conf=min_conf,
-            tier=tier,
-            specialty=specialty,
-            lifter_friendly=lifter_friendly,
-            is_24_7=is_24_7,
-            limit=limit,
-            offset=offset,
-        )
-
-    if tier is not None:
-        gyms = [g for g in gyms if _infer_value(g, TIER) == tier]
-
-    if specialty is not None:
-        gyms = [g for g in gyms if _infer_value(g, SPECIALTY) == specialty]
-
-    if lifter_friendly is not None:
-        gyms = [
-            g for g in gyms
-            if _infer_value(g, LIFTER_FRIENDLY) is lifter_friendly
-        ]
-
-    if is_24_7 is not None:
-        gyms = [
-            g for g in gyms
-            if _infer_value(g, IS_24_7) is is_24_7
-        ]
-
-    if lat is not None and lon is not None and radius_m is not None:
-        return gyms
-    return gyms[offset : offset + limit]
+    return store.filter(
+        region=region,
+        min_conf=min_conf,
+        tier=tier,
+        specialty=specialty,
+        lifter_friendly=lifter_friendly,
+        is_24_7=is_24_7,
+        limit=limit,
+        offset=offset,
+    )
 
 
 def get_gym_by_id(

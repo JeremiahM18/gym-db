@@ -1,18 +1,35 @@
 from gymdb.gyms.queries import list_gyms
 
 
+def _infer(gym: dict, key: str):
+    for field in ("inferred", "inference"):
+        item = gym.get(field, {}).get(key)
+        if item is not None:
+            return item.get("value") if isinstance(item, dict) else item
+    return None
+
+
 class StubStore:
     default_region = "test"
 
     def __init__(self, gyms: list[dict]):
         self._gyms = gyms
 
-    def filter(self, **kwargs):
-        return list(self._gyms)
+    def filter(self, *, region, min_conf=None, tier=None, specialty=None,
+               lifter_friendly=None, is_24_7=None, limit=100, offset=0):
+        results = list(self._gyms)
+        if tier is not None:
+            results = [g for g in results if _infer(g, "tier") == tier]
+        if specialty is not None:
+            results = [g for g in results if _infer(g, "specialty") == specialty]
+        if lifter_friendly is not None:
+            results = [g for g in results if _infer(g, "lifter_friendly") == lifter_friendly]
+        if is_24_7 is not None:
+            results = [g for g in results if _infer(g, "is_24_7") == is_24_7]
+        return results[offset : offset + limit]
 
-    def nearby(self, **kwargs):
-        lat = kwargs["lat"]
-        radius_m = kwargs["radius_m"]
+    def nearby(self, *, region, lat, lon, radius_m, min_conf=None, tier=None,
+               specialty=None, lifter_friendly=None, is_24_7=None, limit=100, offset=0):
         if radius_m < 1_000:
             return [gym for gym in self._gyms if gym["lat"] == lat]
         return list(self._gyms)
