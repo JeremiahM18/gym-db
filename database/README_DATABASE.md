@@ -148,13 +148,14 @@ It creates a `_migrations` table on first run and skips files already recorded t
 ./scripts/migrate.sh
 
 # Apply to an explicit database
-./scripts/migrate.sh "postgresql://gymdb_app:gymdb_app_password@localhost:5432/gymdb"
+./scripts/migrate.sh "postgresql://gymdb:gymdb_password@localhost:5432/gymdb"
 
 # Include seed data (local only)
 ./scripts/migrate.sh --seed
 ```
 
 Note: Docker Compose auto-applies schema files from `docker-entrypoint-initdb.d` only on the **first** container start (when the volume is empty). For an existing volume, use `migrate.sh` to apply new migrations.
+The script defaults to the local bootstrap/admin database user so it can create `_migrations` and apply DDL safely. The application should continue to run as `gymdb_app`.
 
 CI also runs `migrate.sh` against a fresh PostGIS service and verifies that every non-seed migration file is recorded in `_migrations`. That keeps the checked-in schema order honest instead of trusting manual local runs.
 

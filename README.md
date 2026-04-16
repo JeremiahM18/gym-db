@@ -233,6 +233,8 @@ For subsequent schema changes on an existing volume, use the migration runner:
 ./scripts/migrate.sh
 ```
 
+`migrate.sh` defaults to the local bootstrap database user (`gymdb`) because schema changes and `_migrations` bookkeeping require elevated database permissions. The backend runtime role remains `gymdb_app`.
+
 For a completely fresh local database after schema or role changes, recreate the volume:
 
 ```bash
