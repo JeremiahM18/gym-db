@@ -5,10 +5,13 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'gymdb_app') THEN
         CREATE ROLE gymdb_app LOGIN PASSWORD 'gymdb_app_password';
     END IF;
+
+    EXECUTE format(
+        'GRANT CONNECT ON DATABASE %I TO gymdb_app',
+        current_database()
+    );
 END
 $$;
-
-GRANT CONNECT ON DATABASE gymdb TO gymdb_app;
 
 GRANT USAGE ON SCHEMA public TO gymdb_app;
 GRANT SELECT ON TABLE public.gyms TO gymdb_app;
