@@ -1,0 +1,1237 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "GymDB API",
+    "description": "Gym intelligence built on OpenStreetMap",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/v2/gyms/geo/nearby": {
+      "get": {
+        "tags": [
+          "gyms"
+        ],
+        "summary": "Nearby Gyms",
+        "description": "Find gyms near a geographic point.\nUses PostGIS for distance calculations.",
+        "operationId": "nearby_gyms_v2_gyms_geo_nearby_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Lat"
+            }
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Lon"
+            }
+          },
+          {
+            "name": "radius_m",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 1,
+              "default": 1000,
+              "title": "Radius M"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GymsNearbyResponseV2"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/gyms": {
+      "get": {
+        "tags": [
+          "gyms"
+        ],
+        "summary": "List Gyms V2",
+        "operationId": "list_gyms_v2_v2_gyms_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region"
+            }
+          },
+          {
+            "name": "min_conf",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 1.0,
+                  "minimum": 0.0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Conf"
+            }
+          },
+          {
+            "name": "tier",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tier"
+            }
+          },
+          {
+            "name": "specialty",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Specialty"
+            }
+          },
+          {
+            "name": "lifter_friendly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lifter Friendly"
+            }
+          },
+          {
+            "name": "is_24_7",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Is 24 7"
+            }
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lat"
+            }
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lon"
+            }
+          },
+          {
+            "name": "radius_m",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0.0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Radius M"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GymsListResponseV2"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/gyms/embeddings": {
+      "get": {
+        "tags": [
+          "gyms",
+          "embeddings"
+        ],
+        "summary": "List Gym Embeddings V2",
+        "operationId": "list_gym_embeddings_v2_v2_gyms_embeddings_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GymEmbeddingV2"
+                  },
+                  "title": "Response List Gym Embeddings V2 V2 Gyms Embeddings Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/gyms/{gym_id}": {
+      "get": {
+        "tags": [
+          "gyms"
+        ],
+        "summary": "Get Gym V2",
+        "operationId": "get_gym_v2_v2_gyms__gym_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "gym_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Gym Id"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GymResponseV2"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/review/coverage": {
+      "get": {
+        "tags": [
+          "review"
+        ],
+        "summary": "Coverage Review V2",
+        "operationId": "coverage_review_v2_v2_review_coverage_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(matched|name_mismatch|unconfirmed)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "max_conf",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 1.0,
+                  "minimum": 0.0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Conf"
+            }
+          },
+          {
+            "name": "contradictions_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Contradictions Only"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoverageReviewResponseV2"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Healthz",
+        "description": "Liveness probe.\n\nConfirms the service process is running.\nDoes NOT check external dependencies.",
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Readyz",
+        "description": "Readiness probe.\n\nConfirms external dependencies (DB + extension + schema) are available.\n\nReturns 503 when NOT ready.\n\n503 responses are returned using the global error envelope:\n\n{\n    \"error\": {\n        \"code\": 503,\n        \"message\": {\n            \"ready\": false,\n            \"checks\": {...}\n        }\n    }\n}",
+        "operationId": "readyz_readyz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CoverageReviewResponseV2": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "title": "Api Version",
+            "default": "v2"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/CoverageReviewSummaryV2"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/GymOutV2"
+            },
+            "type": "array",
+            "title": "Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "region",
+          "count",
+          "summary",
+          "results"
+        ],
+        "title": "CoverageReviewResponseV2"
+      },
+      "CoverageReviewSummaryV2": {
+        "properties": {
+          "matched": {
+            "type": "integer",
+            "title": "Matched"
+          },
+          "name_mismatch": {
+            "type": "integer",
+            "title": "Name Mismatch"
+          },
+          "unconfirmed": {
+            "type": "integer",
+            "title": "Unconfirmed"
+          },
+          "contradictions": {
+            "type": "integer",
+            "title": "Contradictions"
+          },
+          "low_confidence": {
+            "type": "integer",
+            "title": "Low Confidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "matched",
+          "name_mismatch",
+          "unconfirmed",
+          "contradictions",
+          "low_confidence"
+        ],
+        "title": "CoverageReviewSummaryV2"
+      },
+      "GymEmbeddingV2": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "embedding_text": {
+            "type": "string",
+            "title": "Embedding Text",
+            "description": "Determininstic text used for vector embeddings"
+          },
+          "inference": {
+            "items": {
+              "$ref": "#/components/schemas/InferenceEmbeddingV2"
+            },
+            "type": "array",
+            "title": "Inference"
+          },
+          "confidence_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence Score"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lon"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "region",
+          "embedding_text",
+          "inference"
+        ],
+        "title": "GymEmbeddingV2",
+        "description": "Embedding-ready representation of a gym.\nSafe for vector databases and LLM pipelines."
+      },
+      "GymNearbyOutV2": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "distance_m": {
+            "type": "number",
+            "title": "Distance M"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "lat",
+          "lon",
+          "distance_m"
+        ],
+        "title": "GymNearbyOutV2"
+      },
+      "GymOutV2": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "norm_name": {
+            "type": "string",
+            "title": "Norm Name"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "confidence_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence Score"
+          },
+          "osm_refs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Osm Refs"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "inference": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/InferenceResult"
+            },
+            "type": "object",
+            "title": "Inference"
+          },
+          "inference_meta": {
+            "$ref": "#/components/schemas/InferenceMeta"
+          },
+          "source_provenance": {
+            "$ref": "#/components/schemas/SourceProvenanceV2"
+          },
+          "inference_summary": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inference Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "norm_name",
+          "lat",
+          "lon",
+          "osm_refs",
+          "inference",
+          "inference_meta",
+          "source_provenance"
+        ],
+        "title": "GymOutV2",
+        "description": "v2 Gym representation.\n\nChanges from v1:\n- inference is fully structured\n- norm_name is optional (internal detail)\n- tags can be omitted by clients"
+      },
+      "GymResponseV2": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "title": "Api Version",
+            "default": "v2"
+          },
+          "gym": {
+            "$ref": "#/components/schemas/GymOutV2"
+          }
+        },
+        "type": "object",
+        "required": [
+          "gym"
+        ],
+        "title": "GymResponseV2"
+      },
+      "GymsListResponseV2": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "title": "Api Version",
+            "default": "v2"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/GymOutV2"
+            },
+            "type": "array",
+            "title": "Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "region",
+          "count",
+          "results"
+        ],
+        "title": "GymsListResponseV2"
+      },
+      "GymsNearbyResponseV2": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "title": "Api Version",
+            "default": "v2"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/GymNearbyOutV2"
+            },
+            "type": "array",
+            "title": "Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count",
+          "results"
+        ],
+        "title": "GymsNearbyResponseV2"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InferenceEmbeddingV2": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "value",
+          "confidence",
+          "source"
+        ],
+        "title": "InferenceEmbeddingV2"
+      },
+      "InferenceMeta": {
+        "properties": {
+          "engine": {
+            "type": "string",
+            "const": "rule_based",
+            "title": "Engine"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "deterministic_hash": {
+            "type": "string",
+            "title": "Deterministic Hash"
+          },
+          "field_confidence": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Field Confidence"
+          },
+          "contradictions": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Contradictions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "engine",
+          "version",
+          "generated_at",
+          "deterministic_hash"
+        ],
+        "title": "InferenceMeta"
+      },
+      "InferenceResult": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Value"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "source": {
+            "type": "string",
+            "const": "rule",
+            "title": "Source",
+            "default": "rule"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value",
+          "reasons"
+        ],
+        "title": "InferenceResult"
+      },
+      "SourceProvenanceV2": {
+        "properties": {
+          "primary": {
+            "type": "string",
+            "title": "Primary",
+            "default": "osm"
+          },
+          "confirmed_by": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Confirmed By"
+          },
+          "match_status": {
+            "type": "string",
+            "title": "Match Status",
+            "default": "unconfirmed"
+          },
+          "external_refs": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SourceReferenceV2"
+            },
+            "type": "object",
+            "title": "External Refs"
+          }
+        },
+        "type": "object",
+        "title": "SourceProvenanceV2"
+      },
+      "SourceReferenceV2": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "distance_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance M"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "status"
+        ],
+        "title": "SourceReferenceV2"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "gyms",
+      "description": "Gym discovery and filtering"
+    },
+    {
+      "name": "review",
+      "description": "Coverage and review workflows"
+    },
+    {
+      "name": "embeddings",
+      "description": "Vector embeddings"
+    },
+    {
+      "name": "health",
+      "description": "Service health checks"
+    },
+    {
+      "name": "debug",
+      "description": "Inference inspection and audits"
+    },
+    {
+      "name": "internal",
+      "description": "Administrative and ops endpoints"
+    }
+  ]
+}

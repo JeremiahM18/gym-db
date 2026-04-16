@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.auth.dependencies import require_user
 from api.deps import get_gym_store
-from api.routes_v2 import _serialize_gym, _translate_store_error
+from api.normalizers import serialize_gym, translate_store_error
 from api.schemas_v2 import CoverageReviewResponseV2
 from gymdb.gyms.protocol import GymStoreProtocol
 from gymdb.gyms.review import list_review_gyms, summarize_review_gyms
@@ -42,9 +42,9 @@ def coverage_review_v2(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
-        raise _translate_store_error(exc) from exc
+        raise translate_store_error(exc) from exc
 
-    results = [_serialize_gym(gym) for gym in gyms]
+    results = [serialize_gym(gym) for gym in gyms]
     return {
         "api_version": "v2",
         "region": region,

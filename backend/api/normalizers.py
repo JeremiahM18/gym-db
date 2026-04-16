@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 import hashlib
 from datetime import UTC, datetime
 from typing import Any
 
+from fastapi import HTTPException
+
 from gymdb.domain.inference import RULESET_VERSION
+from gymdb.domain.processing import normalize_name
+from gymdb.observe.summaries import summarize_inference
 
 
 def normalize_inference_meta(meta: dict | None) -> dict:
@@ -81,3 +87,31 @@ def normalize_source_provenance(provenance: dict | None) -> dict:
         "match_status": str(provenance.get("match_status", "unconfirmed")),
         "external_refs": external_refs,
     }
+
+
+def serialize_gym(gym: dict) -> dict:
+    """
+    Produce a fully-normalized v2 gym dict for API responses.
+
+    Shared by the gym list, single-gym, and review endpoints.
+    """
+    out = dict(gym)
+    out["norm_name"] = str(out.get("norm_name") or normalize_name(out["name"]))
+
+    raw = out.pop("inferred", None) or out.get("inference")
+    out["inference"] = normalize_inference(raw)
+    out["inference_meta"] = normalize_inference_meta(gym.get("inference_meta"))
+    out["source_provenance"] = normalize_source_provenance(gym.get("source_provenance"))
+    out["inference_summary"] = summarize_inference(out["inference"])
+    return out
+
+
+def translate_store_error(exc: Exception) -> HTTPException:
+    """Translate store-layer exceptions to HTTP responses."""
+    if isinstance(exc, FileNotFoundError):
+        return HTTPException(status_code=503, detail=str(exc))
+    if isinstance(exc, KeyError):
+        return HTTPException(status_code=404, detail=str(exc))
+    if isinstance(exc, RuntimeError):
+        return HTTPException(status_code=503, detail=str(exc))
+    return HTTPException(status_code=500, detail="Internal server error")
