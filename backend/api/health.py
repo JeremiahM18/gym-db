@@ -7,6 +7,7 @@ from sqlalchemy.engine import Connection
 
 from api.deps import get_db
 from api.readiness import check_database, check_postgis, check_schema
+from gymdb.domain.inference import RULESET_VERSION
 
 router = APIRouter()
 logger = logging.getLogger("gymdb")
@@ -67,7 +68,7 @@ def readyz(db: Connection = Depends(get_db)):
         "checks": checks,
         "inference": {
             "engine": "rule_based",
-            "version": "1.0.0",
+            "version": RULESET_VERSION,
         },
     }
 
