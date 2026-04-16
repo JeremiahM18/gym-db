@@ -11,7 +11,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "generate:api": "powershell -ExecutionPolicy Bypass -File ..\\scripts\\generate-frontend-api.ps1"
+    "generate:api": "powershell -ExecutionPolicy Bypass -File ..\\scripts\\generate-frontend-api.ps1",
+    "verify:api-client": "npm exec openapi-typescript-codegen -- --input ../backend/openapi.json --output src/api --client fetch && git diff --exit-code -- src/api"
   },
   "dependencies": {
     "react": "^19.2.0",

@@ -31,6 +31,9 @@ The app lets a user:
 - `npm run generate:api`
   Regenerate the typed API client from the checked-out backend using `backend/.venv`.
 
+- `npm run verify:api-client`
+  Rebuild the generated client from the checked-in backend OpenAPI snapshot and fail if committed SDK files drifted.
+
 ## Environment
 
 The frontend reads `VITE_API_BASE_URL`.

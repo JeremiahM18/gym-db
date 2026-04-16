@@ -15,15 +15,28 @@ from gymdb.infrastructure.settings import settings
 from gymdb.infrastructure.tomtom_client import TomTomClient
 
 
+class TomTomPublishValidationError(RuntimeError):
+    """Raised when a publish run requires TomTom validation but cannot perform it."""
+
+
 def _enrich_with_tomtom(
     gyms,
     *,
     lat: float,
     lon: float,
     radius_miles: float,
-) -> dict[str, int]:
-    if not settings.tomtom_api_key or not gyms:
-        return {"matched": 0, "name_mismatch": 0, "missing_from_osm": 0}
+    require_validation: bool,
+) -> tuple[dict[str, int], bool]:
+    if not gyms:
+        return {"matched": 0, "name_mismatch": 0, "missing_from_osm": 0}, False
+
+    if not settings.tomtom_api_key:
+        if require_validation:
+            raise TomTomPublishValidationError(
+                "TomTom publish validation is required, but "
+                "TOMTOM_API_KEY is not configured."
+            )
+        return {"matched": 0, "name_mismatch": 0, "missing_from_osm": 0}, False
 
     client = TomTomClient(
         api_key=settings.tomtom_api_key,
@@ -36,7 +49,7 @@ def _enrich_with_tomtom(
         limit=max(len(gyms) * 2, 100),
     )
     _, summary = apply_tomtom_coverage(gyms, places)
-    return summary.to_dict()
+    return summary.to_dict(), True
 
 
 def run_ingest(
@@ -45,6 +58,7 @@ def run_ingest(
     lon: float = DEFAULT_LON,
     radius_miles: float = DEFAULT_RADIUS_MILES,
     out: Path = Path("data/gyms_raw.json"),
+    require_tomtom_validation: bool | None = None,
 ) -> dict:
     """
     Run a deterministic GymDB ingestion pipeline.
@@ -58,11 +72,18 @@ def run_ingest(
     for g in gyms:
         g.id = compute_gym_id(g.norm_name, g.lat, g.lon)
 
-    coverage_summary = _enrich_with_tomtom(
+    should_require_tomtom = (
+        settings.require_tomtom_publish_validation
+        if require_tomtom_validation is None
+        else require_tomtom_validation
+    )
+
+    coverage_summary, tomtom_validation_applied = _enrich_with_tomtom(
         gyms,
         lat=lat,
         lon=lon,
         radius_miles=radius_miles,
+        require_validation=should_require_tomtom,
     )
 
     for g in gyms:
@@ -81,6 +102,8 @@ def run_ingest(
         "coverage_matched": coverage_summary["matched"],
         "coverage_name_mismatch": coverage_summary["name_mismatch"],
         "coverage_missing_from_osm": coverage_summary["missing_from_osm"],
+        "tomtom_validation_required": should_require_tomtom,
+        "tomtom_validation_applied": tomtom_validation_applied,
     }
 
 
@@ -89,6 +112,7 @@ def run_ingest_for_region(
     registry: DatasetRegistry,
     region: str,
     radius_miles: float | None = None,
+    require_tomtom_validation: bool | None = None,
 ) -> dict:
     metadata = registry.region_metadata(region)
     dataset_path = registry.dataset_path(region)
@@ -97,6 +121,7 @@ def run_ingest_for_region(
         lon=metadata["lon"],
         radius_miles=radius_miles or metadata.get("radius_miles", DEFAULT_RADIUS_MILES),
         out=dataset_path,
+        require_tomtom_validation=require_tomtom_validation,
     )
     read_model_path = materialize_dataset_read_model(
         region=region,

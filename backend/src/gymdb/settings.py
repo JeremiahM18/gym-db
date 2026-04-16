@@ -16,6 +16,7 @@ class GymDBSettings(BaseSettings):
     )
     tomtom_api_key: str | None = None
     tomtom_base_url: str = "https://api.tomtom.com"
+    require_tomtom_publish_validation: bool = True
 
     model_config = {
         "env_file": ".env",

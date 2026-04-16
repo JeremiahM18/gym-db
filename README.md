@@ -39,6 +39,7 @@ GymDB already includes:
 - deterministic dataset publication and read-model access
 - PostGIS nearby search using exact radius filtering and indexed candidate ordering
 - rule-based inference with reasons, confidence scoring, and contradiction diagnostics
+- TomTom-backed publish validation that gates ingest when external verification is unavailable
 - coverage review endpoints for audit-style inspection of source agreement
 - a React/Vite frontend that exercises the public API and shows inference details visually
 - database schema and migration scripts for canonical gyms and job receipts
@@ -198,10 +199,11 @@ Frontend quality commands:
 cd frontend
 npm run lint
 npm run build
+npm run verify:api-client
 npm run generate:api
 ```
 
-The API client generation script exports the backend OpenAPI schema from the checked-out FastAPI app and regenerates the frontend SDK locally, so the frontend contract stays aligned with the repo instead of a separately running server.
+The API client generation script exports the backend OpenAPI schema from the checked-out FastAPI app and regenerates the frontend SDK locally, so the frontend contract stays aligned with the repo instead of a separately running server. CI now also verifies both sides of that contract: the checked-in `backend/openapi.json` must match the live FastAPI app, and the checked-in frontend SDK must match the checked-in schema.
 
 ## Run Locally
 
@@ -239,7 +241,12 @@ The checked-in `backend/.env.example` already enables local dev auth bypass. If 
 ```env
 ENABLE_DEV_AUTH_BYPASS=true
 POSTGRES_DSN=postgresql+psycopg://gymdb_app:gymdb_app_password@localhost:5432/gymdb
+REQUIRE_TOMTOM_PUBLISH_VALIDATION=true
+# Required for ingest / publish flows:
+TOMTOM_API_KEY=<your tomtom api key>
 ```
+
+TomTom validation is now the default publish gate. If you are browsing an already-published dataset locally, you do not need a TomTom key. If you are rebuilding a dataset, configure `TOMTOM_API_KEY` first.
 
 Then start the API:
 

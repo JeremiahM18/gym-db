@@ -20,6 +20,11 @@ def main():
         default=Path("data/gyms_raw.json"),
         help="Output dataset path",
     )
+    parser.add_argument(
+        "--allow-without-tomtom",
+        action="store_true",
+        help="Skip the default TomTom publish gate for local experimentation.",
+    )
 
     args = parser.parse_args()
 
@@ -28,6 +33,7 @@ def main():
         lon=args.lon,
         radius_miles=args.radius_miles,
         out=args.out,
+        require_tomtom_validation=not args.allow_without_tomtom,
     )
 
     print(f"Processed {metrics['gyms_written']} gyms -> {metrics['output_path']}")
