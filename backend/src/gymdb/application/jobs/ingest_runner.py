@@ -1,57 +1,74 @@
 from __future__ import annotations
 
 import uuid
-from dataclasses import replace
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any
 
-from .models import IngestJob, JobStatus, utc_now_iso
-from .store import JobStore
+from gymdb.application.jobs.receipt import JobReceipt
+from gymdb.application.jobs.receipt_artifacts import maybe_write_fs_receipt
+from gymdb.application.jobs.receipt_store import JobReceiptStoreDB
 
-
-def new_job_id() -> str:
-    return uuid.uuid4().hex
 
 class IngestRunner:
-    def __init__(self, job_store: JobStore):
-        self.job_store = job_store
+    """
+    Orchestrates a single ingest run against a durable receipt store.
 
-    def start(self, *, region: str, mode: str) -> IngestJob:
-        job = IngestJob(
-            job_id=new_job_id(),
-            kind="ingest",
-            mode=mode,
+    Responsibilities:
+    - assign a stable job_id
+    - persist the running → succeeded/failed lifecycle to Postgres
+    - optionally write an FS receipt artifact (opt-in, non-authoritative)
+    - surface failures via the returned receipt rather than raising
+
+    The caller owns the receipt_store connection and transaction boundary.
+    """
+
+    @staticmethod
+    def run(
+        *,
+        region: str,
+        mode: str,
+        ingest_fn: Callable[..., dict[str, Any]],
+        receipt_store: JobReceiptStoreDB,
+    ) -> JobReceipt:
+        job_id = uuid.uuid4().hex
+        started_at = datetime.now(UTC)
+
+        running = JobReceipt.build(
+            job_id=job_id,
             region=region,
-            status=JobStatus.queued,
-            created_at=utc_now_iso(),
-            started_at=None,
+            mode=mode,
+            started_at=started_at,
             finished_at=None,
-            metrics={},
-            error=None,
+            status="running",
+            stats={},
         )
-        self.job_store.save(job)
-        return job
-
-    def run(self, job: IngestJob, *, ingest_fn) -> IngestJob:
-        running = replace(job, status=JobStatus.running, started_at=utc_now_iso())
-        self.job_store.save(running)
+        receipt_store.create(running)
 
         try:
-            metrics = ingest_fn(region=running.region)  # must return dict metrics
-            done = replace(
-                running,
-                status=JobStatus.succeeded,
-                finished_at=utc_now_iso(),
-                metrics=metrics or {},
-            )
-            self.job_store.save(done)
-            return done
+            stats = ingest_fn(region=region)
+            final_status = "succeeded"
         except Exception as exc:
-            failed = replace(
-                running,
-                status=JobStatus.failed,
-                finished_at=utc_now_iso(),
-                error=str(exc),
-            )
-            self.job_store.save(failed)
-            return failed
+            stats = {"error": str(exc)}
+            final_status = "failed"
 
+        finished_at = datetime.now(UTC)
+        receipt_store.update_status(
+            job_id=job_id,
+            new_status=final_status,
+            finished_at=finished_at,
+            stats=stats,
+        )
 
+        final = JobReceipt.build(
+            job_id=job_id,
+            region=region,
+            mode=mode,
+            started_at=started_at,
+            finished_at=finished_at,
+            status=final_status,
+            stats=stats,
+            previous_status="running",
+        )
+        maybe_write_fs_receipt(final)
+        return final
