@@ -47,6 +47,10 @@ pythonpath = ["."]
 testpaths = ["tests"]
 addopts = "-ra"
 
+[tool.pytest.ini_options.env]
+ENABLE_DEV_AUTH_BYPASS = "true"
+POSTGRES_DSN = "postgresql+psycopg://gymdb_test:gymdb_test@localhost:5432/gymdb_test"
+
 [tool.ruff]
 line-length = 88
 target-version = "py313"
