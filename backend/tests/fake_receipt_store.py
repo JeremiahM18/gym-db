@@ -51,7 +51,4 @@ class FakeReceiptStore:
     def list_recent(self, limit: int = 25) -> list[JobReceipt]:
         return list(self._receipts.values())[:limit]
 
-    def list_receipts(self, limit: int) -> list[JobReceipt]:
-        return self.list_recent(limit)
-
 

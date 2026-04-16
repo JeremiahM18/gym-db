@@ -12,11 +12,11 @@ from api.deps import get_gym_store
 from api.main import app
 from api.resources import create_store
 from api.settings import APISettings
-from gymdb.gyms.store_dataset import GymStore
+from gymdb.gyms.store_dataset import DatasetGymStore
 from gymdb.infer.result import InferenceResult
 
 
-class FakeGymStore(GymStore):
+class FakeGymStore(DatasetGymStore):
     default_region = "test"
 
     def __init__(self):

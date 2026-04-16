@@ -18,6 +18,6 @@ def list_job_receipts(limit: int, *, store: JobReceiptStoreDB) -> list[JobReceip
     """
     Read model: list recent job receipts in descending created_at order.
     """
-    return store.list_receipts(limit=limit)
+    return store.list_recent(limit=limit)
 
 

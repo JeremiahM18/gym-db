@@ -257,6 +257,3 @@ class DatasetGymStore:
         if row is None:
             return None
         return json.loads(row["payload"])
-
-
-GymStore = DatasetGymStore

@@ -205,5 +205,3 @@ class JobReceiptStoreDB:
             for row in rows
         ]
 
-    def list_receipts(self, limit: int) -> list[JobReceipt]:
-        return self.list_recent(limit=limit)
