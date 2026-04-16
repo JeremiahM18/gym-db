@@ -8,6 +8,7 @@ export type CoverageReviewResponseV2 = {
     api_version?: string;
     region: string;
     count: number;
+    has_more?: boolean;
     summary: CoverageReviewSummaryV2;
     results: Array<GymOutV2>;
 };

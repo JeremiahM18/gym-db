@@ -1,6 +1,5 @@
 from api.auth.dependencies import require_admin
 from api.deps import get_db
-from api.main import app
 from api.settings import APISettings, get_settings
 
 

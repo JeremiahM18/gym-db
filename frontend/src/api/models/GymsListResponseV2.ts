@@ -7,6 +7,7 @@ export type GymsListResponseV2 = {
     api_version?: string;
     region: string;
     count: number;
+    has_more?: boolean;
     results: Array<GymOutV2>;
 };
 
