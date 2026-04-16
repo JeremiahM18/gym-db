@@ -234,7 +234,7 @@ Or bootstrap the local env files automatically from the repo root:
 .\scripts\bootstrap-local.ps1
 ```
 
-For local frontend work without Cognito, add this to `backend/.env`:
+The checked-in `backend/.env.example` already enables local dev auth bypass. If you want to confirm the expected local values, `backend/.env` should include:
 
 ```env
 ENABLE_DEV_AUTH_BYPASS=true
@@ -253,6 +253,9 @@ python -m uvicorn api.main:app --reload
 cd frontend
 npm install
 ```
+
+The frontend is standardized on Node 24 to match CI. If you use `nvm`, run `nvm use` from the repo root before installing frontend dependencies.
+If backend routes or schemas changed, run `npm run generate:api` after the backend virtualenv is set up so the frontend SDK is regenerated from the checked-out FastAPI app.
 
 Create `frontend/.env.local`:
 

@@ -35,6 +35,9 @@ The app lets a user:
 
 The frontend reads `VITE_API_BASE_URL`.
 
+The frontend is standardized on Node 24 to match CI.
+If you use `nvm`, run `nvm use` from the repo root before installing dependencies.
+
 Example local setup in `.env.local`:
 
 ```env
@@ -46,9 +49,9 @@ VITE_API_BASE_URL=http://localhost:8000
 ## Run Locally
 
 1. Start the backend from `backend/`.
-2. If you are not using Cognito locally, set `ENABLE_DEV_AUTH_BYPASS=true` in `backend/.env`.
+2. The checked-in `backend/.env.example` already enables local dev auth bypass for local work.
 3. Run `npm install` in `frontend/`.
-4. If backend routes or schemas changed, run `npm run generate:api`.
+4. If backend routes or schemas changed, run `npm run generate:api`. This expects a configured `backend/.venv` because the schema is exported from the checked-out FastAPI app.
 5. Run `npm run dev`.
 6. Open the local Vite URL shown in the terminal.
 7. Hard refresh if the browser cached an older frontend bundle.
