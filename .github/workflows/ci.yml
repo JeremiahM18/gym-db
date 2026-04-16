@@ -54,10 +54,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
       - name: Verify checked-in OpenAPI snapshot
         run: |
           python scripts/export_openapi.py --out openapi.generated.json
-          python -c "import json, pathlib, sys; live = json.loads(pathlib.Path('openapi.generated.json').read_text(encoding='utf-8')); checked = json.loads(pathlib.Path('openapi.json').read_text(encoding='utf-8')); sys.exit(0 if live == checked else 1)"
+          git diff --no-index --exit-code -- openapi.json openapi.generated.json
+
+      - name: Verify migrations apply cleanly
+        env:
+          PGPASSWORD: gymdb_test
+        run: |
+          chmod +x ../scripts/migrate.sh
+          ../scripts/migrate.sh "postgresql://gymdb_test:gymdb_test@localhost:5432/gymdb_test"
+          EXPECTED=$(find ../database/schema -maxdepth 1 -type f -name '[0-8][0-9][0-9]_*.sql' | wc -l)
+          APPLIED=$(psql "postgresql://gymdb_test:gymdb_test@localhost:5432/gymdb_test" -tAqc "SELECT COUNT(*) FROM public._migrations")
+          test "$EXPECTED" -eq "$APPLIED"
 
       - name: Run Ruff
         run: ruff check .
@@ -65,8 +80,8 @@ jobs:
       - name: Run MyPy
         run: mypy src/gymdb api
 
-      - name: Run Pytest
-        run: python -m pytest
+      - name: Run Pytest with coverage
+        run: python -m pytest --cov=api --cov=src/gymdb --cov-report=term-missing --cov-report=xml:coverage.xml
 
   frontend-quality:
     name: Frontend Quality
@@ -90,11 +105,17 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
       - name: Verify generated API client
         run: npm run verify:api-client
 
       - name: Run ESLint
         run: npm run lint
+
+      - name: Run Playwright
+        run: npm run test:e2e
 
       - name: Build frontend
         run: npm run build

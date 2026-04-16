@@ -1,0 +1,32 @@
+default_install_hook_types:
+  - pre-commit
+  - pre-push
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.13.2
+    hooks:
+      - id: ruff
+        args: ["backend"]
+
+  - repo: local
+    hooks:
+      - id: frontend-lint
+        name: frontend lint
+        entry: npm --prefix frontend run lint
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: frontend-api-client-verify
+        name: frontend generated API client verification
+        entry: npm --prefix frontend run verify:api-client
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

@@ -156,6 +156,8 @@ It creates a `_migrations` table on first run and skips files already recorded t
 
 Note: Docker Compose auto-applies schema files from `docker-entrypoint-initdb.d` only on the **first** container start (when the volume is empty). For an existing volume, use `migrate.sh` to apply new migrations.
 
+CI also runs `migrate.sh` against a fresh PostGIS service and verifies that every non-seed migration file is recorded in `_migrations`. That keeps the checked-in schema order honest instead of trusting manual local runs.
+
 ## Design Principles
 - deterministic query results
 - explicit, auditable data transformations

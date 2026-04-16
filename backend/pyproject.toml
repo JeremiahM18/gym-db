@@ -24,7 +24,9 @@ dependencies = [
 dev = [
     "httpx==0.28.1",
     "mypy==1.18.2",
+    "pre-commit==4.3.0",
     "pytest==9.0.2",
+    "pytest-cov==7.0.0",
     "pytest-env==1.2.0",
     "ruff==0.13.2",
     "types-python-jose==3.5.0.20250531",
@@ -50,6 +52,14 @@ addopts = "-ra"
 [tool.pytest.ini_options.env]
 ENABLE_DEV_AUTH_BYPASS = "true"
 POSTGRES_DSN = "postgresql+psycopg://gymdb_test:gymdb_test@localhost:5432/gymdb_test"
+
+[tool.coverage.run]
+branch = true
+source = ["api", "src/gymdb"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
 
 [tool.ruff]
 line-length = 88

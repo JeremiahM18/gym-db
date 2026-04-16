@@ -28,6 +28,12 @@ The app lets a user:
 - `npm run build`
   Build the frontend bundle.
 
+- `npm run test:e2e`
+  Run the mocked Playwright browser flows against the local Vite app.
+
+- `npm run test:e2e:install`
+  Install the Chromium browser used by the Playwright suite.
+
 - `npm run generate:api`
   Regenerate the typed API client from the checked-out backend using `backend/.venv`.
 
@@ -55,6 +61,7 @@ VITE_API_BASE_URL=http://localhost:8000
 2. The checked-in `backend/.env.example` already enables local dev auth bypass for local work.
 3. Run `npm install` in `frontend/`.
 4. If backend routes or schemas changed, run `npm run generate:api`. This expects a configured `backend/.venv` because the schema is exported from the checked-out FastAPI app.
-5. Run `npm run dev`.
-6. Open the local Vite URL shown in the terminal.
-7. Hard refresh if the browser cached an older frontend bundle.
+5. If you plan to run browser E2E checks locally, run `npm run test:e2e:install` once.
+6. Run `npm run dev`.
+7. Open the local Vite URL shown in the terminal.
+8. Hard refresh if the browser cached an older frontend bundle.

@@ -179,16 +179,19 @@ GymDB is strongest when judged as an engineering project, not just a feature che
 The repo includes:
 
 - backend tests for API contracts, inference, determinism, query logic, nearby search, receipts, and review flows
+- backend coverage reporting so regressions show both failures and blind spots
 - strict linting and typing setup in the backend
-- frontend linting and production build checks
+- frontend linting, generated-client drift checks, and mocked browser E2E checks
 - CI that runs backend and frontend quality gates
 - a PostGIS-backed CI service so geospatial behavior is validated in a realistic environment
+- migration verification in CI so schema changes cannot drift from a fresh database
+- pre-commit / pre-push hooks for local guardrails before code reaches CI
 
 Backend quality commands:
 
 ```bash
 cd backend
-python -m pytest
+python -m pytest --cov=api --cov=src/gymdb --cov-report=term-missing
 ruff check .
 mypy src/gymdb api
 ```
@@ -199,11 +202,21 @@ Frontend quality commands:
 cd frontend
 npm run lint
 npm run build
+npm run test:e2e
 npm run verify:api-client
 npm run generate:api
 ```
 
-The API client generation script exports the backend OpenAPI schema from the checked-out FastAPI app and regenerates the frontend SDK locally, so the frontend contract stays aligned with the repo instead of a separately running server. CI now also verifies both sides of that contract: the checked-in `backend/openapi.json` must match the live FastAPI app, and the checked-in frontend SDK must match the checked-in schema.
+The API client generation script exports the backend OpenAPI schema from the checked-out FastAPI app and regenerates the frontend SDK locally, so the frontend contract stays aligned with the repo instead of a separately running server. CI now also verifies both sides of that contract with visible diffs: the checked-in `backend/openapi.json` must match the live FastAPI app, and the checked-in frontend SDK must match the checked-in schema.
+
+Developer hooks:
+
+```bash
+cd backend
+python -m pip install -r requirements-dev.txt
+pre-commit install
+pre-commit install --hook-type pre-push
+```
 
 ## Run Locally
 
@@ -270,6 +283,7 @@ npm install
 
 The frontend is standardized on Node 24 to match CI. If you use `nvm`, run `nvm use` from the repo root before installing frontend dependencies.
 If backend routes or schemas changed, run `npm run generate:api` after the backend virtualenv is set up so the frontend SDK is regenerated from the checked-out FastAPI app.
+If you want to run browser E2E checks locally, install the browser once with `npm run test:e2e:install`.
 
 Create `frontend/.env.local`:
 

@@ -21,3 +21,7 @@ frontend/dist/
 # Misc runtime output
 coverage/
 **/.tmp/
+frontend/playwright-report/
+frontend/test-results/
+backend/coverage.xml
+backend/.coverage
