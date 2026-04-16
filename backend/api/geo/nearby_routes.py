@@ -2,12 +2,17 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
 
+from api.auth.dependencies import require_user
 from api.deps import db_error_to_http, get_db
 from api.schemas_v2 import GymNearbyOutV2, GymsNearbyResponseV2
 from gymdb.infrastructure.db.errors import DatabaseError
 from gymdb.infrastructure.db.queries import get_nearby_gyms
 
-router = APIRouter(prefix="/v2/gyms/geo", tags=["gyms"])
+router = APIRouter(
+    prefix="/v2/gyms/geo",
+    tags=["gyms"],
+    dependencies=[Depends(require_user)],
+)
 
 
 @router.get(
