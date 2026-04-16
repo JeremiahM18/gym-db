@@ -138,6 +138,24 @@ Practices:
 
 Schema stability is treated as part of the system's long-term contract.
 
+### Running migrations
+
+The repo includes `scripts/migrate.sh`, an ordered migration runner with applied-state tracking.
+It creates a `_migrations` table on first run and skips files already recorded there, so re-running is safe.
+
+```bash
+# Apply all pending migrations (local dev defaults)
+./scripts/migrate.sh
+
+# Apply to an explicit database
+./scripts/migrate.sh "postgresql://gymdb_app:gymdb_app_password@localhost:5432/gymdb"
+
+# Include seed data (local only)
+./scripts/migrate.sh --seed
+```
+
+Note: Docker Compose auto-applies schema files from `docker-entrypoint-initdb.d` only on the **first** container start (when the volume is empty). For an existing volume, use `migrate.sh` to apply new migrations.
+
 ## Design Principles
 - deterministic query results
 - explicit, auditable data transformations

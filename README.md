@@ -213,6 +213,13 @@ The API client generation script exports the backend OpenAPI schema from the che
 docker compose up -d postgres
 ```
 
+Docker Compose auto-applies all files in `database/schema/` on the **first** start (when the volume is empty).
+For subsequent schema changes on an existing volume, use the migration runner:
+
+```bash
+./scripts/migrate.sh
+```
+
 For a completely fresh local database after schema or role changes, recreate the volume:
 
 ```bash
