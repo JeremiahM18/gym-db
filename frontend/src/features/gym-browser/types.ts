@@ -12,9 +12,11 @@ export type FiltersState = {
 };
 
 export type NearbyState = {
+  placeQuery: string;
   lat: string;
   lon: string;
   radiusM: string;
+  resolvedLabel: string;
 };
 
 export type ActionLink = {
@@ -48,7 +50,9 @@ export const defaultFilters: FiltersState = {
 };
 
 export const defaultNearby: NearbyState = {
+  placeQuery: "Nashville, TN",
   lat: "36.1627",
   lon: "-86.7816",
   radiusM: "2500",
+  resolvedLabel: "Nashville, TN",
 };

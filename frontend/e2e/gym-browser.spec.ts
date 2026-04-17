@@ -170,6 +170,29 @@ const gymsById = new Map(
 );
 
 test.beforeEach(async ({ page }) => {
+  await page.route("**/v2/geocode**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        api_version: "2.0.0",
+        query: "Nashville, TN",
+        count: 1,
+        results: [
+          {
+            id: "place-1",
+            name: "Nashville, TN",
+            lat: 36.1627,
+            lon: -86.7816,
+            address: "Nashville, TN",
+            city: "Nashville",
+            country_code: "US",
+          },
+        ],
+      }),
+    });
+  });
+
   await page.route("**/healthz", async (route) => {
     await route.fulfill({ status: 200, body: "{}" });
   });
@@ -269,4 +292,5 @@ test("runs nearby search and switches the browser into nearby mode", async ({ pa
     page.getByRole("heading", { level: 3, name: "Riverfront Barbell" }),
   ).toBeVisible();
   await expect(page.getByText("Open in Maps").first()).toBeVisible();
+  await expect(page.getByText(/Resolved search origin:/i)).toContainText("Nashville, TN");
 });

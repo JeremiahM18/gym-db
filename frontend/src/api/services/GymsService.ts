@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { GeocodeResponseV2 } from '../models/GeocodeResponseV2';
 import type { GymEmbeddingV2 } from '../models/GymEmbeddingV2';
 import type { GymResponseV2 } from '../models/GymResponseV2';
 import type { GymsListResponseV2 } from '../models/GymsListResponseV2';
@@ -85,6 +86,29 @@ export class GymsService {
                 'radius_m': radiusM,
                 'limit': limit,
                 'offset': offset,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Geocode Location V2
+     * @param q City, neighborhood, or place name
+     * @param limit
+     * @returns GeocodeResponseV2 Successful Response
+     * @throws ApiError
+     */
+    public static geocodeLocationV2V2GeocodeGet(
+        q: string,
+        limit: number = 5,
+    ): CancelablePromise<GeocodeResponseV2> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/v2/geocode',
+            query: {
+                'q': q,
+                'limit': limit,
             },
             errors: {
                 422: `Validation Error`,

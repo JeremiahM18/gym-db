@@ -14,7 +14,7 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:install": "playwright install chromium",
-    "generate:api": "openapi-typescript-codegen --input ../backend/openapi.json --output src/api --client fetch",
+    "generate:api": "npm exec openapi-typescript-codegen -- --input ../backend/openapi.json --output src/api --client fetch",
     "verify:api-client": "npm exec openapi-typescript-codegen -- --input ../backend/openapi.json --output src/api --client fetch && git diff --exit-code -- src/api"
   },
   "dependencies": {

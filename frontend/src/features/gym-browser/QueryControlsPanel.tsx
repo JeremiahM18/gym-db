@@ -132,11 +132,32 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
 
       <form className="controls-grid nearby-grid" onSubmit={props.onNearbySubmit}>
         <label>
+          <span>Place or city</span>
+          <input
+            value={props.nearby.placeQuery}
+            onChange={(event) =>
+              props.setNearby((current) => ({
+                ...current,
+                placeQuery: event.target.value,
+                resolvedLabel: "",
+              }))
+            }
+            placeholder="Nashville, TN"
+          />
+          <small className="field-hint">
+            Optional. If provided, GymDB resolves it with TomTom before nearby search.
+          </small>
+        </label>
+        <label>
           <span>Latitude</span>
           <input
             value={props.nearby.lat}
             onChange={(event) =>
-              props.setNearby((current) => ({ ...current, lat: event.target.value }))
+              props.setNearby((current) => ({
+                ...current,
+                lat: event.target.value,
+                resolvedLabel: "",
+              }))
             }
             inputMode="decimal"
           />
@@ -146,7 +167,11 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
           <input
             value={props.nearby.lon}
             onChange={(event) =>
-              props.setNearby((current) => ({ ...current, lon: event.target.value }))
+              props.setNearby((current) => ({
+                ...current,
+                lon: event.target.value,
+                resolvedLabel: "",
+              }))
             }
             inputMode="decimal"
           />
@@ -162,6 +187,12 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
           />
           <small className="field-hint">About {props.nearbyRadiusLabel}</small>
         </label>
+        {props.nearby.resolvedLabel ? (
+          <div className="field-hint">
+            Resolved search origin: {props.nearby.resolvedLabel} ({props.nearby.lat},{" "}
+            {props.nearby.lon})
+          </div>
+        ) : null}
         <div className="controls-actions">
           <button className="secondary-button" type="submit" disabled={props.loading}>
             Run nearby search

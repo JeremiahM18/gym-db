@@ -130,6 +130,7 @@ The frontend is not filler. It is a real operator/demo client for the backend.
 It supports:
 
 - catalog browsing over `/v2/gyms`
+- city and place-name resolution through `/v2/geocode` before nearby search
 - nearby search using coordinates and radius filters
 - filtering by confidence, tier, specialty, 24/7 access, and lifter friendliness
 - drill-in inspection of inference details, confidence, and reasons

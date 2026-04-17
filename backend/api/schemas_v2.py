@@ -97,6 +97,23 @@ class GymNearbyOutV2(BaseModel):
     distance_m: float
 
 
+class GeocodeCandidateV2(BaseModel):
+    id: str
+    name: str
+    lat: float
+    lon: float
+    address: str | None = None
+    city: str | None = None
+    country_code: str | None = None
+
+
+class GeocodeResponseV2(BaseModel):
+    api_version: str = Field(default="v2")
+    query: str
+    count: int
+    results: list[GeocodeCandidateV2]
+
+
 class GymsListResponseV2(BaseModel):
     api_version: str = Field(default="v2")
     region: str

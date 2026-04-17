@@ -30,6 +30,7 @@ import {
   parseNumber,
 } from "./features/gym-browser/utils";
 import {
+  geocodeLocation,
   getGym,
   getHealth,
   listGyms,
@@ -166,7 +167,45 @@ export function App() {
     setLoading(true);
     setError(null);
 
-    if (nearbyLat == null || nearbyLon == null || nearbyRadiusMeters == null) {
+    let searchLat = nearbyLat;
+    let searchLon = nearbyLon;
+    let resolvedLabel = nearby.resolvedLabel;
+    const placeQuery = nearby.placeQuery.trim();
+
+    if (placeQuery) {
+      try {
+        const geocoded = await geocodeLocation(placeQuery);
+        const firstMatch = geocoded.results[0];
+        if (!firstMatch) {
+          setError(`No location match found for "${placeQuery}".`);
+          setLoading(false);
+          return;
+        }
+
+        searchLat = firstMatch.lat;
+        searchLon = firstMatch.lon;
+        resolvedLabel = firstMatch.address || firstMatch.name;
+
+        startTransition(() => {
+          setNearby((current) => ({
+            ...current,
+            lat: firstMatch.lat.toFixed(4),
+            lon: firstMatch.lon.toFixed(4),
+            resolvedLabel,
+          }));
+        });
+      } catch (geocodeError) {
+        setError(
+          geocodeError instanceof Error
+            ? geocodeError.message
+            : "Failed to resolve the requested place.",
+        );
+        setLoading(false);
+        return;
+      }
+    }
+
+    if (searchLat == null || searchLon == null || nearbyRadiusMeters == null) {
       setError("Nearby search requires numeric latitude, longitude, and radius.");
       setLoading(false);
       return;
@@ -175,14 +214,17 @@ export function App() {
     try {
       const response = await nearbyGyms({
         ...buildGymFilters(filters),
-        lat: nearbyLat,
-        lon: nearbyLon,
+        lat: searchLat,
+        lon: searchLon,
         radiusM: nearbyRadiusMeters,
       });
       startTransition(() => {
         setMode("nearby");
         setNearbyResults(response.results);
         setSelectedGymId(response.results[0]?.id ?? null);
+        if (!placeQuery) {
+          setNearby((current) => ({ ...current, resolvedLabel: resolvedLabel || "" }));
+        }
       });
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Failed to run nearby search.");

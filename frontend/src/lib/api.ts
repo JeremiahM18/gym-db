@@ -1,8 +1,10 @@
 import { CancelError, OpenAPI } from "../api";
 import type { CancelablePromise } from "../api";
+import type { GeocodeResponseV2 } from "../api/models/GeocodeResponseV2";
 import type { GymOutV2 } from "../api/models/GymOutV2";
 import type { GymResponseV2 } from "../api/models/GymResponseV2";
 import type { GymsListResponseV2 } from "../api/models/GymsListResponseV2";
+import { GeocodeService } from "../api/services/GeocodeService";
 import { GymsService } from "../api/services/GymsService";
 import { HealthService } from "../api/services/HealthService";
 
@@ -90,6 +92,13 @@ export async function nearbyGyms(
   return listGyms(filters, signal);
 }
 
+export async function geocodeLocation(
+  query: string,
+  signal?: AbortSignal,
+): Promise<GeocodeResponseV2> {
+  return bindAbort(GeocodeService.geocodeLocationV2V2GeocodeGet(query), signal);
+}
+
 export async function getGym(
   gymId: string,
   region?: string,
@@ -126,4 +135,4 @@ export async function getHealth(signal?: AbortSignal): Promise<HealthSnapshot> {
   }
 }
 
-export type { GymFilters, GymOutV2, HealthSnapshot, NearbyFilters };
+export type { GeocodeResponseV2, GymFilters, GymOutV2, HealthSnapshot, NearbyFilters };

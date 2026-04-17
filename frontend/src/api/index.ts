@@ -9,6 +9,8 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { CoverageReviewResponseV2 } from './models/CoverageReviewResponseV2';
 export type { CoverageReviewSummaryV2 } from './models/CoverageReviewSummaryV2';
+export type { GeocodeCandidateV2 } from './models/GeocodeCandidateV2';
+export type { GeocodeResponseV2 } from './models/GeocodeResponseV2';
 export type { GymEmbeddingV2 } from './models/GymEmbeddingV2';
 export type { GymNearbyOutV2 } from './models/GymNearbyOutV2';
 export type { GymOutV2 } from './models/GymOutV2';
@@ -24,6 +26,7 @@ export type { SourceReferenceV2 } from './models/SourceReferenceV2';
 export type { ValidationError } from './models/ValidationError';
 
 export { EmbeddingsService } from './services/EmbeddingsService';
+export { GeocodeService } from './services/GeocodeService';
 export { GymsService } from './services/GymsService';
 export { HealthService } from './services/HealthService';
 export { ReviewService } from './services/ReviewService';
