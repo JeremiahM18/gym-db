@@ -269,6 +269,7 @@ TOMTOM_API_KEY=<your tomtom api key>
 ```
 
 TomTom validation is now the default publish gate. If you are browsing an already-published dataset locally, you do not need a TomTom key. If you are rebuilding a dataset, configure `TOMTOM_API_KEY` first.
+If Overpass is under load, the ingest client now retries automatically and can fail over to an alternate endpoint if you set `OVERPASS_FALLBACK_URL`. A smaller `--radius-miles` is still the fastest way to get an initial local dataset published.
 
 Then start the API:
 

@@ -3,6 +3,7 @@ from pathlib import Path
 
 from gymdb.application.ingest import run_ingest
 from gymdb.config import DEFAULT_LAT, DEFAULT_LON, DEFAULT_RADIUS_MILES
+from gymdb.infrastructure.overpass_client import OverpassUnavailableError
 
 
 def main():
@@ -28,13 +29,16 @@ def main():
 
     args = parser.parse_args()
 
-    metrics = run_ingest(
-        lat=args.lat,
-        lon=args.lon,
-        radius_miles=args.radius_miles,
-        out=args.out,
-        require_tomtom_validation=not args.allow_without_tomtom,
-    )
+    try:
+        metrics = run_ingest(
+            lat=args.lat,
+            lon=args.lon,
+            radius_miles=args.radius_miles,
+            out=args.out,
+            require_tomtom_validation=not args.allow_without_tomtom,
+        )
+    except OverpassUnavailableError as exc:
+        raise SystemExit(str(exc)) from exc
 
     print(f"Processed {metrics['gyms_written']} gyms -> {metrics['output_path']}")
 

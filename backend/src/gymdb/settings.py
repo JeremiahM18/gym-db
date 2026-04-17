@@ -14,6 +14,11 @@ class GymDBSettings(BaseSettings):
     postgres_dsn: str = (
         "postgresql+psycopg://gymdb_app:gymdb_app_password@localhost:5432/gymdb"
     )
+    overpass_url: str = "https://overpass-api.de/api/interpreter"
+    overpass_fallback_url: str | None = None
+    overpass_timeout_seconds: int = 60
+    overpass_max_attempts: int = 3
+    overpass_backoff_seconds: float = 2.0
     tomtom_api_key: str | None = None
     tomtom_base_url: str = "https://api.tomtom.com"
     require_tomtom_publish_validation: bool = True
