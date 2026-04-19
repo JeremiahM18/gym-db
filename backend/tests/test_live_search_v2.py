@@ -49,16 +49,33 @@ def test_live_search_returns_results(client, override_auth, monkeypatch):
         ],
     )
     monkeypatch.setattr(
-        "api.routes_v2.TomTomClient.search",
+        "api.routes_v2.fetch_gyms",
+        lambda radius_meters, lat, lon: [
+            {
+                "type": "node",
+                "id": 101,
+                "lat": 35.9201,
+                "lon": -86.8621,
+                "tags": {
+                    "name": "Franklin Strength Club",
+                    "amenity": "gym",
+                    "website": "https://franklinstrength.example.com",
+                    "addr:city": "Franklin",
+                    "addr:state": "TN",
+                    "addr:street": "Main St",
+                    "addr:housenumber": "101",
+                },
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.search_gyms",
         lambda self,
-        query,
-        limit=25,
-        country_set="US",
-        lat=None,
-        lon=None,
-        radius_m=None,
-        geobias_lat=None,
-        geobias_lon=None: [
+        lat,
+        lon,
+        radius_m,
+        limit=100,
+        country_set="US": [
             TomTomPlace(
                 id="poi-1",
                 name="Franklin Strength Club",
@@ -85,5 +102,7 @@ def test_live_search_returns_results(client, override_auth, monkeypatch):
     assert data["count"] == 1
     assert data["origin"]["name"] == "Franklin, TN"
     assert data["results"][0]["name"] == "Franklin Strength Club"
-    assert data["results"][0]["provider"] == "tomtom"
+    assert data["results"][0]["source_provenance"]["primary"] == "osm"
+    assert data["results"][0]["source_provenance"]["confirmed_by"] == ["tomtom"]
+    assert data["results"][0]["tags"]["website"] == "https://franklinstrength.example.com"
     assert data["results"][0]["distance_m"] > 0

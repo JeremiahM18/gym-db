@@ -10,7 +10,7 @@ import {
 } from "./types";
 import { titleCase } from "./utils";
 
-const LIVE_RADIUS_PRESETS_MILES = [1, 3, 5, 10, 15, 25] as const;
+const LIVE_RADIUS_PRESETS_MILES = [1, 3, 5, 10, 25, 50, 100] as const;
 
 type QueryControlsPanelProps = {
   filters: FiltersState;
@@ -32,16 +32,6 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
       accent="Search Surface"
     >
       <form className="controls-grid" onSubmit={props.onPublishedSubmit}>
-        <label>
-          <span>Region</span>
-          <input
-            value={props.filters.region}
-            onChange={(event) =>
-              props.setFilters((current) => ({ ...current, region: event.target.value }))
-            }
-            placeholder="default region"
-          />
-        </label>
         <label>
           <span>Min confidence</span>
           <input
@@ -138,8 +128,8 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
           <span className="live-search-summary-label">Live Search</span>
           <strong>{props.liveSearchSummary}</strong>
           <p>
-            Search the real world by place and radius. GymDB handles the coordinates behind the
-            scenes so the user experience stays human.
+            Search the real world by place and radius. GymDB pulls gyms from OpenStreetMap, then
+            uses TomTom to resolve the place and enrich matching records behind the scenes.
           </p>
         </div>
         <label>

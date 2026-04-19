@@ -10,7 +10,7 @@ The app lets a user:
 - filter by confidence, tier, specialty, 24/7 access, and lifter friendliness
 - search by place without exposing raw latitude/longitude fields in the UI
 - inspect published gyms with structured inference, field-level confidence, contradiction diagnostics, source provenance, and source-backed metadata
-- inspect live gyms as direct TomTom POI results with outbound action links
+- inspect live gyms as OpenStreetMap-first results with GymDB inference and TomTom verification/enrichment
 - open gym websites when OSM tags provide them
 - jump to Google Maps or OpenStreetMap for the selected gym
 - see city/state and distance-in-miles in the result flow

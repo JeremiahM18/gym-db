@@ -15,7 +15,7 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
   const subtitle =
     props.mode === "published"
       ? "Curated catalog detail with explainable inference, operator facts, and public contact surface."
-      : "Live search detail for the selected gym result, with fast outbound actions and place context.";
+      : "OSM-first live search detail, with GymDB inference plus TomTom verification and enrichment when available.";
 
   if (props.detailLoading) {
     return (
@@ -136,7 +136,7 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
             <p className="detail-copy">
               {props.selectedGym.sourceKind === "published"
                 ? "Published catalog entries include GymDB inference and curation metadata."
-                : "Live search entries are direct TomTom POI results and do not include GymDB inference yet."}
+                : "Live search entries are OpenStreetMap gyms first, then GymDB inference is applied and TomTom is used to verify or enrich matching records."}
             </p>
           </section>
         </div>

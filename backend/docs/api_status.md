@@ -5,7 +5,7 @@ Status: **FROZEN**
 
 The `/v2` API is considered stable and safe for external client generation.
 The public `/v2/gyms` route is the authoritative published-dataset browse surface, including nearby-style filtering through `lat`, `lon`, and `radius_m`.
-The public `/v2/live/search` route is the live world search surface, backed by TomTom place resolution and live POI search.
+The public `/v2/live/search` route is the live world search surface, backed by TomTom place resolution plus OpenStreetMap/Overpass live gym retrieval, with TomTom used for verification and enrichment.
 The separate `/v2/gyms/geo/nearby` route is a lower-level PostGIS query surface and intentionally returns a slimmer distance-focused payload.
 
 ### Allowed Changes (No Version Bump)

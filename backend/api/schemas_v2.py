@@ -124,17 +124,8 @@ class LiveSearchOriginV2(BaseModel):
     country_code: str | None = None
 
 
-class LiveGymOutV2(BaseModel):
-    id: str
-    name: str
-    lat: float
-    lon: float
-    address: str | None = None
-    city: str | None = None
-    country_code: str | None = None
+class LiveGymOutV2(GymOutV2):
     distance_m: float | None = None
-    url: str | None = None
-    provider: str = Field(default="tomtom")
 
 
 class LiveGymSearchResponseV2(BaseModel):

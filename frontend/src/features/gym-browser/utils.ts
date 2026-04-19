@@ -127,6 +127,19 @@ export function getOpeningHours(gym: GymOutV2): string | null {
   return getTagValue(gym, ["opening_hours"]);
 }
 
+export function getTomTomRef(
+  gym: Pick<GymOutV2, "source_provenance">,
+): {
+  city?: string | null;
+  url?: string | null;
+} | null {
+  const externalRefs = gym.source_provenance?.external_refs;
+  if (!externalRefs || typeof externalRefs !== "object" || !("tomtom" in externalRefs)) {
+    return null;
+  }
+  return externalRefs.tomtom ?? null;
+}
+
 export function getAddress(gym: GymOutV2): string | null {
   const tags = gym.tags ?? {};
   const parts = [
@@ -359,12 +372,6 @@ export function buildSelectedActionLinks(selectedGym: BrowserGym | null): Action
   return links;
 }
 
-function compact(parts: Array<string | null | undefined>): string[] {
-  return parts
-    .filter((part) => part != null && String(part).trim())
-    .map((part) => String(part).trim());
-}
-
 export function buildPublishedBrowserGym(gym: GymOutV2): BrowserGym {
   return {
     id: gym.id,
@@ -394,29 +401,43 @@ export function buildPublishedBrowserGym(gym: GymOutV2): BrowserGym {
 }
 
 export function buildLiveBrowserGym(gym: LiveGymOutV2): BrowserGym {
-  const addressBits = compact([gym.address]);
-  const cityStateBits = compact([gym.city, gym.country_code]);
+  const tomTomRef = getTomTomRef(gym);
+  const address = getAddress(gym) ?? tomTomRef?.city ?? null;
+  const cityState = getCityState(gym);
+  const confirmedByTomTom = (gym.source_provenance.confirmed_by ?? []).includes("tomtom");
+  const matchStatus = gym.source_provenance.match_status;
+  const amenityChips = getAmenityChips(gym);
+
+  if (confirmedByTomTom) {
+    amenityChips.unshift("TomTom verified");
+  } else if (matchStatus === "name_mismatch") {
+    amenityChips.unshift("TomTom enriched");
+  }
 
   return {
     id: gym.id,
     name: gym.name,
     lat: gym.lat,
     lon: gym.lon,
-    address: addressBits.length ? addressBits.join(", ") : null,
-    cityState: cityStateBits.length ? cityStateBits.join(", ") : "Location published",
-    specialty: null,
-    tier: null,
-    confidenceScore: null,
-    website: normalizeUrl(gym.url ?? null),
-    phone: null,
-    email: null,
-    openingHours: null,
-    is247: null,
-    lifterFriendly: null,
-    amenityChips: ["Live TomTom result"],
+    address,
+    cityState,
+    specialty: inferString(gym, "specialty", "") || null,
+    tier: inferString(gym, "tier", "") || null,
+    confidenceScore: gym.confidence_score ?? null,
+    website: getWebsite(gym) ?? normalizeUrl(tomTomRef?.url ?? null),
+    phone: getPhone(gym),
+    email: getEmail(gym),
+    openingHours: getOpeningHours(gym),
+    is247: gym.inference.is_24_7 ? Boolean(gym.inference.is_24_7.value) : null,
+    lifterFriendly: gym.inference.lifter_friendly
+      ? Boolean(gym.inference.lifter_friendly.value)
+      : null,
+    amenityChips,
     distanceM: gym.distance_m ?? null,
     sourceKind: "live",
-    sourceLabel: "Live TomTom search",
-    inferenceEngine: null,
+    sourceLabel: confirmedByTomTom
+      ? "OSM primary · TomTom verified"
+      : "OSM primary · TomTom enriched",
+    inferenceEngine: gym.inference_meta.engine,
   };
 }

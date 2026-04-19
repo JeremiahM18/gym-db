@@ -8,7 +8,7 @@ from requests import RequestException
 from api.auth.dependencies import require_user
 from api.deps import get_gym_store
 from api.embeddings_views import serialize_gym_embedding_v2
-from api.normalizers import serialize_gym, translate_store_error
+from api.normalizers import serialize_domain_gym, serialize_gym, translate_store_error
 from api.schemas_v2 import (
     GeocodeResponseV2,
     GymEmbeddingV2,
@@ -17,8 +17,13 @@ from api.schemas_v2 import (
     LiveGymSearchResponseV2,
 )
 from api.settings import APISettings, get_settings
+from gymdb.application.coverage import apply_tomtom_coverage
+from gymdb.domain.inference import apply_inference
+from gymdb.domain.processing import compute_gym_id, deduplicate, normalize_name
+from gymdb.domain.scoring import compute_confidence
 from gymdb.gyms.protocol import GymStoreProtocol
 from gymdb.gyms.queries import get_gym_by_id, list_gyms
+from gymdb.infrastructure.overpass_client import OverpassUnavailableError, fetch_gyms
 from gymdb.infrastructure.tomtom_client import TomTomClient
 
 # v2 API contract is considered stable
@@ -40,6 +45,31 @@ def _haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> flo
     )
     c = 2 * asin(sqrt(a))
     return earth_radius_m * c
+
+
+_BROAD_LIVE_SEARCH_TERMS = {
+    "",
+    "gym",
+    "gyms",
+    "fitness",
+    "fitness_center",
+    "fitness_centre",
+}
+
+
+def _matches_live_query(gym, query: str) -> bool:
+    normalized_query = normalize_name(query)
+    if normalized_query in _BROAD_LIVE_SEARCH_TERMS:
+        return True
+
+    search_parts = [
+        gym.name,
+        gym.norm_name,
+        *(str(value) for value in gym.tags.values()),
+        *(str(result.value) for result in gym.inferred.values()),
+    ]
+    search_blob = normalize_name(" ".join(search_parts))
+    return normalized_query in search_blob
 
 
 @router.get("/gyms", response_model=GymsListResponseV2)
@@ -146,7 +176,7 @@ def live_search_gyms_v2(
         min_length=1,
         description="Gym name, brand, or search term. Defaults to gym.",
     ),
-    radius_m: int = Query(25_000, ge=500, le=100_000),
+    radius_m: int = Query(25_000, ge=500, le=400_000),
     limit: int = Query(25, ge=1, le=50),
     settings: APISettings = Depends(get_settings),
 ):
@@ -182,26 +212,49 @@ def live_search_gyms_v2(
     search_query = q.strip() or "gym"
 
     try:
-        places = client.search(
-            query=search_query,
+        elements = fetch_gyms(radius_m, origin.lat, origin.lon)
+    except OverpassUnavailableError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=str(exc),
+        ) from exc
+
+    gyms = deduplicate(elements)
+    for gym in gyms:
+        gym.id = compute_gym_id(gym.norm_name, gym.lat, gym.lon)
+
+    try:
+        places = client.search_gyms(
             lat=origin.lat,
             lon=origin.lon,
             radius_m=radius_m,
-            geobias_lat=origin.lat,
-            geobias_lon=origin.lon,
-            limit=limit,
+            limit=max(len(gyms) * 2, 100),
         )
     except RequestException as exc:
         raise HTTPException(
             status_code=503,
-            detail="TomTom live gym search is temporarily unavailable.",
+            detail="TomTom live verification is temporarily unavailable.",
         ) from exc
+
+    apply_tomtom_coverage(gyms, places)
+
+    for gym in gyms:
+        compute_confidence(gym)
+        apply_inference(gym)
+
+    filtered_gyms = [
+        gym for gym in gyms if _matches_live_query(gym, search_query)
+    ]
+    filtered_gyms.sort(
+        key=lambda gym: _haversine_meters(origin.lat, origin.lon, gym.lat, gym.lon)
+    )
+    limited_gyms = filtered_gyms[:limit]
 
     return {
         "api_version": "v2",
         "query": search_query,
         "place_query": place,
-        "count": len(places),
+        "count": len(limited_gyms),
         "radius_m": radius_m,
         "origin": {
             "id": origin.id,
@@ -214,23 +267,15 @@ def live_search_gyms_v2(
         },
         "results": [
             {
-                "id": place_result.id,
-                "name": place_result.name,
-                "lat": place_result.lat,
-                "lon": place_result.lon,
-                "address": place_result.address,
-                "city": place_result.city,
-                "country_code": place_result.country_code,
+                **serialize_domain_gym(gym),
                 "distance_m": _haversine_meters(
                     origin.lat,
                     origin.lon,
-                    place_result.lat,
-                    place_result.lon,
+                    gym.lat,
+                    gym.lon,
                 ),
-                "url": place_result.url,
-                "provider": "tomtom",
             }
-            for place_result in places
+            for gym in limited_gyms
         ],
     }
 

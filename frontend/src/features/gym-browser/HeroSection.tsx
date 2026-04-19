@@ -20,9 +20,9 @@ export function HeroSection(props: HeroSectionProps) {
         <p className="eyebrow">GymDB Full-Stack Search</p>
         <h1>Search for gyms within a real-world radius, then compare them against the curated catalog when you want verified operator detail.</h1>
         <p className="hero-copy">
-          Live Search is built around how people actually search: pick a place, choose a radius,
-          and see gyms by distance. Published Catalog stays here as the curated GymDB dataset with
-          inference, quality filters, and explainable operator detail.
+          Live Search is now OpenStreetMap-first: pick a place, choose a radius, and see gyms by
+          distance with GymDB inference on top. TomTom resolves the place and then verifies or
+          enriches matching gyms when it can.
         </p>
         <p className="hero-live-summary">
           {props.mode === "live"

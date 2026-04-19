@@ -246,28 +246,73 @@ test.beforeEach(async ({ page }) => {
         },
         results: [
           {
-            id: "live-1",
-            name: "Franklin Strength Club",
-            lat: 35.923,
-            lon: -86.865,
-            address: "101 Main St, Franklin, TN",
-            city: "Franklin",
-            country_code: "US",
+            ...buildGym({
+              id: "live-1",
+              name: "Franklin Strength Club",
+              lat: 35.923,
+              lon: -86.865,
+              tags: {
+                name: "Franklin Strength Club",
+                website: "https://franklinstrength.example.com",
+                phone: "615-555-7777",
+                "addr:city": "Franklin",
+                "addr:state": "TN",
+                "addr:street": "Main St",
+                "addr:housenumber": "101",
+                opening_hours: "24/7",
+                amenity: "gym",
+              },
+              source_provenance: {
+                primary: "osm",
+                confirmed_by: ["tomtom"],
+                match_status: "matched",
+                external_refs: {
+                  tomtom: {
+                    provider: "tomtom",
+                    external_id: "tt-live-1",
+                    name: "Franklin Strength Club",
+                    status: "matched",
+                    distance_m: 20,
+                    city: "Franklin",
+                    url: "https://franklinstrength.example.com",
+                  },
+                },
+              },
+            }),
             distance_m: 412,
-            url: "https://franklinstrength.example.com",
-            provider: "tomtom",
           },
           {
-            id: "live-2",
-            name: "Cool Springs Athletic Club",
-            lat: 35.955,
-            lon: -86.801,
-            address: "200 Cool Springs Blvd, Franklin, TN",
-            city: "Franklin",
-            country_code: "US",
+            ...buildGym({
+              id: "live-2",
+              name: "Cool Springs Athletic Club",
+              lat: 35.955,
+              lon: -86.801,
+              tags: {
+                name: "Cool Springs Athletic Club",
+                "addr:city": "Franklin",
+                "addr:state": "TN",
+                "addr:street": "Cool Springs Blvd",
+                "addr:housenumber": "200",
+                amenity: "gym",
+              },
+              source_provenance: {
+                primary: "osm",
+                confirmed_by: [],
+                match_status: "name_mismatch",
+                external_refs: {
+                  tomtom: {
+                    provider: "tomtom",
+                    external_id: "tt-live-2",
+                    name: "Cool Springs Athletic Club",
+                    status: "name_mismatch",
+                    distance_m: 35,
+                    city: "Franklin",
+                    url: null,
+                  },
+                },
+              },
+            }),
             distance_m: 6832,
-            url: null,
-            provider: "tomtom",
           },
         ],
       }),
@@ -329,6 +374,8 @@ test("runs live search without exposing latitude or longitude inputs", async ({
     "Live Search within 5 mi of Franklin, TN",
   );
   await expect(
-    page.locator(".detail-facts .stat-card").filter({ hasText: "SourceLive TomTom search" }),
+    page
+      .locator(".detail-facts .stat-card")
+      .filter({ hasText: "SourceOSM primary · TomTom verified" }),
   ).toBeVisible();
 });

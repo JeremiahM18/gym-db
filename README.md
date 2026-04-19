@@ -2,7 +2,7 @@
 
 GymDB is a full-stack geospatial data platform for discovering, normalizing, enriching, and serving gym location data.
 
-The project combines a FastAPI backend, TomTom-backed live place search, PostGIS-backed spatial querying, deterministic inference, provenance-aware review workflows, and a React browser client that separates live search from the curated published catalog.
+The project combines a FastAPI backend, OpenStreetMap-first live gym search with TomTom verification and enrichment, PostGIS-backed spatial querying, deterministic inference, provenance-aware review workflows, and a React browser client that separates live search from the curated published catalog.
 
 This is not a CRUD demo. It is a systems-oriented project focused on data quality, stable contracts, explainability, and operational discipline.
 
@@ -35,7 +35,7 @@ GymDB exists to turn messy location data into a trustworthy platform that downst
 GymDB already includes:
 
 - a FastAPI public API under `/v2`
-- a TomTom-backed live gym search surface under `/v2/live/search`
+- an OpenStreetMap-first live gym search surface under `/v2/live/search`
 - a separate internal job surface for controlled ingestion and job receipt inspection
 - deterministic dataset publication and read-model access
 - PostGIS nearby search using exact radius filtering and indexed candidate ordering
@@ -131,7 +131,7 @@ The frontend is not filler. It is a real operator/demo client for the backend.
 It supports:
 
 - published catalog browsing over `/v2/gyms`
-- live world gym search over `/v2/live/search`
+- live world gym search over `/v2/live/search`, using OpenStreetMap as the primary gym source and TomTom for place resolution plus enrichment
 - place-based search without exposing raw latitude/longitude fields in the browser
 - filtering by confidence, tier, specialty, 24/7 access, and lifter friendliness
 - drill-in inspection of curated published inference details, confidence, and reasons
@@ -271,7 +271,7 @@ REQUIRE_TOMTOM_PUBLISH_VALIDATION=true
 TOMTOM_API_KEY=<your tomtom api key>
 ```
 
-TomTom validation is now the default publish gate. You also need `TOMTOM_API_KEY` for the new live-search surface because the browser now calls a backend TomTom search proxy. If you only want to browse an already-published dataset and do not need live search, the key can stay unset.
+TomTom validation is now the default publish gate. You also need `TOMTOM_API_KEY` for the live-search surface because the browser resolves places through TomTom and uses it to verify or enrich OpenStreetMap gyms. If you only want to browse an already-published dataset and do not need live search, the key can stay unset.
 If Overpass is under load, the ingest client now retries automatically and can fail over to an alternate endpoint if you set `OVERPASS_FALLBACK_URL`. A smaller `--radius-miles` is still the fastest way to get an initial local dataset published.
 
 Then start the API:

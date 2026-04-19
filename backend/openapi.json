@@ -407,7 +407,7 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "maximum": 100000,
+              "maximum": 400000,
               "minimum": 500,
               "default": 25000,
               "title": "Radius M"
@@ -1327,6 +1327,10 @@
             "type": "string",
             "title": "Name"
           },
+          "norm_name": {
+            "type": "string",
+            "title": "Norm Name"
+          },
           "lat": {
             "type": "number",
             "title": "Lat"
@@ -1335,38 +1339,63 @@
             "type": "number",
             "title": "Lon"
           },
-          "address": {
+          "confidence_score": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "number"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Address"
+            "title": "Confidence Score"
           },
-          "city": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "City"
+          "osm_refs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Osm Refs"
           },
-          "country_code": {
+          "tags": {
             "anyOf": [
               {
-                "type": "string"
+                "additionalProperties": true,
+                "type": "object"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Country Code"
+            "title": "Tags"
+          },
+          "inference": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/InferenceResult"
+            },
+            "type": "object",
+            "title": "Inference"
+          },
+          "inference_meta": {
+            "$ref": "#/components/schemas/InferenceMeta"
+          },
+          "source_provenance": {
+            "$ref": "#/components/schemas/SourceProvenanceV2"
+          },
+          "inference_summary": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inference Summary"
           },
           "distance_m": {
             "anyOf": [
@@ -1378,30 +1407,19 @@
               }
             ],
             "title": "Distance M"
-          },
-          "url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Url"
-          },
-          "provider": {
-            "type": "string",
-            "title": "Provider",
-            "default": "tomtom"
           }
         },
         "type": "object",
         "required": [
           "id",
           "name",
+          "norm_name",
           "lat",
-          "lon"
+          "lon",
+          "osm_refs",
+          "inference",
+          "inference_meta",
+          "source_provenance"
         ],
         "title": "LiveGymOutV2"
       },
@@ -1662,7 +1680,7 @@
     },
     {
       "name": "live-search",
-      "description": "Live world search backed by TomTom"
+      "description": "Live world search with OpenStreetMap as the primary source and TomTom for place resolution plus enrichment"
     },
     {
       "name": "review",

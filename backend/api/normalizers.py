@@ -7,6 +7,7 @@ from typing import Any
 from fastapi import HTTPException
 
 from gymdb.domain.inference import RULESET_VERSION
+from gymdb.domain.models import Gym
 from gymdb.domain.processing import normalize_name
 from gymdb.observe.summaries import summarize_inference
 
@@ -104,6 +105,24 @@ def serialize_gym(gym: dict) -> dict:
     out["source_provenance"] = normalize_source_provenance(gym.get("source_provenance"))
     out["inference_summary"] = summarize_inference(out["inference"])
     return out
+
+
+def serialize_domain_gym(gym: Gym) -> dict:
+    return serialize_gym(
+        {
+            "id": gym.id,
+            "name": gym.name,
+            "norm_name": gym.norm_name,
+            "lat": gym.lat,
+            "lon": gym.lon,
+            "confidence_score": gym.confidence_score,
+            "osm_refs": gym.osm_refs,
+            "tags": gym.tags,
+            "inferred": gym.inferred,
+            "inference_meta": gym.inference_meta,
+            "source_provenance": gym.source_provenance,
+        }
+    )
 
 
 def translate_store_error(exc: Exception) -> HTTPException:
