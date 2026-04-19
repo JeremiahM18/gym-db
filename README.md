@@ -1,8 +1,8 @@
 # GymDB
 
-GymDB is a backend-first geospatial data platform for discovering, normalizing, enriching, and serving gym location data.
+GymDB is a full-stack geospatial data platform for discovering, normalizing, enriching, and serving gym location data.
 
-The project combines a FastAPI backend, PostGIS-backed spatial querying, deterministic inference, provenance-aware review workflows, and a React browser client that demonstrates the public API on top of published datasets.
+The project combines a FastAPI backend, TomTom-backed live place search, PostGIS-backed spatial querying, deterministic inference, provenance-aware review workflows, and a React browser client that separates live search from the curated published catalog.
 
 This is not a CRUD demo. It is a systems-oriented project focused on data quality, stable contracts, explainability, and operational discipline.
 
@@ -35,6 +35,7 @@ GymDB exists to turn messy location data into a trustworthy platform that downst
 GymDB already includes:
 
 - a FastAPI public API under `/v2`
+- a TomTom-backed live gym search surface under `/v2/live/search`
 - a separate internal job surface for controlled ingestion and job receipt inspection
 - deterministic dataset publication and read-model access
 - PostGIS nearby search using exact radius filtering and indexed candidate ordering
@@ -100,11 +101,11 @@ curl -H "Authorization: Bearer <token>" \
   "http://localhost:8000/v2/gyms?region=tn_nashville&min_conf=0.6&specialty=powerlifting&limit=20"
 ```
 
-### Run nearby search
+### Run live gym search
 
 ```bash
 curl -H "Authorization: Bearer <token>" \
-  "http://localhost:8000/v2/gyms?lat=36.1627&lon=-86.7816&radius_m=2500&limit=25"
+  "http://localhost:8000/v2/live/search?place=Franklin%2C%20TN&q=gym&radius_m=25000"
 ```
 
 ### Get one gym with inference details
@@ -129,11 +130,12 @@ The frontend is not filler. It is a real operator/demo client for the backend.
 
 It supports:
 
-- catalog browsing over `/v2/gyms`
-- city and place-name resolution through `/v2/geocode` before nearby search
-- published-dataset nearby search using coordinates and radius filters
+- published catalog browsing over `/v2/gyms`
+- live world gym search over `/v2/live/search`
+- place-based search without exposing raw latitude/longitude fields in the browser
 - filtering by confidence, tier, specialty, 24/7 access, and lifter friendliness
-- drill-in inspection of inference details, confidence, and reasons
+- drill-in inspection of curated published inference details, confidence, and reasons
+- fast live result inspection with outbound actions and place context
 - source-backed actions like website, phone, Google Maps, and OpenStreetMap
 - a geo canvas that renders result coordinates into an interactive map-like panel
 - service liveness and readiness visibility from the browser
@@ -269,7 +271,7 @@ REQUIRE_TOMTOM_PUBLISH_VALIDATION=true
 TOMTOM_API_KEY=<your tomtom api key>
 ```
 
-TomTom validation is now the default publish gate. If you are browsing an already-published dataset locally, you do not need a TomTom key. If you are rebuilding a dataset, configure `TOMTOM_API_KEY` first.
+TomTom validation is now the default publish gate. You also need `TOMTOM_API_KEY` for the new live-search surface because the browser now calls a backend TomTom search proxy. If you only want to browse an already-published dataset and do not need live search, the key can stay unset.
 If Overpass is under load, the ingest client now retries automatically and can fail over to an alternate endpoint if you set `OVERPASS_FALLBACK_URL`. A smaller `--radius-miles` is still the fastest way to get an initial local dataset published.
 
 Then start the API:

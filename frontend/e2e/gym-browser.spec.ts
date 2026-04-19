@@ -170,29 +170,6 @@ const gymsById = new Map(
 );
 
 test.beforeEach(async ({ page }) => {
-  await page.route("**/v2/geocode**", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        api_version: "2.0.0",
-        query: "Nashville, TN",
-        count: 1,
-        results: [
-          {
-            id: "place-1",
-            name: "Nashville, TN",
-            lat: 36.1627,
-            lon: -86.7816,
-            address: "Nashville, TN",
-            city: "Nashville",
-            country_code: "US",
-          },
-        ],
-      }),
-    });
-  });
-
   await page.route("**/healthz", async (route) => {
     await route.fulfill({ status: 200, body: "{}" });
   });
@@ -230,11 +207,8 @@ test.beforeEach(async ({ page }) => {
       return;
     }
     const specialty = url.searchParams.get("specialty");
-    const hasNearby = url.searchParams.has("lat");
-
-    const results = hasNearby
-      ? [riverfrontBarbell]
-      : specialty === "powerlifting"
+    const results =
+      specialty === "powerlifting"
         ? [downtownStrength]
         : [downtownStrength, riverfrontBarbell];
 
@@ -250,14 +224,63 @@ test.beforeEach(async ({ page }) => {
       }),
     });
   });
+
+  await page.route("**/v2/live/search**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        api_version: "2.0.0",
+        query: "gym",
+        place_query: "Franklin, TN",
+        count: 2,
+        radius_m: 25000,
+        origin: {
+          id: "origin-1",
+          name: "Franklin, TN",
+          lat: 35.9251,
+          lon: -86.8689,
+          address: "Franklin, TN",
+          city: "Franklin",
+          country_code: "US",
+        },
+        results: [
+          {
+            id: "live-1",
+            name: "Franklin Strength Club",
+            lat: 35.923,
+            lon: -86.865,
+            address: "101 Main St, Franklin, TN",
+            city: "Franklin",
+            country_code: "US",
+            distance_m: 412,
+            url: "https://franklinstrength.example.com",
+            provider: "tomtom",
+          },
+          {
+            id: "live-2",
+            name: "Cool Springs Athletic Club",
+            lat: 35.955,
+            lon: -86.801,
+            address: "200 Cool Springs Blvd, Franklin, TN",
+            city: "Franklin",
+            country_code: "US",
+            distance_m: 6832,
+            url: null,
+            provider: "tomtom",
+          },
+        ],
+      }),
+    });
+  });
 });
 
-test("loads the catalog and selected gym details", async ({ page }) => {
+test("loads the published catalog and selected gym details", async ({ page }) => {
   await page.goto("/");
 
   await expect(
     page.getByRole("heading", {
-      name: /Find gyms, inspect inference/i,
+      name: /Search the live world for gyms/i,
     }),
   ).toBeVisible();
   await expect(page.getByText("API live: yes")).toBeVisible();
@@ -269,11 +292,13 @@ test("loads the catalog and selected gym details", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("refreshes the catalog with a server-backed specialty filter", async ({ page }) => {
+test("refreshes the published catalog with a server-backed specialty filter", async ({
+  page,
+}) => {
   await page.goto("/");
 
-  await page.getByLabel("Specialty").selectOption("powerlifting");
-  await page.getByRole("button", { name: "Refresh catalog" }).click();
+  await page.locator("form").first().getByLabel("Specialty").selectOption("powerlifting");
+  await page.getByRole("button", { name: "Refresh published catalog" }).click();
 
   await expect(page.getByRole("button", { name: /Downtown Strength/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /Riverfront Barbell/i })).toHaveCount(0);
@@ -282,16 +307,24 @@ test("refreshes the catalog with a server-backed specialty filter", async ({ pag
   );
 });
 
-test("runs nearby search and switches the browser into nearby mode", async ({ page }) => {
+test("runs live search without exposing latitude or longitude inputs", async ({
+  page,
+}) => {
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Run nearby search" }).click();
+  await expect(page.getByLabel("Latitude")).toHaveCount(0);
+  await expect(page.getByLabel("Longitude")).toHaveCount(0);
 
-  await expect(page.getByRole("button", { name: /^Nearby$/ })).toBeEnabled();
-  await expect(page.getByRole("button", { name: /Riverfront Barbell/i })).toBeVisible();
+  await page.getByLabel("City, neighborhood, or place").fill("Franklin, TN");
+  await page.getByRole("button", { name: "Run live search" }).click();
+
+  await expect(page.getByRole("button", { name: /^Live$/ })).toBeEnabled();
+  await expect(page.getByRole("button", { name: /Franklin Strength Club/i })).toBeVisible();
   await expect(
-    page.getByRole("heading", { level: 3, name: "Riverfront Barbell" }),
+    page.getByRole("heading", { level: 3, name: "Franklin Strength Club" }),
   ).toBeVisible();
-  await expect(page.getByText("Open in Maps").first()).toBeVisible();
-  await expect(page.getByText(/Resolved search origin:/i)).toContainText("Nashville, TN");
+  await expect(page.getByText(/Live search origin:/i)).toContainText("Franklin, TN");
+  await expect(
+    page.locator(".detail-facts .stat-card").filter({ hasText: "SourceLive TomTom search" }),
+  ).toBeVisible();
 });

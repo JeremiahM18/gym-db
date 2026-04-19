@@ -4,31 +4,31 @@ import { Panel } from "../../components/Panel";
 import {
   specialtyOptions,
   tierOptions,
+  type LiveSearchState,
   type FiltersState,
-  type NearbyState,
   type ToggleChoice,
 } from "./types";
 import { titleCase } from "./utils";
 
 type QueryControlsPanelProps = {
   filters: FiltersState;
-  nearby: NearbyState;
+  liveSearch: LiveSearchState;
   loading: boolean;
-  nearbyRadiusLabel: string;
-  onCatalogSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  onNearbySubmit: (event: FormEvent<HTMLFormElement>) => void;
+  liveRadiusLabel: string;
+  onPublishedSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onLiveSubmit: (event: FormEvent<HTMLFormElement>) => void;
   setFilters: Dispatch<SetStateAction<FiltersState>>;
-  setNearby: Dispatch<SetStateAction<NearbyState>>;
+  setLiveSearch: Dispatch<SetStateAction<LiveSearchState>>;
 };
 
 export function QueryControlsPanel(props: QueryControlsPanelProps) {
   return (
     <Panel
       title="Query Controls"
-      subtitle="Run catalog filters or nearby search against the live backend."
-      accent="Read Surface"
+      subtitle="Browse the published catalog or run a true live world search without exposing coordinates."
+      accent="Search Surface"
     >
-      <form className="controls-grid" onSubmit={props.onCatalogSubmit}>
+      <form className="controls-grid" onSubmit={props.onPublishedSubmit}>
         <label>
           <span>Region</span>
           <input
@@ -125,18 +125,35 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
         </label>
         <div className="controls-actions">
           <button className="primary-button" type="submit" disabled={props.loading}>
-            Refresh catalog
+            Refresh published catalog
           </button>
         </div>
       </form>
 
-      <form className="controls-grid nearby-grid" onSubmit={props.onNearbySubmit}>
+      <form className="controls-grid nearby-grid" onSubmit={props.onLiveSubmit}>
         <label>
-          <span>Place or city</span>
+          <span>Gym search</span>
           <input
-            value={props.nearby.placeQuery}
+            value={props.liveSearch.query}
             onChange={(event) =>
-              props.setNearby((current) => ({
+              props.setLiveSearch((current) => ({
+                ...current,
+                query: event.target.value,
+              }))
+            }
+            placeholder="gym, crossfit, powerlifting, equinox"
+          />
+          <small className="field-hint">
+            Leave it as <strong>gym</strong> for a broad live search, or search for a specific
+            brand or specialty.
+          </small>
+        </label>
+        <label>
+          <span>City, neighborhood, or place</span>
+          <input
+            value={props.liveSearch.placeQuery}
+            onChange={(event) =>
+              props.setLiveSearch((current) => ({
                 ...current,
                 placeQuery: event.target.value,
                 resolvedLabel: "",
@@ -145,57 +162,28 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
             placeholder="Nashville, TN"
           />
           <small className="field-hint">
-            Optional. If provided, GymDB resolves it with TomTom before nearby search.
+            Required. GymDB resolves this place with TomTom, then runs the live search around it.
           </small>
-        </label>
-        <label>
-          <span>Latitude</span>
-          <input
-            value={props.nearby.lat}
-            onChange={(event) =>
-              props.setNearby((current) => ({
-                ...current,
-                lat: event.target.value,
-                resolvedLabel: "",
-              }))
-            }
-            inputMode="decimal"
-          />
-        </label>
-        <label>
-          <span>Longitude</span>
-          <input
-            value={props.nearby.lon}
-            onChange={(event) =>
-              props.setNearby((current) => ({
-                ...current,
-                lon: event.target.value,
-                resolvedLabel: "",
-              }))
-            }
-            inputMode="decimal"
-          />
         </label>
         <label>
           <span>Radius (meters)</span>
           <input
-            value={props.nearby.radiusM}
+            value={props.liveSearch.radiusM}
             onChange={(event) =>
-              props.setNearby((current) => ({ ...current, radiusM: event.target.value }))
+              props.setLiveSearch((current) => ({ ...current, radiusM: event.target.value }))
             }
             inputMode="numeric"
           />
-          <small className="field-hint">About {props.nearbyRadiusLabel}</small>
+          <small className="field-hint">About {props.liveRadiusLabel}</small>
         </label>
-        {props.nearby.resolvedLabel ? (
+        {props.liveSearch.resolvedLabel ? (
           <div className="field-hint">
-            Resolved search origin: {props.nearby.resolvedLabel} ({props.nearby.lat},{" "}
-            {props.nearby.lon})
+            Live search origin: {props.liveSearch.resolvedLabel}
           </div>
         ) : null}
         <div className="controls-actions">
           <button className="secondary-button" type="submit" disabled={props.loading}>
-            Run nearby search
+            Run live search
           </button>
         </div>
       </form>

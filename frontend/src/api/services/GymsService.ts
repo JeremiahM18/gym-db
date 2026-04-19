@@ -7,6 +7,7 @@ import type { GymEmbeddingV2 } from '../models/GymEmbeddingV2';
 import type { GymResponseV2 } from '../models/GymResponseV2';
 import type { GymsListResponseV2 } from '../models/GymsListResponseV2';
 import type { GymsNearbyResponseV2 } from '../models/GymsNearbyResponseV2';
+import type { LiveGymSearchResponseV2 } from '../models/LiveGymSearchResponseV2';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -108,6 +109,35 @@ export class GymsService {
             url: '/v2/geocode',
             query: {
                 'q': q,
+                'limit': limit,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Live Search Gyms V2
+     * @param place City, neighborhood, or place
+     * @param q Gym name, brand, or search term. Defaults to gym.
+     * @param radiusM
+     * @param limit
+     * @returns LiveGymSearchResponseV2 Successful Response
+     * @throws ApiError
+     */
+    public static liveSearchGymsV2V2LiveSearchGet(
+        place: string,
+        q: string = 'gym',
+        radiusM: number = 25000,
+        limit: number = 25,
+    ): CancelablePromise<LiveGymSearchResponseV2> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/v2/live/search',
+            query: {
+                'place': place,
+                'q': q,
+                'radius_m': radiusM,
                 'limit': limit,
             },
             errors: {

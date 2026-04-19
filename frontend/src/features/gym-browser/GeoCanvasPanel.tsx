@@ -1,9 +1,9 @@
 import { GeoMap } from "../../components/GeoMap";
 import { Panel } from "../../components/Panel";
-import type { GymOutV2 } from "../../lib/api";
+import type { BrowserGym } from "./types";
 
 type GeoCanvasPanelProps = {
-  gyms: GymOutV2[];
+  gyms: BrowserGym[];
   selectedGymId: string | null;
   onSelectGym: (gymId: string) => void;
   nearbyLat?: number;

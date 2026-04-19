@@ -1,35 +1,25 @@
 import { ActionPill } from "../../components/ActionPill";
 import { Panel } from "../../components/Panel";
 import { StatCard } from "../../components/StatCard";
-import type { GymOutV2 } from "../../lib/api";
-import type { ActionLink } from "./types";
-import {
-  formatConfidence,
-  getAddress,
-  getAmenityChips,
-  getCityState,
-  getEmail,
-  getOpeningHours,
-  getPhone,
-  inferBoolean,
-  inferString,
-  titleCase,
-} from "./utils";
+import type { ActionLink, BrowserGym, Mode } from "./types";
+import { formatConfidence, formatMilesFromMeters, titleCase } from "./utils";
 
 type SelectedGymPanelProps = {
   detailLoading: boolean;
-  selectedGym: GymOutV2 | null;
+  mode: Mode;
+  selectedGym: BrowserGym | null;
   selectedActionLinks: ActionLink[];
 };
 
 export function SelectedGymPanel(props: SelectedGymPanelProps) {
+  const subtitle =
+    props.mode === "published"
+      ? "Curated catalog detail with explainable inference, operator facts, and public contact surface."
+      : "Live search detail for the selected gym result, with fast outbound actions and place context.";
+
   if (props.detailLoading) {
     return (
-      <Panel
-        title="Selected Gym"
-        subtitle="Action links, operator facts, public contact surface, and explainable inference from the live v2 contract."
-        accent="Explainability"
-      >
+      <Panel title="Selected Gym" subtitle={subtitle} accent="Explainability">
         <div className="empty-state">Loading selected gym...</div>
       </Panel>
     );
@@ -37,45 +27,38 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
 
   if (!props.selectedGym) {
     return (
-      <Panel
-        title="Selected Gym"
-        subtitle="Action links, operator facts, public contact surface, and explainable inference from the live v2 contract."
-        accent="Explainability"
-      >
-        <div className="empty-state">Select a gym to inspect the full public surface.</div>
+      <Panel title="Selected Gym" subtitle={subtitle} accent="Explainability">
+        <div className="empty-state">Select a gym to inspect the current result.</div>
       </Panel>
     );
   }
 
-  const selectedCity = getCityState(props.selectedGym);
-  const visibleSelectedSpecialty = titleCase(
-    inferString(props.selectedGym, "specialty", "general_fitness"),
-  );
-  const visibleSelectedAddress = getAddress(props.selectedGym);
-  const visibleSelectedHours = getOpeningHours(props.selectedGym);
-  const visibleSelectedAmenities = getAmenityChips(props.selectedGym);
-
   return (
-    <Panel
-      title="Selected Gym"
-      subtitle="Action links, operator facts, public contact surface, and explainable inference from the live v2 contract."
-      accent="Explainability"
-    >
+    <Panel title="Selected Gym" subtitle={subtitle} accent="Explainability">
       <div className="detail-grid">
         <div className="detail-headline">
           <div>
             <p className="eyebrow">{props.selectedGym.id}</p>
             <h3>{props.selectedGym.name}</h3>
             <p className="detail-summary">
-              {selectedCity} · {props.selectedGym.inference_summary?.specialty ?? visibleSelectedSpecialty} ·{" "}
-              {props.selectedGym.inference_summary?.tier ??
-                inferString(props.selectedGym, "tier", "Unknown")}
+              {props.selectedGym.cityState}
+              {props.selectedGym.specialty
+                ? ` · ${titleCase(props.selectedGym.specialty)}`
+                : ""}
+              {props.selectedGym.tier ? ` · ${titleCase(props.selectedGym.tier)}` : ""}
             </p>
           </div>
           <div className="detail-badges">
-            <span>{visibleSelectedSpecialty}</span>
-            <span>{titleCase(inferString(props.selectedGym, "tier", "unknown"))}</span>
-            <span>{formatConfidence(props.selectedGym.confidence_score)}</span>
+            <span>{props.selectedGym.sourceLabel}</span>
+            {props.selectedGym.specialty ? (
+              <span>{titleCase(props.selectedGym.specialty)}</span>
+            ) : null}
+            {props.selectedGym.confidenceScore != null ? (
+              <span>{formatConfidence(props.selectedGym.confidenceScore)}</span>
+            ) : null}
+            {props.selectedGym.distanceM != null ? (
+              <span>{formatMilesFromMeters(props.selectedGym.distanceM)}</span>
+            ) : null}
           </div>
         </div>
 
@@ -87,17 +70,27 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
 
         <div className="detail-facts">
           <StatCard
-            label="Lifter friendly"
-            value={inferBoolean(props.selectedGym, "lifter_friendly")}
+            label="Source"
+            value={props.selectedGym.sourceLabel}
             tone="cool"
           />
           <StatCard
-            label="24/7 access"
-            value={inferBoolean(props.selectedGym, "is_24_7")}
+            label="City"
+            value={props.selectedGym.cityState}
             tone="warm"
           />
-          <StatCard label="City" value={selectedCity} />
-          <StatCard label="Inference engine" value={props.selectedGym.inference_meta.engine} />
+          <StatCard
+            label="Search distance"
+            value={
+              props.selectedGym.distanceM != null
+                ? formatMilesFromMeters(props.selectedGym.distanceM)
+                : "n/a"
+            }
+          />
+          <StatCard
+            label="Inference engine"
+            value={props.selectedGym.inferenceEngine ?? "n/a"}
+          />
         </div>
 
         <div className="detail-columns">
@@ -106,19 +99,23 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
             <div className="fact-list">
               <div className="fact-row">
                 <span>Address</span>
-                <strong>{visibleSelectedAddress ?? "No structured address in source tags"}</strong>
+                <strong>
+                  {props.selectedGym.address ?? "No structured address was published"}
+                </strong>
               </div>
               <div className="fact-row">
                 <span>Hours</span>
-                <strong>{visibleSelectedHours ?? "Hours not published"}</strong>
+                <strong>
+                  {props.selectedGym.openingHours ?? "Hours not published"}
+                </strong>
               </div>
               <div className="fact-row">
                 <span>Phone</span>
-                <strong>{getPhone(props.selectedGym) ?? "No phone in source tags"}</strong>
+                <strong>{props.selectedGym.phone ?? "No phone published"}</strong>
               </div>
               <div className="fact-row">
                 <span>Email</span>
-                <strong>{getEmail(props.selectedGym) ?? "No email in source tags"}</strong>
+                <strong>{props.selectedGym.email ?? "No email published"}</strong>
               </div>
             </div>
           </section>
@@ -126,38 +123,22 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
           <section className="detail-section">
             <h4>Signals and Amenities</h4>
             <div className="tag-cloud">
-              {visibleSelectedAmenities.length ? (
-                visibleSelectedAmenities.map((chip) => (
+              {props.selectedGym.amenityChips.length ? (
+                props.selectedGym.amenityChips.map((chip) => (
                   <span key={chip} className="tag-pill">
                     {chip}
                   </span>
                 ))
               ) : (
-                <p className="detail-copy">No prominent amenity tags were published for this gym.</p>
+                <p className="detail-copy">No extra amenity signals were published.</p>
               )}
             </div>
             <p className="detail-copy">
-              OSM refs: {props.selectedGym.osm_refs.length} linked source record
-              {props.selectedGym.osm_refs.length === 1 ? "" : "s"}.
+              {props.selectedGym.sourceKind === "published"
+                ? "Published catalog entries include GymDB inference and curation metadata."
+                : "Live search entries are direct TomTom POI results and do not include GymDB inference yet."}
             </p>
           </section>
-        </div>
-
-        <div className="inference-table">
-          {Object.entries(props.selectedGym.inference).map(([key, value]) => (
-            <article key={key} className="inference-row">
-              <div>
-                <p className="inference-key">{titleCase(key)}</p>
-                <strong>{String(value.value)}</strong>
-              </div>
-              <div>
-                <p className="inference-meta">
-                  Confidence {formatConfidence(value.confidence ?? null)}
-                </p>
-                <p className="inference-reasons">{value.reasons.join(" • ") || "No explicit reasons"}</p>
-              </div>
-            </article>
-          ))}
         </div>
       </div>
     </Panel>

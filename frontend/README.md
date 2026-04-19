@@ -6,10 +6,11 @@ This frontend is the primary demo surface for the GymDB backend.
 
 The app lets a user:
 - browse published gym records from `/v2/gyms`
+- run true live world gym search from `/v2/live/search`
 - filter by confidence, tier, specialty, 24/7 access, and lifter friendliness
-- resolve a city or place name through `/v2/geocode` before nearby search
-- run published-dataset nearby search through `/v2/gyms` using `lat`, `lon`, and `radius_m`
-- inspect a single gym's structured inference, field-level confidence, contradiction diagnostics, source provenance, and source-backed metadata
+- search by place without exposing raw latitude/longitude fields in the UI
+- inspect published gyms with structured inference, field-level confidence, contradiction diagnostics, source provenance, and source-backed metadata
+- inspect live gyms as direct TomTom POI results with outbound action links
 - open gym websites when OSM tags provide them
 - jump to Google Maps or OpenStreetMap for the selected gym
 - see city/state and distance-in-miles in the result flow
@@ -44,10 +45,11 @@ The app lets a user:
 ## Environment
 
 The frontend reads `VITE_API_BASE_URL`.
+For live search, the backend must also have `TOMTOM_API_KEY` configured.
 
 The frontend is standardized on Node 24 to match CI.
 If you use `nvm`, run `nvm use` from the repo root before installing dependencies.
-Place-based search in the browser does not publish a new dataset by itself; it resolves a place name and searches the currently published region(s). To publish a different city into the dataset catalog, run the backend ingest CLI with `--place`.
+Place-based live search in the browser does not publish a new dataset by itself. The published catalog remains a separate curated data surface. To publish a different city into the dataset catalog, run the backend ingest CLI with `--place`.
 
 Example local setup in `.env.local`:
 

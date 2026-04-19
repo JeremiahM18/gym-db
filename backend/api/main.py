@@ -45,6 +45,7 @@ app = FastAPI(
     lifespan=lifespan,
     openapi_tags=[
         {"name": "gyms", "description": "Gym discovery and filtering"},
+        {"name": "live-search", "description": "Live world search backed by TomTom"},
         {"name": "review", "description": "Coverage and review workflows"},
         {"name": "embeddings", "description": "Vector embeddings"},
         {"name": "health", "description": "Service health checks"},

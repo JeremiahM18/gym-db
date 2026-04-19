@@ -15,11 +15,12 @@ export function HeroSection(props: HeroSectionProps) {
   return (
     <section className="hero">
       <div>
-        <p className="eyebrow">GymDB Browser Client</p>
-        <h1>Find gyms, inspect inference, and jump straight into places you can actually visit.</h1>
+        <p className="eyebrow">GymDB Full-Stack Search</p>
+        <h1>Search the live world for gyms, then drop into the curated catalog when you want verified operator data.</h1>
         <p className="hero-copy">
-          Browse the live catalog, filter by specialty and quality, run nearby search without a
-          database-only dependency, and jump out to maps or official gym sites in one flow.
+          Live Search is powered by TomTom place search. Published Catalog stays in the product as
+          the curated GymDB dataset with inference, quality filters, and explainable operator
+          detail.
         </p>
         <div className="hero-actions">
           {props.selectedActionLinks.slice(0, 3).map((link) => (
@@ -28,14 +29,24 @@ export function HeroSection(props: HeroSectionProps) {
         </div>
       </div>
       <div className="hero-grid">
-        <StatCard label="Mode" value={props.mode === "catalog" ? "Catalog" : "Nearby"} tone="warm" />
+        <StatCard
+          label="Mode"
+          value={props.mode === "published" ? "Published Catalog" : "Live Search"}
+          tone="warm"
+        />
         <StatCard label="Visible gyms" value={String(props.activeRowCount)} tone="cool" />
-        <StatCard label="Avg confidence" value={props.averageConfidence} />
+        <StatCard
+          label={props.mode === "published" ? "Avg confidence" : "Source"}
+          value={props.mode === "published" ? props.averageConfidence : "TomTom"}
+        />
         <StatCard
           label="Search radius"
-          value={props.mode === "nearby" ? props.nearbyRadiusLabel : "Catalog"}
+          value={props.mode === "live" ? props.nearbyRadiusLabel : "Published"}
         />
-        <StatCard label="Lead specialty" value={props.topSpecialty} />
+        <StatCard
+          label={props.mode === "published" ? "Lead specialty" : "Lead area"}
+          value={props.topSpecialty}
+        />
       </div>
     </section>
   );

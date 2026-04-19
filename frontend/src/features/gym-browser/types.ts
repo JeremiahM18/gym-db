@@ -1,4 +1,4 @@
-export type Mode = "catalog" | "nearby";
+export type Mode = "published" | "live";
 export type ToggleChoice = "any" | "yes" | "no";
 
 export type FiltersState = {
@@ -11,10 +11,9 @@ export type FiltersState = {
   limit: string;
 };
 
-export type NearbyState = {
+export type LiveSearchState = {
+  query: string;
   placeQuery: string;
-  lat: string;
-  lon: string;
   radiusM: string;
   resolvedLabel: string;
 };
@@ -23,6 +22,30 @@ export type ActionLink = {
   label: string;
   href: string;
   tone?: "warm" | "cool" | "ink";
+};
+
+export type BrowserGym = {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  address: string | null;
+  cityState: string;
+  specialty: string | null;
+  tier: string | null;
+  confidenceScore: number | null;
+  website: string | null;
+  phone: string | null;
+  email: string | null;
+  openingHours: string | null;
+  is247: boolean | null;
+  lifterFriendly: boolean | null;
+  amenityChips: string[];
+  distanceM: number | null;
+  sourceKind: "published" | "live";
+  sourceLabel: string;
+  inferenceEngine: string | null;
+  rawPublishedGymId?: string;
 };
 
 export const specialtyOptions = [
@@ -49,10 +72,9 @@ export const defaultFilters: FiltersState = {
   limit: "100",
 };
 
-export const defaultNearby: NearbyState = {
+export const defaultLiveSearch: LiveSearchState = {
+  query: "gym",
   placeQuery: "Nashville, TN",
-  lat: "36.1627",
-  lon: "-86.7816",
-  radiusM: "2500",
+  radiusM: "25000",
   resolvedLabel: "",
 };

@@ -1,5 +1,6 @@
 import type { GymFilters, GymOutV2 } from "../../lib/api";
-import type { ActionLink, FiltersState, ToggleChoice } from "./types";
+import type { LiveGymOutV2 } from "../../lib/api";
+import type { ActionLink, BrowserGym, FiltersState, ToggleChoice } from "./types";
 
 const METERS_PER_MILE = 1609.344;
 const EARTH_RADIUS_METERS = 6_371_000;
@@ -14,7 +15,7 @@ type MapBounds = {
 };
 
 export type MapPoint = {
-  gym: GymOutV2;
+  gym: BrowserGym;
   x: number;
   y: number;
   distanceLabel: string | null;
@@ -158,12 +159,12 @@ export function getCityState(gym: GymOutV2): string {
   return "City not published";
 }
 
-export function buildMapsUrl(gym: GymOutV2): string {
+export function buildMapsUrl(gym: Pick<BrowserGym, "lat" | "lon" | "name">): string {
   const query = encodeURIComponent(`${gym.lat},${gym.lon} ${gym.name}`);
   return `https://www.google.com/maps/search/?api=1&query=${query}`;
 }
 
-export function buildOsmUrl(gym: GymOutV2): string {
+export function buildOsmUrl(gym: Pick<BrowserGym, "lat" | "lon">): string {
   return `https://www.openstreetmap.org/?mlat=${gym.lat}&mlon=${gym.lon}#map=18/${gym.lat}/${gym.lon}`;
 }
 
@@ -230,7 +231,7 @@ export function getAmenityChips(gym: GymOutV2): string[] {
   return Array.from(chips).slice(0, 8);
 }
 
-export function getBounds(gyms: GymOutV2[]): MapBounds {
+export function getBounds(gyms: BrowserGym[]): MapBounds {
   const lats = gyms.map((gym) => gym.lat);
   const lons = gyms.map((gym) => gym.lon);
   const minLat = Math.min(...lats);
@@ -249,7 +250,7 @@ export function getBounds(gyms: GymOutV2[]): MapBounds {
 }
 
 export function buildMapPoints(
-  gyms: GymOutV2[],
+  gyms: BrowserGym[],
   mapWidth: number,
   mapHeight: number,
   mapPadding: number,
@@ -273,7 +274,7 @@ export function buildMapPoints(
   });
 }
 
-export function filterGymsByQuery(gyms: GymOutV2[], query: string): GymOutV2[] {
+export function filterGymsByQuery(gyms: BrowserGym[], query: string): BrowserGym[] {
   const normalizedQuery = query.trim().toLowerCase();
   if (!normalizedQuery) {
     return gyms;
@@ -282,9 +283,9 @@ export function filterGymsByQuery(gyms: GymOutV2[], query: string): GymOutV2[] {
   return gyms.filter((gym) => {
     const searchable = [
       gym.name,
-      gym.norm_name,
-      inferString(gym, "specialty", ""),
-      getTagValue(gym, ["addr:city", "addr:street"]) ?? "",
+      gym.cityState,
+      gym.address ?? "",
+      gym.specialty ?? "",
     ]
       .join(" ")
       .toLowerCase();
@@ -293,24 +294,24 @@ export function filterGymsByQuery(gyms: GymOutV2[], query: string): GymOutV2[] {
   });
 }
 
-export function getAverageConfidence(gyms: GymOutV2[]): string {
+export function getAverageConfidence(gyms: BrowserGym[]): string {
   if (!gyms.length) {
     return "n/a";
   }
 
   const average =
-    gyms.reduce((sum, gym) => sum + (gym.confidence_score ?? 0), 0) / gyms.length;
+    gyms.reduce((sum, gym) => sum + (gym.confidenceScore ?? 0), 0) / gyms.length;
   return `${Math.round(average * 100)}%`;
 }
 
-export function getTopSpecialty(gyms: GymOutV2[]): string {
+export function getTopSpecialty(gyms: BrowserGym[]): string {
   if (!gyms.length) {
     return "n/a";
   }
 
   const counts = new Map<string, number>();
   for (const gym of gyms) {
-    const specialty = inferString(gym, "specialty", "general_fitness");
+    const specialty = gym.specialty ?? gym.cityState;
     counts.set(specialty, (counts.get(specialty) ?? 0) + 1);
   }
 
@@ -318,7 +319,7 @@ export function getTopSpecialty(gyms: GymOutV2[]): string {
   return topEntry ? titleCase(topEntry[0]) : "n/a";
 }
 
-export function buildSelectedActionLinks(selectedGym: GymOutV2 | null): ActionLink[] {
+export function buildSelectedActionLinks(selectedGym: BrowserGym | null): ActionLink[] {
   if (!selectedGym) {
     return [];
   }
@@ -328,20 +329,82 @@ export function buildSelectedActionLinks(selectedGym: GymOutV2 | null): ActionLi
     { label: "Open in OpenStreetMap", href: buildOsmUrl(selectedGym) },
   ];
 
-  const website = getWebsite(selectedGym);
+  const website = selectedGym.website;
   if (website) {
     links.unshift({ label: "Open website", href: website, tone: "warm" });
   }
 
-  const phone = getPhone(selectedGym);
+  const phone = selectedGym.phone;
   if (phone) {
     links.push({ label: "Call gym", href: `tel:${phone.replace(/\s+/g, "")}` });
   }
 
-  const email = getEmail(selectedGym);
+  const email = selectedGym.email;
   if (email) {
     links.push({ label: "Email gym", href: `mailto:${email}` });
   }
 
   return links;
+}
+
+function compact(parts: Array<string | null | undefined>): string[] {
+  return parts
+    .filter((part) => part != null && String(part).trim())
+    .map((part) => String(part).trim());
+}
+
+export function buildPublishedBrowserGym(gym: GymOutV2): BrowserGym {
+  return {
+    id: gym.id,
+    name: gym.name,
+    lat: gym.lat,
+    lon: gym.lon,
+    address: getAddress(gym),
+    cityState: getCityState(gym),
+    specialty: inferString(gym, "specialty", "general_fitness"),
+    tier: inferString(gym, "tier", "unknown"),
+    confidenceScore: gym.confidence_score ?? null,
+    website: getWebsite(gym),
+    phone: getPhone(gym),
+    email: getEmail(gym),
+    openingHours: getOpeningHours(gym),
+    is247: gym.inference.is_24_7 ? Boolean(gym.inference.is_24_7.value) : null,
+    lifterFriendly: gym.inference.lifter_friendly
+      ? Boolean(gym.inference.lifter_friendly.value)
+      : null,
+    amenityChips: getAmenityChips(gym),
+    distanceM: null,
+    sourceKind: "published",
+    sourceLabel: "Published catalog",
+    inferenceEngine: gym.inference_meta.engine,
+    rawPublishedGymId: gym.id,
+  };
+}
+
+export function buildLiveBrowserGym(gym: LiveGymOutV2): BrowserGym {
+  const addressBits = compact([gym.address]);
+  const cityStateBits = compact([gym.city, gym.country_code]);
+
+  return {
+    id: gym.id,
+    name: gym.name,
+    lat: gym.lat,
+    lon: gym.lon,
+    address: addressBits.length ? addressBits.join(", ") : null,
+    cityState: cityStateBits.length ? cityStateBits.join(", ") : "Location published",
+    specialty: null,
+    tier: null,
+    confidenceScore: null,
+    website: normalizeUrl(gym.url ?? null),
+    phone: null,
+    email: null,
+    openingHours: null,
+    is247: null,
+    lifterFriendly: null,
+    amenityChips: ["Live TomTom result"],
+    distanceM: gym.distance_m ?? null,
+    sourceKind: "live",
+    sourceLabel: "Live TomTom search",
+    inferenceEngine: null,
+  };
 }

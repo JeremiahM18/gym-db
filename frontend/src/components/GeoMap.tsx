@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { GymOutV2 } from "../lib/api";
+import type { BrowserGym } from "../features/gym-browser/types";
 import { buildMapPoints, getBounds } from "../features/gym-browser/utils";
 
 const MAP_WIDTH = 720;
@@ -8,7 +8,7 @@ const MAP_HEIGHT = 420;
 const MAP_PADDING = 28;
 
 type GeoMapProps = {
-  gyms: GymOutV2[];
+  gyms: BrowserGym[];
   selectedGymId: string | null;
   onSelect: (gymId: string) => void;
   nearbyLat?: number;

@@ -4,9 +4,12 @@ import type { GeocodeResponseV2 } from "../api/models/GeocodeResponseV2";
 import type { GymOutV2 } from "../api/models/GymOutV2";
 import type { GymResponseV2 } from "../api/models/GymResponseV2";
 import type { GymsListResponseV2 } from "../api/models/GymsListResponseV2";
+import type { LiveGymOutV2 } from "../api/models/LiveGymOutV2";
+import type { LiveGymSearchResponseV2 } from "../api/models/LiveGymSearchResponseV2";
 import { GeocodeService } from "../api/services/GeocodeService";
 import { GymsService } from "../api/services/GymsService";
 import { HealthService } from "../api/services/HealthService";
+import { LiveSearchService } from "../api/services/LiveSearchService";
 
 OpenAPI.BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 OpenAPI.TOKEN = import.meta.env.VITE_API_TOKEN;
@@ -24,8 +27,6 @@ type GymFilters = {
   limit?: number;
   offset?: number;
 };
-
-type NearbyFilters = Required<Pick<GymFilters, "lat" | "lon" | "radiusM">> & GymFilters;
 
 type HealthSnapshot = {
   live: boolean;
@@ -149,10 +150,22 @@ export async function listGyms(
 }
 
 export async function searchPublishedNearbyGyms(
-  filters: NearbyFilters,
+  filters: Required<Pick<GymFilters, "lat" | "lon" | "radiusM">> & GymFilters,
   signal?: AbortSignal,
 ): Promise<GymsListResponseV2> {
   return listGyms(filters, signal);
+}
+
+export async function liveSearchGyms(
+  place: string,
+  query: string,
+  radiusM: number,
+  signal?: AbortSignal,
+): Promise<LiveGymSearchResponseV2> {
+  return bindAbort(
+    LiveSearchService.liveSearchGymsV2V2LiveSearchGet(place, query, radiusM),
+    signal,
+  );
 }
 
 export async function geocodeLocation(
@@ -203,4 +216,11 @@ export async function getHealth(signal?: AbortSignal): Promise<HealthSnapshot> {
   }
 }
 
-export type { GeocodeResponseV2, GymFilters, GymOutV2, HealthSnapshot, NearbyFilters };
+export type {
+  GeocodeResponseV2,
+  GymFilters,
+  GymOutV2,
+  HealthSnapshot,
+  LiveGymOutV2,
+  LiveGymSearchResponseV2,
+};

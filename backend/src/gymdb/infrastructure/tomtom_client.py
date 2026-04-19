@@ -25,6 +25,21 @@ class TomTomClient:
         self._api_key = api_key
         self._base_url = base_url.rstrip("/")
 
+    def _get(
+        self,
+        path: str,
+        *,
+        params: dict[str, str | int | float],
+        timeout: int = 30,
+    ) -> dict[str, Any]:
+        response = requests.get(
+            f"{self._base_url}{path}",
+            params={"key": self._api_key, **params},
+            timeout=timeout,
+        )
+        response.raise_for_status()
+        return response.json()
+
     def _parse_places(self, payload: dict[str, Any]) -> list[TomTomPlace]:
         results: list[TomTomPlace] = []
         for item in payload.get("results", []):
@@ -63,21 +78,72 @@ class TomTomClient:
         limit: int = 100,
         country_set: str = "US",
     ) -> list[TomTomPlace]:
+        payload = self._get(
+            "/search/2/categorySearch/gym.json",
+            params={
+                "lat": lat,
+                "lon": lon,
+                "radius": radius_m,
+                "limit": limit,
+                "countrySet": country_set,
+            },
+        )
+        return self._parse_places(payload)
+
+    def search(
+        self,
+        *,
+        query: str,
+        limit: int = 25,
+        country_set: str = "US",
+        lat: float | None = None,
+        lon: float | None = None,
+        radius_m: int | None = None,
+        geobias_lat: float | None = None,
+        geobias_lon: float | None = None,
+    ) -> list[TomTomPlace]:
         params: dict[str, str | int | float] = {
-            "key": self._api_key,
-            "lat": lat,
-            "lon": lon,
-            "radius": radius_m,
             "limit": limit,
             "countrySet": country_set,
+            "idxSet": "POI",
         }
-        response = requests.get(
-            f"{self._base_url}/search/2/categorySearch/gym.json",
+        if lat is not None and lon is not None:
+            params["lat"] = lat
+            params["lon"] = lon
+        if radius_m is not None:
+            params["radius"] = radius_m
+        if geobias_lat is not None and geobias_lon is not None:
+            params["geobias"] = f"point:{geobias_lat},{geobias_lon}"
+
+        encoded_query = quote(query, safe="")
+        payload = self._get(
+            f"/search/2/search/{encoded_query}.json",
             params=params,
-            timeout=30,
         )
-        response.raise_for_status()
-        return self._parse_places(response.json())
+        return self._parse_places(payload)
+
+    def category_search(
+        self,
+        *,
+        category: str,
+        lat: float,
+        lon: float,
+        radius_m: int,
+        limit: int = 25,
+        country_set: str = "US",
+    ) -> list[TomTomPlace]:
+        encoded_category = quote(category, safe="")
+        payload = self._get(
+            f"/search/2/categorySearch/{encoded_category}.json",
+            params={
+                "lat": lat,
+                "lon": lon,
+                "radius": radius_m,
+                "limit": limit,
+                "countrySet": country_set,
+            },
+        )
+        return self._parse_places(payload)
 
     def geocode(
         self,
@@ -86,16 +152,12 @@ class TomTomClient:
         limit: int = 5,
         country_set: str = "US",
     ) -> list[TomTomPlace]:
-        params: dict[str, str | int] = {
-            "key": self._api_key,
-            "limit": limit,
-            "countrySet": country_set,
-        }
         encoded_query = quote(query, safe="")
-        response = requests.get(
-            f"{self._base_url}/search/2/geocode/{encoded_query}.json",
-            params=params,
-            timeout=30,
+        payload = self._get(
+            f"/search/2/geocode/{encoded_query}.json",
+            params={
+                "limit": limit,
+                "countrySet": country_set,
+            },
         )
-        response.raise_for_status()
-        return self._parse_places(response.json())
+        return self._parse_places(payload)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from math import asin, cos, radians, sin, sqrt
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from requests import RequestException
 
@@ -12,6 +14,7 @@ from api.schemas_v2 import (
     GymEmbeddingV2,
     GymResponseV2,
     GymsListResponseV2,
+    LiveGymSearchResponseV2,
 )
 from api.settings import APISettings, get_settings
 from gymdb.gyms.protocol import GymStoreProtocol
@@ -22,6 +25,21 @@ from gymdb.infrastructure.tomtom_client import TomTomClient
 # Changes require schema + test updates
 
 router = APIRouter(prefix="/v2", tags=["gyms"], dependencies=[Depends(require_user)])
+
+
+def _haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    earth_radius_m = 6_371_000
+    d_lat = radians(lat2 - lat1)
+    d_lon = radians(lon2 - lon1)
+    origin_lat = radians(lat1)
+    target_lat = radians(lat2)
+
+    a = (
+        sin(d_lat / 2) ** 2
+        + cos(origin_lat) * cos(target_lat) * sin(d_lon / 2) ** 2
+    )
+    c = 2 * asin(sqrt(a))
+    return earth_radius_m * c
 
 
 @router.get("/gyms", response_model=GymsListResponseV2)
@@ -112,6 +130,107 @@ def geocode_location_v2(
                 "country_code": place.country_code,
             }
             for place in places
+        ],
+    }
+
+
+@router.get(
+    "/live/search",
+    response_model=LiveGymSearchResponseV2,
+    tags=["live-search"],
+)
+def live_search_gyms_v2(
+    place: str = Query(..., min_length=2, description="City, neighborhood, or place"),
+    q: str = Query(
+        "gym",
+        min_length=1,
+        description="Gym name, brand, or search term. Defaults to gym.",
+    ),
+    radius_m: int = Query(25_000, ge=500, le=100_000),
+    limit: int = Query(25, ge=1, le=50),
+    settings: APISettings = Depends(get_settings),
+):
+    if not settings.tomtom_api_key:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "TomTom live search is unavailable because TOMTOM_API_KEY is not "
+                "configured."
+            ),
+        )
+
+    client = TomTomClient(
+        api_key=settings.tomtom_api_key,
+        base_url=settings.tomtom_base_url,
+    )
+
+    try:
+        origins = client.geocode(query=place, limit=1)
+    except RequestException as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="TomTom place resolution is temporarily unavailable.",
+        ) from exc
+
+    if not origins:
+        raise HTTPException(
+            status_code=404,
+            detail=f'No place match found for "{place}".',
+        )
+
+    origin = origins[0]
+    search_query = q.strip() or "gym"
+
+    try:
+        places = client.search(
+            query=search_query,
+            lat=origin.lat,
+            lon=origin.lon,
+            radius_m=radius_m,
+            geobias_lat=origin.lat,
+            geobias_lon=origin.lon,
+            limit=limit,
+        )
+    except RequestException as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="TomTom live gym search is temporarily unavailable.",
+        ) from exc
+
+    return {
+        "api_version": "v2",
+        "query": search_query,
+        "place_query": place,
+        "count": len(places),
+        "radius_m": radius_m,
+        "origin": {
+            "id": origin.id,
+            "name": origin.name,
+            "lat": origin.lat,
+            "lon": origin.lon,
+            "address": origin.address,
+            "city": origin.city,
+            "country_code": origin.country_code,
+        },
+        "results": [
+            {
+                "id": place_result.id,
+                "name": place_result.name,
+                "lat": place_result.lat,
+                "lon": place_result.lon,
+                "address": place_result.address,
+                "city": place_result.city,
+                "country_code": place_result.country_code,
+                "distance_m": _haversine_meters(
+                    origin.lat,
+                    origin.lon,
+                    place_result.lat,
+                    place_result.lon,
+                ),
+                "url": place_result.url,
+                "provider": "tomtom",
+            }
+            for place_result in places
         ],
     }
 

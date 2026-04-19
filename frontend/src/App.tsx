@@ -8,11 +8,12 @@ import {
 
 import {
   defaultFilters,
-  defaultNearby,
+  defaultLiveSearch,
   type ActionLink,
+  type BrowserGym,
   type FiltersState,
+  type LiveSearchState,
   type Mode,
-  type NearbyState,
 } from "./features/gym-browser/types";
 import { GeoCanvasPanel } from "./features/gym-browser/GeoCanvasPanel";
 import { HeroSection } from "./features/gym-browser/HeroSection";
@@ -22,6 +23,8 @@ import { SelectedGymPanel } from "./features/gym-browser/SelectedGymPanel";
 import { StatusStrip } from "./features/gym-browser/StatusStrip";
 import {
   buildGymFilters,
+  buildLiveBrowserGym,
+  buildPublishedBrowserGym,
   buildSelectedActionLinks,
   filterGymsByQuery,
   formatMilesFromMeters,
@@ -30,33 +33,36 @@ import {
   parseNumber,
 } from "./features/gym-browser/utils";
 import {
-  geocodeLocation,
   getGym,
   getHealth,
   listGyms,
-  searchPublishedNearbyGyms,
-  type GymOutV2,
+  liveSearchGyms,
   type HealthSnapshot,
 } from "./lib/api";
 
+type LiveOrigin = {
+  lat: number;
+  lon: number;
+  label: string;
+} | null;
+
 export function App() {
-  const [mode, setMode] = useState<Mode>("catalog");
+  const [mode, setMode] = useState<Mode>("published");
   const [filters, setFilters] = useState<FiltersState>(defaultFilters);
-  const [nearby, setNearby] = useState<NearbyState>(defaultNearby);
+  const [liveSearch, setLiveSearch] = useState<LiveSearchState>(defaultLiveSearch);
   const [query, setQuery] = useState("");
-  const [catalogResults, setCatalogResults] = useState<GymOutV2[]>([]);
-  const [nearbyResults, setNearbyResults] = useState<GymOutV2[]>([]);
+  const [publishedResults, setPublishedResults] = useState<BrowserGym[]>([]);
+  const [liveResults, setLiveResults] = useState<BrowserGym[]>([]);
   const [selectedGymId, setSelectedGymId] = useState<string | null>(null);
-  const [selectedGym, setSelectedGym] = useState<GymOutV2 | null>(null);
+  const [selectedGym, setSelectedGym] = useState<BrowserGym | null>(null);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthSnapshot | null>(null);
+  const [liveOrigin, setLiveOrigin] = useState<LiveOrigin>(null);
 
   const deferredQuery = useDeferredValue(query);
-  const nearbyLat = parseNumber(nearby.lat);
-  const nearbyLon = parseNumber(nearby.lon);
-  const nearbyRadiusMeters = parseNumber(nearby.radiusM);
+  const liveRadiusMeters = parseNumber(liveSearch.radiusM);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -69,9 +75,10 @@ export function App() {
         ]);
 
         startTransition(() => {
+          const mapped = gyms.results.map(buildPublishedBrowserGym);
           setHealth(healthSnapshot);
-          setCatalogResults(gyms.results);
-          setSelectedGymId(gyms.results[0]?.id ?? null);
+          setPublishedResults(mapped);
+          setSelectedGymId(mapped[0]?.id ?? null);
         });
       } catch (loadError) {
         if (controller.signal.aborted) {
@@ -90,28 +97,50 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    if (mode === "live") {
+      const liveGym = liveResults.find((gym) => gym.id === selectedGymId) ?? null;
+      setSelectedGym(liveGym);
+      setDetailLoading(false);
+      return;
+    }
+
     if (!selectedGymId) {
       setSelectedGym(null);
+      return;
+    }
+
+    const selectedPublishedSummary =
+      publishedResults.find((gym) => gym.id === selectedGymId) ?? null;
+    if (!selectedPublishedSummary?.rawPublishedGymId) {
+      setSelectedGym(selectedPublishedSummary);
       return;
     }
 
     const controller = new AbortController();
     setDetailLoading(true);
 
-    void getGym(selectedGymId, filters.region || undefined, controller.signal)
+    void getGym(
+      selectedPublishedSummary.rawPublishedGymId,
+      filters.region || undefined,
+      controller.signal,
+    )
       .then((response) => {
         if (controller.signal.aborted) {
           return;
         }
         startTransition(() => {
-          setSelectedGym(response.gym);
+          setSelectedGym(buildPublishedBrowserGym(response.gym));
         });
       })
       .catch((detailError) => {
         if (controller.signal.aborted) {
           return;
         }
-        setError(detailError instanceof Error ? detailError.message : "Failed to load gym detail.");
+        setError(
+          detailError instanceof Error
+            ? detailError.message
+            : "Failed to load gym detail.",
+        );
       })
       .finally(() => {
         if (!controller.signal.aborted) {
@@ -120,40 +149,45 @@ export function App() {
       });
 
     return () => controller.abort();
-  }, [filters.region, selectedGymId]);
+  }, [filters.region, mode, publishedResults, selectedGymId, liveResults]);
 
-  const visibleCatalog = useMemo(
-    () => filterGymsByQuery(catalogResults, deferredQuery),
-    [catalogResults, deferredQuery],
+  const visiblePublished = useMemo(
+    () => filterGymsByQuery(publishedResults, deferredQuery),
+    [publishedResults, deferredQuery],
   );
 
-  const visibleNearby = useMemo(
-    () => filterGymsByQuery(nearbyResults, deferredQuery),
-    [nearbyResults, deferredQuery],
+  const visibleLive = useMemo(
+    () => filterGymsByQuery(liveResults, deferredQuery),
+    [liveResults, deferredQuery],
   );
 
-  const activeRows = mode === "catalog" ? visibleCatalog : visibleNearby;
-  const averageConfidence = useMemo(() => getAverageConfidence(activeRows), [activeRows]);
+  const activeRows = mode === "published" ? visiblePublished : visibleLive;
+  const averageConfidence = useMemo(
+    () => getAverageConfidence(activeRows),
+    [activeRows],
+  );
   const topSpecialty = useMemo(() => getTopSpecialty(activeRows), [activeRows]);
 
-  const nearbyRadiusLabel = nearbyRadiusMeters ? formatMilesFromMeters(nearbyRadiusMeters) : "n/a";
+  const liveRadiusLabel = liveRadiusMeters
+    ? formatMilesFromMeters(liveRadiusMeters)
+    : "n/a";
   const selectedActionLinks = useMemo<ActionLink[]>(
     () => buildSelectedActionLinks(selectedGym),
     [selectedGym],
   );
 
-  async function handleCatalogSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handlePublishedSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
       const response = await listGyms(buildGymFilters(filters));
+      const mapped = response.results.map(buildPublishedBrowserGym);
       startTransition(() => {
-        setMode("catalog");
-        setCatalogResults(response.results);
-        setNearbyResults([]);
-        setSelectedGymId(response.results[0]?.id ?? null);
+        setMode("published");
+        setPublishedResults(mapped);
+        setSelectedGymId(mapped[0]?.id ?? null);
       });
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Failed to query gyms.");
@@ -162,72 +196,48 @@ export function App() {
     }
   }
 
-  async function handleNearbySubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleLiveSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
 
-    let searchLat = nearbyLat;
-    let searchLon = nearbyLon;
-    let resolvedLabel = nearby.resolvedLabel;
-    const placeQuery = nearby.placeQuery.trim();
+    const placeQuery = liveSearch.placeQuery.trim();
+    const searchQuery = liveSearch.query.trim() || "gym";
 
-    if (placeQuery) {
-      try {
-        const geocoded = await geocodeLocation(placeQuery);
-        const firstMatch = geocoded.results[0];
-        if (!firstMatch) {
-          setError(`No location match found for "${placeQuery}".`);
-          setLoading(false);
-          return;
-        }
-
-        searchLat = firstMatch.lat;
-        searchLon = firstMatch.lon;
-        resolvedLabel = firstMatch.address || firstMatch.name;
-
-        startTransition(() => {
-          setNearby((current) => ({
-            ...current,
-            lat: firstMatch.lat.toFixed(4),
-            lon: firstMatch.lon.toFixed(4),
-            resolvedLabel,
-          }));
-        });
-      } catch (geocodeError) {
-        setError(
-          geocodeError instanceof Error
-            ? geocodeError.message
-            : "Failed to resolve the requested place.",
-        );
-        setLoading(false);
-        return;
-      }
+    if (!placeQuery) {
+      setError("Live search requires a city, neighborhood, or place.");
+      setLoading(false);
+      return;
     }
 
-    if (searchLat == null || searchLon == null || nearbyRadiusMeters == null) {
-      setError("Nearby search requires numeric latitude, longitude, and radius.");
+    if (liveRadiusMeters == null) {
+      setError("Live search requires a numeric radius.");
       setLoading(false);
       return;
     }
 
     try {
-      const response = await searchPublishedNearbyGyms({
-        ...buildGymFilters(filters),
-        lat: searchLat,
-        lon: searchLon,
-        radiusM: nearbyRadiusMeters,
-      });
+      const response = await liveSearchGyms(placeQuery, searchQuery, liveRadiusMeters);
+      const mapped = response.results.map(buildLiveBrowserGym);
       startTransition(() => {
-        setMode("nearby");
-        setNearbyResults(response.results);
-        setSelectedGymId(response.results[0]?.id ?? null);
-        if (!placeQuery) {
-          setNearby((current) => ({ ...current, resolvedLabel: resolvedLabel || "" }));
-        }
+        setMode("live");
+        setLiveResults(mapped);
+        setSelectedGymId(mapped[0]?.id ?? null);
+        setLiveSearch((current) => ({
+          ...current,
+          query: response.query,
+          resolvedLabel: response.origin.address || response.origin.name,
+        }));
+        setLiveOrigin({
+          lat: response.origin.lat,
+          lon: response.origin.lon,
+          label: response.origin.address || response.origin.name,
+        });
       });
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Failed to run nearby search.");
+      setError(
+        loadError instanceof Error ? loadError.message : "Failed to run live search.",
+      );
     } finally {
       setLoading(false);
     }
@@ -242,7 +252,7 @@ export function App() {
           mode={mode}
           activeRowCount={activeRows.length}
           averageConfidence={averageConfidence}
-          nearbyRadiusLabel={nearbyRadiusLabel}
+          nearbyRadiusLabel={liveRadiusLabel}
           topSpecialty={topSpecialty}
           selectedActionLinks={selectedActionLinks}
         />
@@ -257,13 +267,13 @@ export function App() {
         <div className="workspace-grid">
           <QueryControlsPanel
             filters={filters}
-            nearby={nearby}
+            liveSearch={liveSearch}
             loading={loading}
-            nearbyRadiusLabel={nearbyRadiusLabel}
-            onCatalogSubmit={handleCatalogSubmit}
-            onNearbySubmit={handleNearbySubmit}
+            liveRadiusLabel={liveRadiusLabel}
+            onPublishedSubmit={handlePublishedSubmit}
+            onLiveSubmit={handleLiveSubmit}
             setFilters={setFilters}
-            setNearby={setNearby}
+            setLiveSearch={setLiveSearch}
           />
 
           <ResultsPanel
@@ -271,12 +281,17 @@ export function App() {
             mode={mode}
             loading={loading}
             selectedGymId={selectedGymId}
-            visibleCatalog={visibleCatalog}
-            visibleNearby={visibleNearby}
-            nearbyLat={nearbyLat}
-            nearbyLon={nearbyLon}
+            visiblePublished={visiblePublished}
+            visibleLive={visibleLive}
             onQueryChange={setQuery}
-            onModeChange={setMode}
+            onModeChange={(nextMode) => {
+              setMode(nextMode);
+              setSelectedGymId(
+                nextMode === "published"
+                  ? visiblePublished[0]?.id ?? null
+                  : visibleLive[0]?.id ?? null,
+              );
+            }}
             onSelectGym={setSelectedGymId}
           />
         </div>
@@ -285,12 +300,13 @@ export function App() {
           gyms={activeRows}
           selectedGymId={selectedGymId}
           onSelectGym={setSelectedGymId}
-          nearbyLat={mode === "nearby" ? nearbyLat : undefined}
-          nearbyLon={mode === "nearby" ? nearbyLon : undefined}
+          nearbyLat={mode === "live" ? liveOrigin?.lat : undefined}
+          nearbyLon={mode === "live" ? liveOrigin?.lon : undefined}
         />
 
         <SelectedGymPanel
           detailLoading={detailLoading}
+          mode={mode}
           selectedGym={selectedGym}
           selectedActionLinks={selectedActionLinks}
         />
@@ -298,4 +314,3 @@ export function App() {
     </div>
   );
 }
-

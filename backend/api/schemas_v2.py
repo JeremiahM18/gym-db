@@ -114,6 +114,39 @@ class GeocodeResponseV2(BaseModel):
     results: list[GeocodeCandidateV2]
 
 
+class LiveSearchOriginV2(BaseModel):
+    id: str
+    name: str
+    lat: float
+    lon: float
+    address: str | None = None
+    city: str | None = None
+    country_code: str | None = None
+
+
+class LiveGymOutV2(BaseModel):
+    id: str
+    name: str
+    lat: float
+    lon: float
+    address: str | None = None
+    city: str | None = None
+    country_code: str | None = None
+    distance_m: float | None = None
+    url: str | None = None
+    provider: str = Field(default="tomtom")
+
+
+class LiveGymSearchResponseV2(BaseModel):
+    api_version: str = Field(default="v2")
+    query: str
+    place_query: str
+    count: int
+    radius_m: int
+    origin: LiveSearchOriginV2
+    results: list[LiveGymOutV2]
+
+
 class GymsListResponseV2(BaseModel):
     api_version: str = Field(default="v2")
     region: str

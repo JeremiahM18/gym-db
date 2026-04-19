@@ -362,6 +362,94 @@
         }
       }
     },
+    "/v2/live/search": {
+      "get": {
+        "tags": [
+          "gyms",
+          "live-search"
+        ],
+        "summary": "Live Search Gyms V2",
+        "operationId": "live_search_gyms_v2_v2_live_search_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "place",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "description": "City, neighborhood, or place",
+              "title": "Place"
+            },
+            "description": "City, neighborhood, or place"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Gym name, brand, or search term. Defaults to gym.",
+              "default": "gym",
+              "title": "Q"
+            },
+            "description": "Gym name, brand, or search term. Defaults to gym."
+          },
+          {
+            "name": "radius_m",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 500,
+              "default": 25000,
+              "title": "Radius M"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveGymSearchResponseV2"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v2/gyms/embeddings": {
       "get": {
         "tags": [
@@ -1229,6 +1317,200 @@
         ],
         "title": "InferenceResult"
       },
+      "LiveGymOutV2": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "country_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Code"
+          },
+          "distance_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance M"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider",
+            "default": "tomtom"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "lat",
+          "lon"
+        ],
+        "title": "LiveGymOutV2"
+      },
+      "LiveGymSearchResponseV2": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "title": "Api Version",
+            "default": "v2"
+          },
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "place_query": {
+            "type": "string",
+            "title": "Place Query"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "radius_m": {
+            "type": "integer",
+            "title": "Radius M"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/LiveSearchOriginV2"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/LiveGymOutV2"
+            },
+            "type": "array",
+            "title": "Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "place_query",
+          "count",
+          "radius_m",
+          "origin",
+          "results"
+        ],
+        "title": "LiveGymSearchResponseV2"
+      },
+      "LiveSearchOriginV2": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "country_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "lat",
+          "lon"
+        ],
+        "title": "LiveSearchOriginV2"
+      },
       "SourceProvenanceV2": {
         "properties": {
           "primary": {
@@ -1377,6 +1659,10 @@
     {
       "name": "gyms",
       "description": "Gym discovery and filtering"
+    },
+    {
+      "name": "live-search",
+      "description": "Live world search backed by TomTom"
     },
     {
       "name": "review",
