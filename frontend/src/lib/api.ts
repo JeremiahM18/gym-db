@@ -1,4 +1,4 @@
-import { CancelError, OpenAPI } from "../api";
+import { ApiError, CancelError, OpenAPI } from "../api";
 import type { CancelablePromise } from "../api";
 import type { GeocodeResponseV2 } from "../api/models/GeocodeResponseV2";
 import type { GymOutV2 } from "../api/models/GymOutV2";
@@ -31,6 +31,8 @@ type HealthSnapshot = {
   live: boolean;
   ready: boolean;
   readinessPayload: unknown;
+  readinessSummary: string;
+  readinessHint: string | null;
 };
 
 function bindAbort<T>(
@@ -61,6 +63,67 @@ function extractErrorMessage(error: unknown, fallback: string): string {
   }
 
   return fallback;
+}
+
+function summarizeReadiness(payload: unknown): {
+  summary: string;
+  hint: string | null;
+} {
+  if (!payload || typeof payload !== "object") {
+    return {
+      summary: "readiness unknown",
+      hint: "Published dataset browsing may still work while readiness is degraded.",
+    };
+  }
+
+  const record = payload as Record<string, unknown>;
+  const checks =
+    "checks" in record && typeof record.checks === "object" && record.checks !== null
+      ? (record.checks as Record<string, unknown>)
+      : null;
+
+  if (!checks) {
+    return {
+      summary: "readiness unknown",
+      hint: "Published dataset browsing may still work while readiness is degraded.",
+    };
+  }
+
+  const failingChecks = Object.entries(checks)
+    .filter(([, value]) => value === false)
+    .map(([key]) => key);
+
+  if (!failingChecks.length) {
+    return {
+      summary: "all readiness checks passing",
+      hint: null,
+    };
+  }
+
+  if (failingChecks.length === 1 && failingChecks[0] === "database") {
+    return {
+      summary: "database unavailable",
+      hint: "Catalog browsing can still work from the published dataset while DB readiness is failing.",
+    };
+  }
+
+  return {
+    summary: `checks failing: ${failingChecks.join(", ")}`,
+    hint: "Catalog browsing can still work from the published dataset while readiness is degraded.",
+  };
+}
+
+function extractReadinessFailure(error: unknown): unknown {
+  if (error instanceof ApiError) {
+    const body = error.body as
+      | { error?: { message?: unknown } }
+      | undefined;
+    if (body?.error?.message !== undefined) {
+      return body.error.message;
+    }
+  }
+
+  return extractErrorMessage(error, "Readiness request failed");
 }
 
 export async function listGyms(
@@ -116,21 +179,26 @@ export async function getHealth(signal?: AbortSignal): Promise<HealthSnapshot> {
       .then((payload) => ({ ok: true, payload }))
       .catch((error: unknown) => ({
         ok: false,
-        payload: extractErrorMessage(error, "Readiness request failed"),
+        payload: extractReadinessFailure(error),
       })),
   ]);
 
   try {
+    const readiness = summarizeReadiness(readinessPayload.payload);
     return {
       live: liveResponse,
       ready: readinessPayload.ok,
       readinessPayload: readinessPayload.payload,
+      readinessSummary: readinessPayload.ok ? "all readiness checks passing" : readiness.summary,
+      readinessHint: readinessPayload.ok ? null : readiness.hint,
     };
   } catch {
     return {
       live: liveResponse,
       ready: false,
       readinessPayload: null,
+      readinessSummary: "readiness unknown",
+      readinessHint: "Published dataset browsing may still work while readiness is degraded.",
     };
   }
 }

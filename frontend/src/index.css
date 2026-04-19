@@ -250,6 +250,10 @@ label span,
   margin: 1rem 0 1.5rem;
 }
 
+.status-strip-grid {
+  align-items: stretch;
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -258,6 +262,27 @@ label span,
   border-radius: 999px;
   border: 1px solid var(--panel-border);
   background: rgba(10, 15, 22, 0.58);
+}
+
+.status-card {
+  display: grid;
+  gap: 0.35rem;
+  min-width: min(26rem, 100%);
+  padding: 0.85rem 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--panel-border);
+  background: rgba(10, 15, 22, 0.58);
+}
+
+.status-card-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.status-card strong {
+  color: #fff8eb;
+  font-size: 0.95rem;
 }
 
 .status-dot {
@@ -277,6 +302,20 @@ label span,
 
 .status-pill.neutral {
   color: var(--ink-soft);
+}
+
+.status-card.healthy {
+  color: #8ae2be;
+}
+
+.status-card.degraded {
+  color: #f0b45f;
+}
+
+.status-note {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 .error-banner {

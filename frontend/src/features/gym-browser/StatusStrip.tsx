@@ -7,14 +7,20 @@ type StatusStripProps = {
 
 export function StatusStrip(props: StatusStripProps) {
   return (
-    <section className="status-strip">
+    <section className="status-strip status-strip-grid">
       <div className={`status-pill ${props.health?.live ? "healthy" : "degraded"}`}>
         <span className="status-dot" />
         API live: {props.health?.live ? "yes" : "unknown"}
       </div>
-      <div className={`status-pill ${props.health?.ready ? "healthy" : "degraded"}`}>
-        <span className="status-dot" />
-        Backend ready: {props.health?.ready ? "yes" : "check readiness"}
+      <div className={`status-card ${props.health?.ready ? "healthy" : "degraded"}`}>
+        <div className="status-card-head">
+          <span className="status-dot" />
+          <strong>Database readiness</strong>
+        </div>
+        <span>{props.health?.ready ? "all checks passing" : props.health?.readinessSummary ?? "check readiness"}</span>
+        {props.health?.readinessHint ? (
+          <small className="status-note">{props.health.readinessHint}</small>
+        ) : null}
       </div>
       <div className="status-pill neutral">API base: {props.apiBaseUrl}</div>
     </section>

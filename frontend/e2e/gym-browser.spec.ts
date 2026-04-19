@@ -261,6 +261,7 @@ test("loads the catalog and selected gym details", async ({ page }) => {
     }),
   ).toBeVisible();
   await expect(page.getByText("API live: yes")).toBeVisible();
+  await expect(page.getByText("Database readiness")).toBeVisible();
   await expect(page.getByRole("button", { name: /Downtown Strength/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Selected Gym" })).toBeVisible();
   await expect(
