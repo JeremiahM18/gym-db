@@ -1,6 +1,7 @@
 from api.deps import get_db
 from api.main import app
 from api.settings import APISettings, get_settings
+from tests.fakes import FakeDB
 
 
 def test_nearby_requires_auth(client):
@@ -19,8 +20,6 @@ def test_nearby_shape_authenticated(client, override_auth, monkeypatch):
         "api.geo.nearby_routes.get_nearby_gyms",
         lambda conn, lat, lon, radius_m, limit: [],
     )
-
-    from tests.test_health import FakeDB
 
     app.dependency_overrides[get_db] = lambda: FakeDB()
 

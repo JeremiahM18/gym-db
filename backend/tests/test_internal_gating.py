@@ -1,6 +1,7 @@
 from api.auth.dependencies import require_admin
 from api.deps import get_db
 from api.settings import APISettings, get_settings
+from tests.fakes import FakeDB
 
 
 def _settings_with_internal(enabled: bool):
@@ -22,8 +23,6 @@ def test_internal_enabled_non_admin_forbidden(client, override_auth):
 
 
 def test_internal_enabled_admin_allowed(client):
-    from tests.test_health import FakeDB
-
     admin_claims = {"sub": "admin", "cognito:groups": ["admin"]}
     client.app.dependency_overrides[get_settings] = _settings_with_internal(True)
     client.app.dependency_overrides[require_admin] = lambda: admin_claims

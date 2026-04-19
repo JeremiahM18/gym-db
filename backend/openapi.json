@@ -831,7 +831,7 @@
           "embedding_text": {
             "type": "string",
             "title": "Embedding Text",
-            "description": "Determininstic text used for vector embeddings"
+            "description": "Deterministic text used for vector embeddings"
           },
           "inference": {
             "items": {

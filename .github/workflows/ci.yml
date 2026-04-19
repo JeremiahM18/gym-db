@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - master
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -114,8 +113,8 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
-      - name: Run Playwright
-        run: npm run test:e2e
-
       - name: Build frontend
         run: npm run build
+
+      - name: Run Playwright
+        run: npm run test:e2e

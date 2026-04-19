@@ -12,7 +12,7 @@ export type GymEmbeddingV2 = {
     name: string;
     region: string;
     /**
-     * Determininstic text used for vector embeddings
+     * Deterministic text used for vector embeddings
      */
     embedding_text: string;
     inference: Array<InferenceEmbeddingV2>;

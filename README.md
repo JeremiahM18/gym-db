@@ -131,7 +131,7 @@ It supports:
 
 - catalog browsing over `/v2/gyms`
 - city and place-name resolution through `/v2/geocode` before nearby search
-- nearby search using coordinates and radius filters
+- published-dataset nearby search using coordinates and radius filters
 - filtering by confidence, tier, specialty, 24/7 access, and lifter friendliness
 - drill-in inspection of inference details, confidence, and reasons
 - source-backed actions like website, phone, Google Maps, and OpenStreetMap
@@ -277,6 +277,8 @@ Then start the API:
 ```bash
 python -m uvicorn api.main:app --reload
 ```
+
+Important: the backend is currently configured with `data/`-relative paths, so start it from the `backend/` directory unless you override those settings explicitly.
 
 ### 3. Start the frontend
 

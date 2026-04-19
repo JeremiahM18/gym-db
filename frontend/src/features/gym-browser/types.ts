@@ -54,5 +54,5 @@ export const defaultNearby: NearbyState = {
   lat: "36.1627",
   lon: "-86.7816",
   radiusM: "2500",
-  resolvedLabel: "Nashville, TN",
+  resolvedLabel: "",
 };

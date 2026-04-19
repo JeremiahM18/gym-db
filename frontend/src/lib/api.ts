@@ -85,7 +85,7 @@ export async function listGyms(
   );
 }
 
-export async function nearbyGyms(
+export async function searchPublishedNearbyGyms(
   filters: NearbyFilters,
   signal?: AbortSignal,
 ): Promise<GymsListResponseV2> {

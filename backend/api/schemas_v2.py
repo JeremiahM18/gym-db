@@ -40,7 +40,7 @@ class GymEmbeddingV2(BaseModel):
     name: str
     region: str
     embedding_text: str = Field(
-        ..., description="Determininstic text used for vector embeddings"
+        ..., description="Deterministic text used for vector embeddings"
     )
     inference: list[InferenceEmbeddingV2]
     confidence_score: float | None = None

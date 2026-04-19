@@ -34,7 +34,7 @@ import {
   getGym,
   getHealth,
   listGyms,
-  nearbyGyms,
+  searchPublishedNearbyGyms,
   type GymOutV2,
   type HealthSnapshot,
 } from "./lib/api";
@@ -212,7 +212,7 @@ export function App() {
     }
 
     try {
-      const response = await nearbyGyms({
+      const response = await searchPublishedNearbyGyms({
         ...buildGymFilters(filters),
         lat: searchLat,
         lon: searchLon,

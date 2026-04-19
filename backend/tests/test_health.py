@@ -1,3 +1,6 @@
+from tests.fakes import FakeDB
+
+
 def test_healthz(client):
     resp = client.get("/healthz")
     assert resp.status_code == 200
@@ -14,37 +17,6 @@ def test_cors_allows_local_frontend_origin(client):
     )
     assert resp.status_code == 200
     assert resp.headers["access-control-allow-origin"] == "http://localhost:5173"
-
-
-class FakeResult:
-    def __init__(self, value):
-        self._value = value
-
-    def scalar(self):
-        return self._value
-
-
-class FakeDB:
-    def execute(self, stmt):
-        sql = str(stmt)
-
-        if "SELECT 1" in sql:
-            return FakeResult(1)
-
-        if "PostGIS_Version" in sql:
-            return FakeResult("3.4.0")
-
-        if "COUNT" in sql:
-            return FakeResult(123)
-
-        return FakeResult(None)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        return False
-
 
 def test_readiness_success(client):
     from api.deps import get_db
