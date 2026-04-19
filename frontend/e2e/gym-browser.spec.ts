@@ -280,7 +280,7 @@ test("loads the published catalog and selected gym details", async ({ page }) =>
 
   await expect(
     page.getByRole("heading", {
-      name: /Search the live world for gyms/i,
+      name: /Search for gyms within a real-world radius/i,
     }),
   ).toBeVisible();
   await expect(page.getByText("API live: yes")).toBeVisible();
@@ -315,15 +315,19 @@ test("runs live search without exposing latitude or longitude inputs", async ({
   await expect(page.getByLabel("Latitude")).toHaveCount(0);
   await expect(page.getByLabel("Longitude")).toHaveCount(0);
 
-  await page.getByLabel("City, neighborhood, or place").fill("Franklin, TN");
+  await page.getByLabel("Near").fill("Franklin, TN");
+  await page.getByLabel("Within").fill("5");
   await page.getByRole("button", { name: "Run live search" }).click();
 
-  await expect(page.getByRole("button", { name: /^Live$/ })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Live Search", exact: true })).toBeEnabled();
   await expect(page.getByRole("button", { name: /Franklin Strength Club/i })).toBeVisible();
   await expect(
     page.getByRole("heading", { level: 3, name: "Franklin Strength Club" }),
   ).toBeVisible();
-  await expect(page.getByText(/Live search origin:/i)).toContainText("Franklin, TN");
+  await expect(page.getByText(/Last resolved search origin:/i)).toContainText("Franklin, TN");
+  await expect(page.locator(".results-context-banner strong")).toHaveText(
+    "Live Search within 5 mi of Franklin, TN",
+  );
   await expect(
     page.locator(".detail-facts .stat-card").filter({ hasText: "SourceLive TomTom search" }),
   ).toBeVisible();

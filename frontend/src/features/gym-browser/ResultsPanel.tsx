@@ -9,6 +9,9 @@ type ResultsPanelProps = {
   selectedGymId: string | null;
   visiblePublished: BrowserGym[];
   visibleLive: BrowserGym[];
+  livePlaceLabel: string;
+  liveRadiusLabel: string;
+  liveSearchSummary: string;
   onQueryChange: (value: string) => void;
   onModeChange: (mode: Mode) => void;
   onSelectGym: (gymId: string) => void;
@@ -24,12 +27,28 @@ export function ResultsPanel(props: ResultsPanelProps) {
       subtitle="Switch between the curated published catalog and the live world search surface."
       accent="Browser Client"
     >
+      <div className="results-context-banner">
+        <strong>
+          {props.mode === "published"
+            ? "Published Catalog"
+            : `Live Search within ${props.liveRadiusLabel} of ${props.livePlaceLabel}`}
+        </strong>
+        <span>
+          {props.mode === "published"
+            ? "These results come from the current GymDB published dataset."
+            : props.liveSearchSummary}
+        </span>
+      </div>
       <div className="toolbar-row">
         <input
           className="search-input"
           value={props.query}
           onChange={(event) => props.onQueryChange(event.target.value)}
-          placeholder="Search loaded results by gym name, city, address, or specialty"
+          placeholder={
+            props.mode === "published"
+              ? "Filter the published dataset by gym name, city, address, or specialty"
+              : "Filter live results by gym name, city, or address"
+          }
         />
         <div className="mode-chip-row">
           <button
@@ -37,7 +56,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
             type="button"
             onClick={() => props.onModeChange("published")}
           >
-            Published
+            Published Catalog
           </button>
           <button
             className={props.mode === "live" ? "chip active" : "chip"}
@@ -45,7 +64,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
             onClick={() => props.onModeChange("live")}
             disabled={!props.visibleLive.length}
           >
-            Live
+            Live Search
           </button>
         </div>
       </div>
@@ -55,7 +74,11 @@ export function ResultsPanel(props: ResultsPanelProps) {
           <div className="empty-state">Loading live backend data...</div>
         ) : null}
         {!props.loading && !activeRows.length ? (
-          <div className="empty-state">No gyms matched this query.</div>
+          <div className="empty-state">
+            {props.mode === "published"
+              ? "No published gyms matched these filters."
+              : `No live gyms matched ${props.liveSearchSummary}. Try widening the radius or broadening the search.`}
+          </div>
         ) : null}
         {!props.loading
           ? activeRows.map((gym) => (

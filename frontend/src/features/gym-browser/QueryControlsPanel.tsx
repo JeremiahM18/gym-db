@@ -10,11 +10,14 @@ import {
 } from "./types";
 import { titleCase } from "./utils";
 
+const LIVE_RADIUS_PRESETS_MILES = [1, 3, 5, 10, 15, 25] as const;
+
 type QueryControlsPanelProps = {
   filters: FiltersState;
   liveSearch: LiveSearchState;
   loading: boolean;
   liveRadiusLabel: string;
+  liveSearchSummary: string;
   onPublishedSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onLiveSubmit: (event: FormEvent<HTMLFormElement>) => void;
   setFilters: Dispatch<SetStateAction<FiltersState>>;
@@ -131,8 +134,16 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
       </form>
 
       <form className="controls-grid nearby-grid" onSubmit={props.onLiveSubmit}>
+        <div className="live-search-summary">
+          <span className="live-search-summary-label">Live Search</span>
+          <strong>{props.liveSearchSummary}</strong>
+          <p>
+            Search the real world by place and radius. GymDB handles the coordinates behind the
+            scenes so the user experience stays human.
+          </p>
+        </div>
         <label>
-          <span>Gym search</span>
+          <span>What are you looking for?</span>
           <input
             value={props.liveSearch.query}
             onChange={(event) =>
@@ -144,12 +155,12 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
             placeholder="gym, crossfit, powerlifting, equinox"
           />
           <small className="field-hint">
-            Leave it as <strong>gym</strong> for a broad live search, or search for a specific
-            brand or specialty.
+            Leave it as <strong>gym</strong> for a broad search, or type something more specific
+            like <strong>crossfit</strong>, <strong>pilates</strong>, or a brand name.
           </small>
         </label>
         <label>
-          <span>City, neighborhood, or place</span>
+          <span>Near</span>
           <input
             value={props.liveSearch.placeQuery}
             onChange={(event) =>
@@ -162,23 +173,52 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
             placeholder="Nashville, TN"
           />
           <small className="field-hint">
-            Required. GymDB resolves this place with TomTom, then runs the live search around it.
+            Required. Pick the city, neighborhood, or place you want GymDB to search around.
           </small>
         </label>
         <label>
-          <span>Radius (meters)</span>
+          <span>Within</span>
           <input
-            value={props.liveSearch.radiusM}
+            value={props.liveSearch.radiusMiles}
             onChange={(event) =>
-              props.setLiveSearch((current) => ({ ...current, radiusM: event.target.value }))
+              props.setLiveSearch((current) => ({
+                ...current,
+                radiusMiles: event.target.value,
+              }))
             }
-            inputMode="numeric"
+            inputMode="decimal"
+            placeholder="10"
           />
-          <small className="field-hint">About {props.liveRadiusLabel}</small>
+          <small className="field-hint">
+            Miles from the chosen place. Current search area: about {props.liveRadiusLabel}.
+          </small>
         </label>
+        <div className="radius-preset-row" role="group" aria-label="Radius quick picks">
+          {LIVE_RADIUS_PRESETS_MILES.map((presetMiles) => {
+            const presetValue = String(presetMiles);
+            const active = props.liveSearch.radiusMiles === presetValue;
+
+            return (
+              <button
+                key={presetMiles}
+                className={active ? "chip active" : "chip"}
+                type="button"
+                onClick={() =>
+                  props.setLiveSearch((current) => ({
+                    ...current,
+                    radiusMiles: presetValue,
+                  }))
+                }
+              >
+                {presetMiles} mi
+              </button>
+            );
+          })}
+        </div>
         {props.liveSearch.resolvedLabel ? (
-          <div className="field-hint">
-            Live search origin: {props.liveSearch.resolvedLabel}
+          <div className="field-hint live-origin-note">
+            Last resolved search origin: {props.liveSearch.resolvedLabel} within{" "}
+            {props.liveRadiusLabel}.
           </div>
         ) : null}
         <div className="controls-actions">

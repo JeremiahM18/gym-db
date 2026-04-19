@@ -27,9 +27,10 @@ import {
   buildPublishedBrowserGym,
   buildSelectedActionLinks,
   filterGymsByQuery,
-  formatMilesFromMeters,
+  formatMilesValue,
   getAverageConfidence,
   getTopSpecialty,
+  milesToMeters,
   parseNumber,
 } from "./features/gym-browser/utils";
 import {
@@ -62,7 +63,9 @@ export function App() {
   const [liveOrigin, setLiveOrigin] = useState<LiveOrigin>(null);
 
   const deferredQuery = useDeferredValue(query);
-  const liveRadiusMeters = parseNumber(liveSearch.radiusM);
+  const liveRadiusMiles = parseNumber(liveSearch.radiusMiles);
+  const liveRadiusMeters =
+    liveRadiusMiles != null ? milesToMeters(liveRadiusMiles) : undefined;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -168,9 +171,15 @@ export function App() {
   );
   const topSpecialty = useMemo(() => getTopSpecialty(activeRows), [activeRows]);
 
-  const liveRadiusLabel = liveRadiusMeters
-    ? formatMilesFromMeters(liveRadiusMeters)
+  const liveRadiusLabel = liveRadiusMiles != null
+    ? formatMilesValue(liveRadiusMiles)
     : "n/a";
+  const livePlaceLabel =
+    liveSearch.resolvedLabel || liveOrigin?.label || liveSearch.placeQuery.trim() || "your chosen place";
+  const liveSearchSummary =
+    mode === "live"
+      ? `${liveSearch.query.trim() || "gym"} within ${liveRadiusLabel} of ${livePlaceLabel}`
+      : `Use Live Search to find gyms within a chosen radius of any place.`;
   const selectedActionLinks = useMemo<ActionLink[]>(
     () => buildSelectedActionLinks(selectedGym),
     [selectedGym],
@@ -210,15 +219,28 @@ export function App() {
       return;
     }
 
-    if (liveRadiusMeters == null) {
-      setError("Live search requires a numeric radius.");
+    if (liveRadiusMiles == null || liveRadiusMeters == null || liveRadiusMiles <= 0) {
+      setError("Live search requires a radius in miles greater than zero.");
       setLoading(false);
       return;
     }
 
     try {
       const response = await liveSearchGyms(placeQuery, searchQuery, liveRadiusMeters);
-      const mapped = response.results.map(buildLiveBrowserGym);
+      const mapped = response.results
+        .map(buildLiveBrowserGym)
+        .sort((left, right) => {
+          if (left.distanceM == null && right.distanceM == null) {
+            return left.name.localeCompare(right.name);
+          }
+          if (left.distanceM == null) {
+            return 1;
+          }
+          if (right.distanceM == null) {
+            return -1;
+          }
+          return left.distanceM - right.distanceM;
+        });
       startTransition(() => {
         setMode("live");
         setLiveResults(mapped);
@@ -252,7 +274,9 @@ export function App() {
           mode={mode}
           activeRowCount={activeRows.length}
           averageConfidence={averageConfidence}
-          nearbyRadiusLabel={liveRadiusLabel}
+          liveRadiusLabel={liveRadiusLabel}
+          livePlaceLabel={livePlaceLabel}
+          liveSearchSummary={liveSearchSummary}
           topSpecialty={topSpecialty}
           selectedActionLinks={selectedActionLinks}
         />
@@ -270,6 +294,7 @@ export function App() {
             liveSearch={liveSearch}
             loading={loading}
             liveRadiusLabel={liveRadiusLabel}
+            liveSearchSummary={liveSearchSummary}
             onPublishedSubmit={handlePublishedSubmit}
             onLiveSubmit={handleLiveSubmit}
             setFilters={setFilters}
@@ -283,6 +308,9 @@ export function App() {
             selectedGymId={selectedGymId}
             visiblePublished={visiblePublished}
             visibleLive={visibleLive}
+            livePlaceLabel={livePlaceLabel}
+            liveRadiusLabel={liveRadiusLabel}
+            liveSearchSummary={liveSearchSummary}
             onQueryChange={setQuery}
             onModeChange={(nextMode) => {
               setMode(nextMode);
@@ -297,11 +325,14 @@ export function App() {
         </div>
 
         <GeoCanvasPanel
+          mode={mode}
           gyms={activeRows}
           selectedGymId={selectedGymId}
           onSelectGym={setSelectedGymId}
           nearbyLat={mode === "live" ? liveOrigin?.lat : undefined}
           nearbyLon={mode === "live" ? liveOrigin?.lon : undefined}
+          livePlaceLabel={mode === "live" ? livePlaceLabel : undefined}
+          liveRadiusLabel={mode === "live" ? liveRadiusLabel : undefined}
         />
 
         <SelectedGymPanel

@@ -190,6 +190,18 @@ export function formatMilesFromMeters(meters: number): string {
   return miles >= 10 ? `${miles.toFixed(0)} mi` : `${miles.toFixed(1)} mi`;
 }
 
+export function milesToMeters(miles: number): number {
+  return Math.round(miles * METERS_PER_MILE);
+}
+
+export function formatMilesValue(miles: number): string {
+  if (!Number.isFinite(miles)) {
+    return "n/a";
+  }
+
+  return miles >= 10 || Number.isInteger(miles) ? `${miles.toFixed(0)} mi` : `${miles.toFixed(1)} mi`;
+}
+
 export function getAmenityChips(gym: GymOutV2): string[] {
   const tags = gym.tags ?? {};
   const amenitySignals: Array<[string, string]> = [
