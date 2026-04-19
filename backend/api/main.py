@@ -47,7 +47,10 @@ app = FastAPI(
         {"name": "gyms", "description": "Gym discovery and filtering"},
         {
             "name": "live-search",
-            "description": "Live world search with OpenStreetMap as the primary source and TomTom for place resolution plus enrichment",
+            "description": (
+                "Live world search with OpenStreetMap as the primary source "
+                "and TomTom for place resolution plus enrichment"
+            ),
         },
         {"name": "review", "description": "Coverage and review workflows"},
         {"name": "embeddings", "description": "Vector embeddings"},
