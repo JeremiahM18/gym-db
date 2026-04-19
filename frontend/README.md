@@ -47,6 +47,7 @@ The frontend reads `VITE_API_BASE_URL`.
 
 The frontend is standardized on Node 24 to match CI.
 If you use `nvm`, run `nvm use` from the repo root before installing dependencies.
+Place-based search in the browser does not publish a new dataset by itself; it resolves a place name and searches the currently published region(s). To publish a different city into the dataset catalog, run the backend ingest CLI with `--place`.
 
 Example local setup in `.env.local`:
 

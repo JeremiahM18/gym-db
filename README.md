@@ -280,6 +280,22 @@ python -m uvicorn api.main:app --reload
 
 Important: the backend is currently configured with `data/`-relative paths, so start it from the `backend/` directory unless you override those settings explicitly.
 
+To publish a new city or place by name instead of hand-managing coordinates, use the ingest CLI with TomTom geocoding:
+
+```bash
+python .\src\main.py --place "Franklin, TN" --radius-miles 12 --region-key franklin_tn --set-default-region
+```
+
+That command will:
+
+- resolve the place through TomTom
+- ingest gyms around the resolved coordinates
+- write a dataset file under `backend/data/`
+- update `backend/data/registry.json`
+- materialize the SQLite read model for the new region
+
+If the API is already running, it will now pick up registry changes on subsequent requests instead of requiring a restart.
+
 ### 3. Start the frontend
 
 ```bash
