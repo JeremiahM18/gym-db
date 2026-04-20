@@ -49,7 +49,7 @@ type LiveOrigin = {
 } | null;
 
 export function App() {
-  const [mode, setMode] = useState<Mode>("published");
+  const [mode, setMode] = useState<Mode>("live");
   const [filters, setFilters] = useState<FiltersState>(defaultFilters);
   const [liveSearch, setLiveSearch] = useState<LiveSearchState>(defaultLiveSearch);
   const [query, setQuery] = useState("");
@@ -168,6 +168,7 @@ export function App() {
   );
 
   const activeRows = mode === "published" ? visiblePublished : visibleLive;
+  const hasLiveSearchRun = liveOrigin != null || liveResults.length > 0;
   const averageConfidence = useMemo(
     () => getAverageConfidence(activeRows),
     [activeRows],
@@ -303,6 +304,7 @@ export function App() {
           liveRadiusLabel={liveRadiusLabel}
           livePlaceLabel={livePlaceLabel}
           liveSearchSummary={liveSearchSummary}
+          hasLiveSearchRun={hasLiveSearchRun}
           topSpecialty={topSpecialty}
           selectedActionLinks={selectedActionLinks}
         />
@@ -377,6 +379,7 @@ export function App() {
               livePlaceLabel={livePlaceLabel}
               liveRadiusLabel={liveRadiusLabel}
               liveSearchSummary={liveSearchSummary}
+              hasLiveSearchRun={hasLiveSearchRun}
               onQueryChange={setQuery}
               onExpandLiveRadius={() =>
                 setLiveSearch((current) => ({

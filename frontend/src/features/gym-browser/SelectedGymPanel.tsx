@@ -14,13 +14,13 @@ type SelectedGymPanelProps = {
 export function SelectedGymPanel(props: SelectedGymPanelProps) {
   const subtitle =
     props.mode === "published"
-      ? "A closer look at the currently selected curated gym."
-      : "Contact details, amenities, and distance for the selected nearby gym.";
+      ? "A closer look at the selected gym from your tighter shortlist."
+      : "Contact details, amenities, and distance for the gym you selected.";
 
   if (props.detailLoading) {
     return (
       <Panel title="Gym Details" subtitle={subtitle} accent="Selected Gym">
-        <div className="empty-state">Loading gym details...</div>
+        <div className="empty-state">Loading the selected gym...</div>
       </Panel>
     );
   }
@@ -29,7 +29,7 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
     return (
       <Panel title="Gym Details" subtitle={subtitle} accent="Selected Gym">
         <div className="empty-state">
-          Pick a gym from the list to see its contact details, amenities, and fit.
+          Pick a gym from the list to see hours, amenities, contact details, and overall fit.
         </div>
       </Panel>
     );
@@ -94,8 +94,8 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
 
         <div className="detail-facts">
           <StatCard
-            label="Listing"
-            value={props.selectedGym.sourceKind === "published" ? "Curated GymDB" : "Nearby live result"}
+            label="View"
+            value={props.selectedGym.sourceKind === "published" ? "Curated picks" : "Nearby search"}
             tone="cool"
           />
           <StatCard
@@ -165,8 +165,8 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
             </div>
             <p className="detail-copy">
               {props.selectedGym.sourceKind === "published"
-                ? "Curated gyms include the tighter GymDB read on quality, fit, and amenities."
-                : "Nearby results are ranked by distance and then enriched when stronger public details are available."}
+                ? "Curated picks give you a cleaner shortlist when you want to compare fit, quality, and amenities."
+                : "Nearby results help you compare gyms around a real place, with stronger public details filled in when available."}
             </p>
           </section>
         </div>

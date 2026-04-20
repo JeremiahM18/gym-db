@@ -53,35 +53,35 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
   return (
     <Panel
       title="Search"
-      subtitle="Start with a place and radius, or switch to the curated catalog when you want a tighter GymDB view."
+      subtitle="Start with a place and radius. Use curated picks when you want a tighter shortlist after exploring."
       accent="Find Gyms"
     >
       <div className="search-intro">
         <strong>
           {props.mode === "live"
-            ? "Live nearby search is the fastest way to explore a city."
-            : "Curated gyms lets you browse the tighter GymDB catalog."}
+            ? "Nearby search is the main way to explore a city."
+            : "Curated picks is the tighter follow-up view."}
         </strong>
         <p>
           {props.mode === "live"
             ? "Pick a place, set a radius, and compare gyms by distance, amenities, and fit."
-            : "Use curated results when you want a cleaner, more selective pass over published gyms."}
+            : "Use curated picks when you want a cleaner, more selective pass after exploring the broader area."}
         </p>
       </div>
-      <div className="source-switcher">
+      <div className="source-switcher" role="group" aria-label="Search view">
         <button
           className={props.mode === "live" ? "chip active" : "chip"}
           type="button"
           onClick={() => props.onModeChange("live")}
         >
-          Search around a place
+          Nearby search
         </button>
         <button
           className={props.mode === "published" ? "chip active" : "chip"}
           type="button"
           onClick={() => props.onModeChange("published")}
         >
-          Curated gyms
+          Curated picks
         </button>
       </div>
 
@@ -183,10 +183,10 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
         <form className="controls-grid published-search-form" onSubmit={props.onPublishedSubmit}>
           <div className="live-search-summary catalog-summary">
             <span className="live-search-summary-label">Curated GymDB View</span>
-            <strong>Browse the reviewed catalog</strong>
+            <strong>Compare the tighter shortlist</strong>
             <p>
-              Use this view when you want the tighter, curated GymDB snapshot instead of a fresh
-              place search.
+              Use curated picks when you want a cleaner review of the current catalog instead of
+              the broader nearby search.
             </p>
           </div>
           <label>

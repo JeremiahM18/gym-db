@@ -325,11 +325,12 @@ test("loads the published catalog and selected gym details", async ({ page }) =>
 
   await expect(
     page.getByRole("heading", {
-      name: /Search for gyms around any place/i,
+      name: /Find gyms around any place/i,
     }),
   ).toBeVisible();
   await expect(page.getByText("Search service: ready")).toBeVisible();
   await expect(page.getByText("Data readiness")).toBeVisible();
+  await page.getByRole("button", { name: "Curated picks", exact: true }).click();
   await expect(page.getByRole("button", { name: /Downtown Strength/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Gym Details" })).toBeVisible();
   await expect(
@@ -342,7 +343,7 @@ test("refreshes the published catalog with a server-backed specialty filter", as
 }) => {
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Curated gyms", exact: true }).click();
+  await page.getByRole("button", { name: "Curated picks", exact: true }).click();
   await page.locator("form").getByLabel("Gym style").selectOption("powerlifting");
   await page.getByRole("button", { name: "Show curated gyms" }).click();
 
@@ -361,7 +362,6 @@ test("runs live search without exposing latitude or longitude inputs", async ({
   await expect(page.getByLabel("Latitude")).toHaveCount(0);
   await expect(page.getByLabel("Longitude")).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Search around a place" }).click();
   const liveForm = page.locator("form").filter({ has: page.getByRole("button", { name: "Find nearby gyms" }) });
   await liveForm.getByPlaceholder("Nashville, TN").fill("Franklin, TN");
   await liveForm.getByPlaceholder("10").fill("5");
@@ -378,6 +378,6 @@ test("runs live search without exposing latitude or longitude inputs", async ({
   await expect(
     page
       .locator(".detail-facts .stat-card")
-      .filter({ hasText: "ListingNearby live result" }),
+      .filter({ hasText: "ViewNearby search" }),
   ).toBeVisible();
 });

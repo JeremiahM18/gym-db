@@ -6,6 +6,7 @@ type ResultsPanelProps = {
   query: string;
   mode: Mode;
   loading: boolean;
+  hasLiveSearchRun: boolean;
   selectedGymId: string | null;
   visiblePublished: BrowserGym[];
   visibleLive: BrowserGym[];
@@ -28,21 +29,27 @@ export function ResultsPanel(props: ResultsPanelProps) {
       title="Gyms"
       subtitle={
         props.mode === "published"
-          ? "Browse the current curated GymDB results."
-          : `See gyms within ${props.liveRadiusLabel} of ${props.livePlaceLabel}.`
+          ? "Review the tighter shortlist from the current GymDB catalog."
+          : props.hasLiveSearchRun
+            ? `See gyms within ${props.liveRadiusLabel} of ${props.livePlaceLabel}.`
+            : "Run a nearby search to compare gyms around a place."
       }
       accent="Results"
     >
       <div className="results-context-banner">
         <strong>
           {props.mode === "published"
-            ? `${activeRows.length} curated gyms`
-            : `${activeRows.length} gyms within ${props.liveRadiusLabel} of ${props.livePlaceLabel}`}
+            ? `${activeRows.length} curated picks`
+            : props.hasLiveSearchRun
+              ? `${activeRows.length} gyms within ${props.liveRadiusLabel} of ${props.livePlaceLabel}`
+              : "Start with a place and radius"}
         </strong>
         <span>
           {props.mode === "published"
-            ? "This list uses the current curated GymDB catalog."
-            : props.liveSearchSummary}
+            ? "Use this tighter view when you want a cleaner shortlist to compare."
+            : props.hasLiveSearchRun
+              ? props.liveSearchSummary
+              : "Search a city, neighborhood, landmark, or ZIP code to see nearby gyms ranked by distance."}
         </span>
       </div>
       <div className="toolbar-row toolbar-row-single">
@@ -80,12 +87,16 @@ export function ResultsPanel(props: ResultsPanelProps) {
               <strong>
                 {props.mode === "published"
                   ? "No curated gyms matched these filters."
-                  : "No gyms matched this search yet."}
+                  : props.hasLiveSearchRun
+                    ? "No gyms matched this search yet."
+                    : "Search for a place to start exploring."}
               </strong>
               <p>
                 {props.mode === "published"
                   ? "Try broadening the filters or switch back to place search to explore a wider area."
-                  : `We didn’t find gyms for ${props.liveSearchSummary}. Widen the radius or search a nearby place.`}
+                  : props.hasLiveSearchRun
+                    ? `We didn’t find gyms for ${props.liveSearchSummary}. Widen the radius or search a nearby place.`
+                    : "Choose a place, pick a radius, and we'll map nearby gyms here."}
               </p>
               <div className="empty-state-actions">
                 {props.mode === "published" ? (
@@ -94,7 +105,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
                     className="chip active"
                     onClick={props.onSwitchToLiveMode}
                   >
-                    Search around a place instead
+                    Go back to nearby search
                   </button>
                 ) : (
                   <button
@@ -102,7 +113,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
                     className="chip active"
                     onClick={props.onExpandLiveRadius}
                   >
-                    Widen the radius
+                    {props.hasLiveSearchRun ? "Widen the radius" : "Try a wider radius"}
                   </button>
                 )}
               </div>

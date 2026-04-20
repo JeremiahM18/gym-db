@@ -9,7 +9,7 @@ export function StatusStrip(props: StatusStripProps) {
     <section className="status-strip status-strip-grid">
       <div className={`status-pill ${props.health?.live ? "healthy" : "degraded"}`}>
         <span className="status-dot" />
-        Search service: {props.health?.live ? "ready" : "checking"}
+        Search service: {props.health?.live ? "ready" : "warming up"}
       </div>
       <div className={`status-card ${props.health?.ready ? "healthy" : "degraded"}`}>
         <div className="status-card-head">
@@ -21,7 +21,7 @@ export function StatusStrip(props: StatusStripProps) {
           <small className="status-note">{props.health.readinessHint}</small>
         ) : null}
       </div>
-      <div className="status-pill neutral">Results update as soon as your current search finishes.</div>
+      <div className="status-pill neutral">Nearby search is the main path. Curated picks is there when you want a tighter shortlist.</div>
     </section>
   );
 }
