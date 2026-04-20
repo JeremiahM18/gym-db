@@ -23,6 +23,7 @@ data/**/*.manifest.json
 data/**/*.lock
 !data/.gitkeep
 !data/README.md
+!data/gyms_nashville.json
 !data/gyms_test.json
 !data/registry_test.json
 !data/registry.json

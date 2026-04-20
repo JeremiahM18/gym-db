@@ -25,3 +25,6 @@ frontend/playwright-report/
 frontend/test-results/
 backend/coverage.xml
 backend/.coverage
+backend/data/*.sqlite3
+backend/data/*.manifest.json
+backend/data/live_search_cache/*.json

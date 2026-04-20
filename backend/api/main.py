@@ -13,10 +13,12 @@ from api.health import router as health_router
 from api.internal_routes.internal import router as status_router
 from api.internal_routes.jobs import router as jobs_router
 from api.observability import request_logging_middleware
+from api.resources import create_registry
 from api.review_routes import router as review_router
 from api.routes_metrics import router as metrics_router
 from api.routes_v2 import router as v2_router
 from api.settings import get_settings
+from gymdb.infrastructure.live_search_cache import prime_cache_from_dataset
 
 # Application lifecycle
 
@@ -29,6 +31,33 @@ async def lifespan(app: FastAPI):
     All side-effectful initialization MUST happen here.
     """
     logging.getLogger("gymdb").info("GymDB API starting up")
+    logger = logging.getLogger("gymdb")
+
+    try:
+        registry = create_registry(settings)
+        default_region = registry.default_region
+        metadata = registry.region_metadata(default_region)
+        dataset_path = registry.dataset_path(default_region)
+        radius_miles = float(metadata.get("radius_miles", 10.0))
+        place_label = str(metadata.get("place_label") or default_region)
+        cache_path = prime_cache_from_dataset(
+            settings.live_search_cache_root,
+            dataset_path=dataset_path,
+            lat=float(metadata["lat"]),
+            lon=float(metadata["lon"]),
+            radius_m=round(radius_miles * 1609.344),
+            place_label=place_label,
+        )
+        if cache_path is not None:
+            logger.info(
+                "Primed default live-search cache",
+                extra={
+                    "region": default_region,
+                    "cache_path": str(cache_path),
+                },
+            )
+    except Exception:
+        logger.exception("Failed to prime default live-search cache")
 
     yield
 

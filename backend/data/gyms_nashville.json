@@ -1,0 +1,2114 @@
+{
+  "schema_version": "1.3",
+  "generated_at": "2026-04-20T14:50:37.122061+00:00",
+  "count": 26,
+  "inference_meta": {
+    "engine": "rule_based",
+    "version": "1.1.0",
+    "generated_at": "2026-04-20T14:50:37.117157Z",
+    "deterministic_hash": "d2c1dc81cf7f755f752b81519d68b90de2ad804b218dbd52b0cb55c8d7351dbd",
+    "field_confidence": {
+      "premium_score": 0.35,
+      "is_24_7": 0.48,
+      "lifter_friendly": 0.62,
+      "specialty": 0.66,
+      "tier": 0.67
+    },
+    "contradictions": {}
+  },
+  "results": [
+    {
+      "id": "c2e0b5b79dcb5fad",
+      "name": "Irontribe",
+      "lat": 36.0313359,
+      "lon": -86.8026025,
+      "confidence_score": 0.18,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 2597881514
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Irontribe"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.117157Z",
+        "deterministic_hash": "d2c1dc81cf7f755f752b81519d68b90de2ad804b218dbd52b0cb55c8d7351dbd",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.67
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "482059a81c081947",
+      "name": "Maryland Farms YMCA",
+      "lat": 36.032016,
+      "lon": -86.797395,
+      "confidence_score": 0.85,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 3011825333
+        }
+      ],
+      "tags": {
+        "addr:city": "Brentwood",
+        "addr:housenumber": "5101",
+        "addr:postcode": "37027",
+        "addr:street": "Maryland Way",
+        "leisure": "fitness_centre",
+        "name": "Maryland Farms YMCA",
+        "operator": "YMCA of Middle Tennessee",
+        "phone": "+1-615-373-2900",
+        "website": "https://www.ymcamidtn.org/maryland-farms"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ],
+          "confidence": 0.45,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ],
+          "confidence": 0.7,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.117721Z",
+        "deterministic_hash": "0beefcd2052a84d0f1141debdd2e5d0be8d25ad06578083c19612f5d9e21e194",
+        "field_confidence": {
+          "premium_score": 0.45,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.7
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "834d79fb999429e2",
+      "name": "Crossfit",
+      "lat": 36.1524177,
+      "lon": -86.8536331,
+      "confidence_score": 0.18,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 4796284005
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Crossfit"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "crossfit",
+          "reasons": [
+            "name suggests crossfit"
+          ],
+          "confidence": 0.58,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.117938Z",
+        "deterministic_hash": "6fe8394e550ddda19ba0044d1320869ce496a0ed1eab76c60eb5132666d0c105",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.58,
+          "tier": 0.67
+        },
+        "contradictions": {
+          "specialty": [
+            "specialty was inferred without matching tagged capabilities"
+          ]
+        }
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "0e2430676d5394a4",
+      "name": "Planet Fitness",
+      "lat": 36.1502416,
+      "lon": -86.8606197,
+      "confidence_score": 0.32,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 4816594786
+        }
+      ],
+      "tags": {
+        "brand": "Planet Fitness",
+        "brand:wikidata": "Q7201095",
+        "leisure": "fitness_centre",
+        "name": "Planet Fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.118155Z",
+        "deterministic_hash": "5d4fbaaf96e0423dcae4c92850da2edc242296eb46c47d7c1c90b5f93b28d7f6",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.67
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "6a0846002f21a555",
+      "name": "Anytime Fitness",
+      "lat": 36.1703201,
+      "lon": -86.6847291,
+      "confidence_score": 0.18,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 5311163473
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Anytime Fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.118337Z",
+        "deterministic_hash": "e1e071b4848140b3f835ed708b1b657ac09143e73271caad9537becdeb6758fc",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.67
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "a7512ff862676458",
+      "name": "Orangetheory Fitness",
+      "lat": 36.1520644,
+      "lon": -86.7934916,
+      "confidence_score": 0.68,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 5511703487
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "121",
+        "addr:postcode": "37203",
+        "addr:state": "TN",
+        "addr:street": "17th Avenue South",
+        "brand": "Orangetheory Fitness",
+        "brand:wikidata": "Q25005163",
+        "leisure": "fitness_centre",
+        "name": "Orangetheory Fitness",
+        "phone": "+1 615-988-9288",
+        "ref": "1902"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.118541Z",
+        "deterministic_hash": "26355c13cc0ab9dc4c04d9695a5ad1b1dbd9472a451818cb0d43700174db6cbd",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.67
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "name_mismatch",
+        "external_refs": {
+          "tomtom": {
+            "provider": "tomtom",
+            "external_id": "z-UXkf08aqoMdXQvZ3z4YA",
+            "name": "Orangetheory Fitness Nashville-Midtown Tn",
+            "distance_m": 4.073364815012365,
+            "city": "Nashville",
+            "url": "nashville-midtown.orangetheoryfitness.com/",
+            "status": "name_mismatch"
+          }
+        }
+      }
+    },
+    {
+      "id": "6877cbcf0ee96232",
+      "name": "Steadfast South",
+      "lat": 36.1272205,
+      "lon": -86.7529354,
+      "confidence_score": 0.64,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 6143452188
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "2190",
+        "addr:postcode": "37211",
+        "addr:state": "TN",
+        "addr:street": "Nolensville Pike",
+        "addr:unit": "C",
+        "leisure": "fitness_centre",
+        "name": "Steadfast South",
+        "sport": "yoga",
+        "website": "https://www.steadfastandtrueyoga.com/news/2019/12/7/big-announcements"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ],
+          "confidence": 0.45,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.76,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "yoga",
+          "reasons": [
+            "matched specialty capabilities for yoga"
+          ],
+          "confidence": 0.93,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ],
+          "confidence": 0.7,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.118700Z",
+        "deterministic_hash": "6e832d99f29071246397dc500c8d3d6813b061a8a129177abbaa8c840a969ca9",
+        "field_confidence": {
+          "premium_score": 0.45,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.76,
+          "specialty": 0.93,
+          "tier": 0.7
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "b0c4f02a504fe745",
+      "name": "Planet Fitness",
+      "lat": 36.1267985,
+      "lon": -86.7144739,
+      "confidence_score": 0.71,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7050546894
+        }
+      ],
+      "tags": {
+        "brand": "Planet Fitness",
+        "brand:wikidata": "Q7201095",
+        "leisure": "fitness_centre",
+        "name": "Planet Fitness",
+        "opening_hours": "PH,Mo-Su 00:00-24:00",
+        "website": "https://www.planetfitness.com/gyms/south-nashville-tn"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 2,
+          "reasons": [
+            "has website",
+            "has opening hours"
+          ],
+          "confidence": 0.55,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": true,
+          "reasons": [
+            "derived from opening_hours"
+          ],
+          "confidence": 0.98,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=2",
+            "24/7 access adds value"
+          ],
+          "confidence": 0.83,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.118857Z",
+        "deterministic_hash": "af004794a15bf1c2384c8504639838bfab1864a82160ff3c1d4666286880b2e6",
+        "field_confidence": {
+          "premium_score": 0.55,
+          "is_24_7": 0.98,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.83
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "ff442cf722899c08",
+      "name": "Donelson Hot Yoga",
+      "lat": 36.1696659,
+      "lon": -86.6804878,
+      "confidence_score": 0.64,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7093576893
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "2428",
+        "addr:postcode": "37214",
+        "addr:state": "TN",
+        "addr:street": "Lebanon Pike",
+        "leisure": "fitness_centre",
+        "name": "Donelson Hot Yoga",
+        "sport": "yoga",
+        "website": "https://www.donelsonhotyoga.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ],
+          "confidence": 0.45,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.76,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "yoga",
+          "reasons": [
+            "matched specialty capabilities for yoga"
+          ],
+          "confidence": 0.93,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ],
+          "confidence": 0.7,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.119005Z",
+        "deterministic_hash": "2cc58647ed598681b0fadb14d0aa1c3989af27850b22e1970cc0ec73007c7630",
+        "field_confidence": {
+          "premium_score": 0.45,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.76,
+          "specialty": 0.93,
+          "tier": 0.7
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "5c4e0e63046c2116",
+      "name": "Chestnut Hill Yoga",
+      "lat": 36.1465593,
+      "lon": -86.76633,
+      "confidence_score": 0.64,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7501601246
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "1106",
+        "addr:postcode": "37210",
+        "addr:state": "TN",
+        "addr:street": "3rd Avenue South",
+        "leisure": "fitness_centre",
+        "name": "Chestnut Hill Yoga",
+        "sport": "yoga",
+        "website": "https://chestnuthillyoga.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ],
+          "confidence": 0.45,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.76,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "yoga",
+          "reasons": [
+            "matched specialty capabilities for yoga"
+          ],
+          "confidence": 0.93,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ],
+          "confidence": 0.7,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.119159Z",
+        "deterministic_hash": "f2d28ad8c7fc453a23a29183ea4d1d08c012468d7af1efdb619ea5cad6dbf98c",
+        "field_confidence": {
+          "premium_score": 0.45,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.76,
+          "specialty": 0.93,
+          "tier": 0.7
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "e738916f7db2df5f",
+      "name": "Cross Fit Forte",
+      "lat": 36.1487305,
+      "lon": -86.7703615,
+      "confidence_score": 0.18,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7911563292
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Cross Fit Forte"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.119283Z",
+        "deterministic_hash": "235b99245d6ab4b20061d270a2d233613e689da3988306b70259d51e3a2f257f",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.67
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "5a0d4bafed8fe41c",
+      "name": "H Dub Athletics",
+      "lat": 36.147362,
+      "lon": -86.7667197,
+      "confidence_score": 0.38,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7911563293
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "H Dub Athletics"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.119415Z",
+        "deterministic_hash": "c31fa4c3e1be3478fb3cf79230f05bff5bdf73495318c57569d58337a75b1e53",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.67
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [
+          "tomtom"
+        ],
+        "match_status": "matched",
+        "external_refs": {
+          "tomtom": {
+            "provider": "tomtom",
+            "external_id": "01dJUbt-eKWBtL5JExoG-Q",
+            "name": "H Dub Athletics",
+            "distance_m": 9.961066994496042,
+            "city": "Nashville",
+            "url": "www.hdubathletics.com/",
+            "status": "matched"
+          }
+        }
+      }
+    },
+    {
+      "id": "74f6878a07627bd3",
+      "name": "Urban Strength Gym",
+      "lat": 36.1474714,
+      "lon": -86.7667864,
+      "confidence_score": 0.18,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 7917897147
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Urban Strength Gym"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": true,
+          "reasons": [
+            "name suggests strength focus"
+          ],
+          "confidence": 0.49,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.119544Z",
+        "deterministic_hash": "4966a947cc540cfc007f200ccfdb4abc4ffacbf18111bf165f9f91da21510014",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.49,
+          "specialty": 0.66,
+          "tier": 0.67
+        },
+        "contradictions": {
+          "lifter_friendly": [
+            "lifter-friendly inference lacks tagged strength amenities"
+          ]
+        }
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "142d9becccf7895b",
+      "name": "Orangetheory Fitness",
+      "lat": 36.1613964,
+      "lon": -86.7847875,
+      "confidence_score": 0.68,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 11220520250
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "1022",
+        "addr:postcode": "37203",
+        "addr:state": "TN",
+        "addr:street": "Church Street",
+        "brand": "Orangetheory Fitness",
+        "brand:wikidata": "Q25005163",
+        "leisure": "fitness_centre",
+        "name": "Orangetheory Fitness",
+        "phone": "+1 615-866-3522",
+        "ref": "48188"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.119683Z",
+        "deterministic_hash": "62cfdf0818f70d437f672d46e18022891f14ae699e2d86070efdd2bf23b077bb",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.67
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "name_mismatch",
+        "external_refs": {
+          "tomtom": {
+            "provider": "tomtom",
+            "external_id": "tsxYOidENMY7SGr9iaxhPQ",
+            "name": "Orangetheory Fitness Nashville Tn",
+            "distance_m": 2.6702770444984107,
+            "city": "Nashville",
+            "url": "www.orangetheoryfitness.com/",
+            "status": "name_mismatch"
+          }
+        }
+      }
+    },
+    {
+      "id": "1ebc04bbe2917be1",
+      "name": "Legacy Fitness Center",
+      "lat": 36.1948691,
+      "lon": -86.6231675,
+      "confidence_score": 0.55,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 11327525941
+        }
+      ],
+      "tags": {
+        "leisure": "fitness_centre",
+        "name": "Legacy Fitness Center",
+        "phone": "+1-615-953-3177",
+        "website": "https://legacyfitnesscenter.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ],
+          "confidence": 0.45,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ],
+          "confidence": 0.7,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.119820Z",
+        "deterministic_hash": "002197daedc065a078140e1f15863a5e73017406321730a720bd270546acc034",
+        "field_confidence": {
+          "premium_score": 0.45,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.7
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "35d25697c850ffba",
+      "name": "Heron Pointe Gym",
+      "lat": 36.1182022,
+      "lon": -86.6298171,
+      "confidence_score": 0.34,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 11669492029
+        }
+      ],
+      "tags": {
+        "access": "private",
+        "leisure": "fitness_centre",
+        "name": "Heron Pointe Gym",
+        "opening_hours": "Mo-Su,PH 00:00-24:00",
+        "sport": "fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has opening hours"
+          ],
+          "confidence": 0.45,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": true,
+          "reasons": [
+            "derived from opening_hours"
+          ],
+          "confidence": 0.98,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": true,
+          "reasons": [
+            "has strength training amenities"
+          ],
+          "confidence": 0.91,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1",
+            "24/7 access adds value"
+          ],
+          "confidence": 0.79,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.119966Z",
+        "deterministic_hash": "b052c38ea3c271395ccfb8382d4238a4700b749f6dcf0f8a37871720c8ba1a03",
+        "field_confidence": {
+          "premium_score": 0.45,
+          "is_24_7": 0.98,
+          "lifter_friendly": 0.91,
+          "specialty": 0.66,
+          "tier": 0.79
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "1d9f20c67149bf8f",
+      "name": "Climb West",
+      "lat": 36.1530445,
+      "lon": -86.8280456,
+      "confidence_score": 0.58,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 11778973371
+        }
+      ],
+      "tags": {
+        "addr:housenumber": "3600",
+        "addr:postcode": "37209",
+        "addr:street": "Charlotte Avenue",
+        "leisure": "fitness_centre",
+        "name": "Climb West",
+        "opening_hours": "Mo-Fr 06:00-22:00; Sa 09:00-21:00; Su 11:00-18:00",
+        "phone": "+1-615-463-7625"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has opening hours"
+          ],
+          "confidence": 0.45,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.84,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ],
+          "confidence": 0.7,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.120110Z",
+        "deterministic_hash": "11d2c4e45d67500ebc06b8d928c7e1ac04da81590da587222834b79d49d084ac",
+        "field_confidence": {
+          "premium_score": 0.45,
+          "is_24_7": 0.84,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.7
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "afac5feef65d7ac8",
+      "name": "Hot Yoga of East Nashville",
+      "lat": 36.1758081,
+      "lon": -86.7583513,
+      "confidence_score": 0.99,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 12556488305
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "807",
+        "addr:postcode": "37206",
+        "addr:state": "TN",
+        "addr:street": "Main Street",
+        "leisure": "fitness_centre",
+        "name": "Hot Yoga of East Nashville",
+        "phone": "+1-615-622-6077",
+        "sport": "yoga",
+        "website": "https://www.hotyogaofeastnashville.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ],
+          "confidence": 0.45,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.76,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "yoga",
+          "reasons": [
+            "matched specialty capabilities for yoga"
+          ],
+          "confidence": 0.93,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ],
+          "confidence": 0.7,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.120260Z",
+        "deterministic_hash": "6853a4f9454d62c513e64b481e870dde127ddc431d425486028a109c7f542a63",
+        "field_confidence": {
+          "premium_score": 0.45,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.76,
+          "specialty": 0.93,
+          "tier": 0.7
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [
+          "tomtom"
+        ],
+        "match_status": "matched",
+        "external_refs": {
+          "tomtom": {
+            "provider": "tomtom",
+            "external_id": "PLmADGym14igFOBW7IYWJw",
+            "name": "Hot Yoga of East Nashville",
+            "distance_m": 2.7289601171006295,
+            "city": "Nashville",
+            "url": "www.hotyogaofeastnashville.com/",
+            "status": "matched"
+          }
+        }
+      }
+    },
+    {
+      "id": "3cbd7d45f96603b8",
+      "name": "Climb Nashville East",
+      "lat": 36.1816982,
+      "lon": -86.7355516,
+      "confidence_score": 0.34,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 12585946601
+        }
+      ],
+      "tags": {
+        "addr:housenumber": "1900",
+        "addr:postcode": "37206",
+        "addr:street": "Eastland Avenue",
+        "leisure": "fitness_centre",
+        "name": "Climb Nashville East"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.120392Z",
+        "deterministic_hash": "f22dd9e23aa31547fe1e02661e4e3ec6d388f360af15582efdc674bfd9924f28",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.67
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "979501015f94edf4",
+      "name": "Climb Nashville Kraft",
+      "lat": 36.1088619,
+      "lon": -86.757443,
+      "confidence_score": 0.48,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 12585946602
+        }
+      ],
+      "tags": {
+        "addr:housenumber": "2926",
+        "addr:postcode": "37204",
+        "addr:street": "Kraft Drive",
+        "leisure": "fitness_centre",
+        "name": "Climb Nashville Kraft",
+        "opening_hours": "Mo-Su 09:00-21:00"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has opening hours"
+          ],
+          "confidence": 0.45,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.84,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ],
+          "confidence": 0.7,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.120526Z",
+        "deterministic_hash": "4f425e2045e2819c4a026b3e21d6e51d6ac4134aa8ea55ec6aa3d73155b3fee9",
+        "field_confidence": {
+          "premium_score": 0.45,
+          "is_24_7": 0.84,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.7
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "cea8c79f95a0b4fb",
+      "name": "Quantify Fitness",
+      "lat": 36.1744054,
+      "lon": -86.7504803,
+      "confidence_score": 0.71,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 13203997501
+        }
+      ],
+      "tags": {
+        "addr:housenumber": "2144",
+        "addr:postcode": "37206",
+        "addr:street": "South 11th Street",
+        "leisure": "fitness_centre",
+        "name": "Quantify Fitness",
+        "phone": "+1-615-697-3481",
+        "website": "https://quantifyfitness.com/"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ],
+          "confidence": 0.45,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ],
+          "confidence": 0.7,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.120662Z",
+        "deterministic_hash": "164a96764f85259b805bdf0575712fa7008468933a0d8d9e223b2a8fa958863f",
+        "field_confidence": {
+          "premium_score": 0.45,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.7
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "34867d6d0548f743",
+      "name": "Iconix Fitness",
+      "lat": 36.1608124,
+      "lon": -86.7853087,
+      "confidence_score": 0.77,
+      "osm_refs": [
+        {
+          "type": "node",
+          "id": 13735199565
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "950",
+        "addr:postcode": "37203",
+        "addr:state": "TN",
+        "addr:street": "Signal Xing",
+        "leisure": "fitness_centre",
+        "name": "Iconix Fitness",
+        "phone": "+1-615-528-1224",
+        "website": "https://www.iconixfit.com/nashville"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 1,
+          "reasons": [
+            "has website"
+          ],
+          "confidence": 0.45,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=1"
+          ],
+          "confidence": 0.7,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.120799Z",
+        "deterministic_hash": "51d22d2ffa49c84402e5edc0af854f40b0108b3ce7570ad7737848d95605967c",
+        "field_confidence": {
+          "premium_score": 0.45,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.7
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "b8a84e80576203ca",
+      "name": "YMCA Donelson-Hermitage",
+      "lat": 36.1718555,
+      "lon": -86.6486517,
+      "confidence_score": 0.2,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 549824714
+        }
+      ],
+      "tags": {
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "name": "YMCA Donelson-Hermitage",
+        "sport": "soccer;basketball;swimming;running"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.120938Z",
+        "deterministic_hash": "5f70b285be0dc11fa0a0d2908a270f45f7408309cebaad8f63a5fdbbd4820d01",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.67
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "94fac49c1b87971f",
+      "name": "Dalewood Baptist Church - Christian Life Center",
+      "lat": 36.2080299,
+      "lon": -86.7159848,
+      "confidence_score": 0.42,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 670330389
+        }
+      ],
+      "tags": {
+        "addr:city": "Nashville",
+        "addr:housenumber": "1586",
+        "addr:postcode": "37216",
+        "addr:state": "TN",
+        "addr:street": "McGavock Pike",
+        "building": "yes",
+        "denomination": "baptist",
+        "leisure": "fitness_centre",
+        "name": "Dalewood Baptist Church - Christian Life Center",
+        "sport": "basketball;walking_track;exercise_room;game_room"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.121087Z",
+        "deterministic_hash": "52cac839b5f1b40f53287cdcca307e9e33e3b5a75cff0718aaee08c51490a941",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.67
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "cbcdacab5db27031",
+      "name": "CrossFit Donelson",
+      "lat": 36.1715509,
+      "lon": -86.6731142,
+      "confidence_score": 0.18,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 745008871
+        }
+      ],
+      "tags": {
+        "building": "yes",
+        "leisure": "fitness_centre",
+        "name": "CrossFit Donelson"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "crossfit",
+          "reasons": [
+            "name suggests crossfit"
+          ],
+          "confidence": 0.58,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.121221Z",
+        "deterministic_hash": "959e45790b7b60f7504559a701feb191af4e2f92555f5cd4554cb64b750c1cb1",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.58,
+          "tier": 0.67
+        },
+        "contradictions": {
+          "specialty": [
+            "specialty was inferred without matching tagged capabilities"
+          ]
+        }
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    },
+    {
+      "id": "258f152395daca99",
+      "name": "Planet Fitness",
+      "lat": 36.1908753,
+      "lon": -86.6293155,
+      "confidence_score": 0.32,
+      "osm_refs": [
+        {
+          "type": "way",
+          "id": 1092676094
+        }
+      ],
+      "tags": {
+        "brand": "Planet Fitness",
+        "brand:wikidata": "Q7201095",
+        "building:part": "yes",
+        "leisure": "fitness_centre",
+        "name": "Planet Fitness"
+      },
+      "inferred": {
+        "premium_score": {
+          "value": 0,
+          "reasons": [],
+          "confidence": 0.35,
+          "source": "rule"
+        },
+        "is_24_7": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.48,
+          "source": "rule"
+        },
+        "lifter_friendly": {
+          "value": false,
+          "reasons": [],
+          "confidence": 0.62,
+          "source": "rule"
+        },
+        "specialty": {
+          "value": "general_fitness",
+          "reasons": [
+            "defaulted to general fitness"
+          ],
+          "confidence": 0.66,
+          "source": "rule"
+        },
+        "tier": {
+          "value": "basic",
+          "reasons": [
+            "premium_score=0"
+          ],
+          "confidence": 0.67,
+          "source": "rule"
+        }
+      },
+      "inference_meta": {
+        "engine": "rule_based",
+        "version": "1.1.0",
+        "generated_at": "2026-04-20T14:50:37.121353Z",
+        "deterministic_hash": "791d7a3fd464e6ed039be2770026a6a3f42e9a44c075a7e5477b1a438a3e7c6d",
+        "field_confidence": {
+          "premium_score": 0.35,
+          "is_24_7": 0.48,
+          "lifter_friendly": 0.62,
+          "specialty": 0.66,
+          "tier": 0.67
+        },
+        "contradictions": {}
+      },
+      "source_provenance": {
+        "primary": "osm",
+        "confirmed_by": [],
+        "match_status": "unconfirmed",
+        "external_refs": {}
+      }
+    }
+  ]
+}
