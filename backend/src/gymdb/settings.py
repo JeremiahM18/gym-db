@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings
+
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
 
 
 class GymDBSettings(BaseSettings):
@@ -24,6 +28,9 @@ class GymDBSettings(BaseSettings):
     require_tomtom_publish_validation: bool = True
 
     model_config = {
-        "env_file": ".env",
+        "env_file": (
+            str(BACKEND_ROOT / ".env"),
+            str(BACKEND_ROOT / ".env.local"),
+        ),
         "extra": "ignore",
     }
