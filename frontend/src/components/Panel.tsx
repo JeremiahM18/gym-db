@@ -12,7 +12,7 @@ export function Panel(props: PanelProps) {
     <section className="panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">{props.accent ?? "Operator Surface"}</p>
+          <p className="eyebrow">{props.accent ?? "GymDB"}</p>
           <h2>{props.title}</h2>
         </div>
         {props.subtitle ? <p className="panel-subtitle">{props.subtitle}</p> : null}

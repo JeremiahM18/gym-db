@@ -12,6 +12,12 @@ import {
 import { titleCase } from "./utils";
 
 const LIVE_RADIUS_PRESETS_MILES = [1, 3, 5, 10, 25, 50, 100] as const;
+const PLACE_PRESETS = [
+  "Nashville, TN",
+  "Franklin, TN",
+  "Brentwood, TN",
+  "The Gulch, Nashville",
+] as const;
 
 type QueryControlsPanelProps = {
   mode: Mode;
@@ -129,6 +135,26 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
               Try a city, neighborhood, ZIP code, or landmark.
             </small>
           </label>
+          <div className="place-preset-row" role="group" aria-label="Suggested places">
+            {PLACE_PRESETS.map((presetPlace) => (
+              <button
+                key={presetPlace}
+                className={
+                  props.liveSearch.placeQuery === presetPlace ? "chip active" : "chip"
+                }
+                type="button"
+                onClick={() =>
+                  props.setLiveSearch((current) => ({
+                    ...current,
+                    placeQuery: presetPlace,
+                    resolvedLabel: "",
+                  }))
+                }
+              >
+                {presetPlace}
+              </button>
+            ))}
+          </div>
           <label>
             <span>Radius</span>
             <input

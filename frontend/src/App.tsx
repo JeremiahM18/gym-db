@@ -402,6 +402,7 @@ export function App() {
             <GeoCanvasPanel
               mode={mode}
               gyms={activeRows}
+              selectedGymName={selectedGym?.name}
               selectedGymId={selectedGymId}
               onSelectGym={setSelectedGymId}
               nearbyLat={mode === "live" ? liveOrigin?.lat : undefined}

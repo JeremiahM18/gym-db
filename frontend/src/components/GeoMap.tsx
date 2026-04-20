@@ -41,7 +41,12 @@ export function GeoMap(props: GeoMapProps) {
     points.find((point) => point.gym.id === props.selectedGymId) ?? null;
 
   if (!points.length) {
-    return <div className="map-empty">Search for a place to see gyms on the map.</div>;
+    return (
+      <div className="map-empty">
+        <strong>Map your next search</strong>
+        <span>Pick a place and radius to see nearby gyms appear here.</span>
+      </div>
+    );
   }
 
   return (
@@ -106,7 +111,7 @@ export function GeoMap(props: GeoMapProps) {
           <strong>{points.length}</strong>
         </div>
         <div className="geo-legend-card">
-          <span>Map range</span>
+          <span>Map coverage</span>
           <strong>{(bounds.maxLat - bounds.minLat).toFixed(2)}° north to south</strong>
         </div>
         <div className="geo-legend-card">
