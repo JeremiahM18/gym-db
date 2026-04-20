@@ -21,6 +21,11 @@ export type MapPoint = {
   distanceLabel: string | null;
 };
 
+export type ProjectedPoint = {
+  x: number;
+  y: number;
+};
+
 export function choiceToBoolean(choice: ToggleChoice): boolean | undefined {
   if (choice === "yes") {
     return true;
@@ -256,9 +261,17 @@ export function getAmenityChips(gym: GymOutV2): string[] {
   return Array.from(chips).slice(0, 8);
 }
 
-export function getBounds(gyms: BrowserGym[]): MapBounds {
+export function getBounds(
+  gyms: BrowserGym[],
+  nearbyLat?: number,
+  nearbyLon?: number,
+): MapBounds {
   const lats = gyms.map((gym) => gym.lat);
   const lons = gyms.map((gym) => gym.lon);
+  if (nearbyLat != null && nearbyLon != null) {
+    lats.push(nearbyLat);
+    lons.push(nearbyLon);
+  }
   const minLat = Math.min(...lats);
   const maxLat = Math.max(...lats);
   const minLon = Math.min(...lons);
@@ -274,6 +287,24 @@ export function getBounds(gyms: BrowserGym[]): MapBounds {
   };
 }
 
+export function projectPoint(
+  lat: number,
+  lon: number,
+  bounds: MapBounds,
+  mapWidth: number,
+  mapHeight: number,
+  mapPadding: number,
+): ProjectedPoint {
+  return {
+    x:
+      mapPadding
+      + ((lon - bounds.minLon) / bounds.lonSpan) * (mapWidth - mapPadding * 2),
+    y:
+      mapPadding
+      + (1 - (lat - bounds.minLat) / bounds.latSpan) * (mapHeight - mapPadding * 2),
+  };
+}
+
 export function buildMapPoints(
   gyms: BrowserGym[],
   mapWidth: number,
@@ -286,16 +317,22 @@ export function buildMapPoints(
     return [];
   }
 
-  const bounds = getBounds(gyms);
+  const bounds = getBounds(gyms, nearbyLat, nearbyLon);
   return gyms.map((gym) => {
-    const x = mapPadding + ((gym.lon - bounds.minLon) / bounds.lonSpan) * (mapWidth - mapPadding * 2);
-    const y = mapPadding + (1 - (gym.lat - bounds.minLat) / bounds.latSpan) * (mapHeight - mapPadding * 2);
+    const projected = projectPoint(
+      gym.lat,
+      gym.lon,
+      bounds,
+      mapWidth,
+      mapHeight,
+      mapPadding,
+    );
     const distanceLabel =
       nearbyLat != null && nearbyLon != null
         ? formatMilesFromMeters(haversineMeters(nearbyLat, nearbyLon, gym.lat, gym.lon))
         : null;
 
-    return { gym, x, y, distanceLabel };
+    return { gym, x: projected.x, y: projected.y, distanceLabel };
   });
 }
 

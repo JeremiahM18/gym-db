@@ -366,12 +366,32 @@ label span,
 }
 
 .error-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 1rem;
   padding: 1rem 1.2rem;
   border: 1px solid rgba(236, 127, 125, 0.35);
   border-radius: 18px;
   background: rgba(122, 28, 31, 0.35);
   color: #ffd0cf;
+}
+
+.error-banner strong {
+  display: block;
+  color: #fff0ef;
+}
+
+.error-banner p {
+  margin: 0.35rem 0 0;
+  line-height: 1.55;
+}
+
+.error-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: start;
 }
 
 .discovery-shell {
@@ -726,6 +746,27 @@ select:focus {
   line-height: 1.6;
 }
 
+.empty-state-content {
+  display: grid;
+  gap: 0.55rem;
+  max-width: 28rem;
+}
+
+.empty-state-content strong {
+  color: var(--ink-strong);
+}
+
+.empty-state-content p {
+  margin: 0;
+}
+
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: center;
+}
+
 .skeleton-card {
   pointer-events: none;
 }
@@ -808,6 +849,39 @@ select:focus {
   fill: rgba(235, 170, 83, 0.12);
   stroke: rgba(235, 170, 83, 0.45);
   stroke-width: 1.5;
+}
+
+.geo-origin-group {
+  pointer-events: none;
+}
+
+.geo-origin-ring {
+  fill: rgba(240, 208, 122, 0.08);
+  stroke: rgba(240, 208, 122, 0.55);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.geo-origin-dot {
+  fill: var(--accent-gold);
+  stroke: rgba(255, 248, 230, 0.9);
+  stroke-width: 1.5;
+}
+
+.geo-origin-link {
+  stroke: rgba(240, 208, 122, 0.4);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+}
+
+.geo-point-label {
+  fill: #fff4df;
+  font-size: 0.78rem;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: rgba(8, 16, 24, 0.9);
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 
 .geo-legend-row {
@@ -978,7 +1052,8 @@ select:focus {
   .panel-header,
   .detail-headline,
   .toolbar-row,
-  .detail-spotlight {
+  .detail-spotlight,
+  .error-banner {
     flex-direction: column;
     align-items: start;
   }

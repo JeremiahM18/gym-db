@@ -13,6 +13,8 @@ type ResultsPanelProps = {
   liveRadiusLabel: string;
   liveSearchSummary: string;
   onQueryChange: (value: string) => void;
+  onExpandLiveRadius: () => void;
+  onSwitchToLiveMode: () => void;
   onSelectGym: (gymId: string) => void;
 };
 
@@ -74,9 +76,37 @@ export function ResultsPanel(props: ResultsPanelProps) {
         ) : null}
         {!props.loading && !activeRows.length ? (
           <div className="empty-state">
-            {props.mode === "published"
-              ? "No curated gyms matched these filters. Try broadening the filters or switching back to place search."
-              : `No gyms matched ${props.liveSearchSummary}. Try widening the radius or searching a nearby place.`}
+            <div className="empty-state-content">
+              <strong>
+                {props.mode === "published"
+                  ? "No curated gyms matched these filters."
+                  : "No gyms matched this search yet."}
+              </strong>
+              <p>
+                {props.mode === "published"
+                  ? "Try broadening the filters or switch back to place search to explore a wider area."
+                  : `We didn’t find gyms for ${props.liveSearchSummary}. Widen the radius or search a nearby place.`}
+              </p>
+              <div className="empty-state-actions">
+                {props.mode === "published" ? (
+                  <button
+                    type="button"
+                    className="chip active"
+                    onClick={props.onSwitchToLiveMode}
+                  >
+                    Search around a place instead
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="chip active"
+                    onClick={props.onExpandLiveRadius}
+                  >
+                    Widen the radius
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         ) : null}
         {!props.loading

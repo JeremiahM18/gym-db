@@ -38,6 +38,7 @@ import {
   getHealth,
   listGyms,
   liveSearchGyms,
+  toUserFacingErrorMessage,
   type HealthSnapshot,
 } from "./lib/api";
 
@@ -64,8 +65,10 @@ export function App() {
 
   const deferredQuery = useDeferredValue(query);
   const liveRadiusMiles = parseNumber(liveSearch.radiusMiles);
-  const liveRadiusMeters =
-    liveRadiusMiles != null ? milesToMeters(liveRadiusMiles) : undefined;
+  const nextSuggestedRadiusMiles = Math.min(
+    100,
+    Math.max(10, Math.ceil((liveRadiusMiles ?? 10) * 2)),
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -87,7 +90,9 @@ export function App() {
         if (controller.signal.aborted) {
           return;
         }
-        setError(loadError instanceof Error ? loadError.message : "Failed to load GymDB.");
+        setError(
+          toUserFacingErrorMessage(loadError, "We couldn't load gyms right now."),
+        );
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
@@ -140,9 +145,7 @@ export function App() {
           return;
         }
         setError(
-          detailError instanceof Error
-            ? detailError.message
-            : "Failed to load gym detail.",
+          toUserFacingErrorMessage(detailError, "We couldn't load gym details right now."),
         );
       })
       .finally(() => {
@@ -185,13 +188,12 @@ export function App() {
     [selectedGym],
   );
 
-  async function handlePublishedSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function loadPublishedCatalog(nextFilters: FiltersState = filters) {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await listGyms(buildGymFilters(filters));
+      const response = await listGyms(buildGymFilters(nextFilters));
       const mapped = response.results.map(buildPublishedBrowserGym);
       startTransition(() => {
         setMode("published");
@@ -199,34 +201,44 @@ export function App() {
         setSelectedGymId(mapped[0]?.id ?? null);
       });
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Failed to query gyms.");
+      setError(
+        toUserFacingErrorMessage(loadError, "We couldn't load curated gyms right now."),
+      );
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleLiveSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function runLiveSearch(nextLiveSearch: LiveSearchState = liveSearch) {
     setLoading(true);
     setError(null);
 
-    const placeQuery = liveSearch.placeQuery.trim();
-    const searchQuery = liveSearch.query.trim() || "gym";
+    const placeQuery = nextLiveSearch.placeQuery.trim();
+    const searchQuery = nextLiveSearch.query.trim() || "gym";
+    const nextRadiusMiles = parseNumber(nextLiveSearch.radiusMiles);
+    const nextRadiusMeters =
+      nextRadiusMiles != null ? milesToMeters(nextRadiusMiles) : undefined;
 
     if (!placeQuery) {
-      setError("Live search requires a city, neighborhood, or place.");
+      setError(
+        "Enter a city, neighborhood, landmark, or ZIP code to search nearby gyms.",
+      );
       setLoading(false);
       return;
     }
 
-    if (liveRadiusMiles == null || liveRadiusMeters == null || liveRadiusMiles <= 0) {
-      setError("Live search requires a radius in miles greater than zero.");
+    if (
+      nextRadiusMiles == null
+      || nextRadiusMeters == null
+      || nextRadiusMiles <= 0
+    ) {
+      setError("Choose a radius greater than zero miles.");
       setLoading(false);
       return;
     }
 
     try {
-      const response = await liveSearchGyms(placeQuery, searchQuery, liveRadiusMeters);
+      const response = await liveSearchGyms(placeQuery, searchQuery, nextRadiusMeters);
       const mapped = response.results
         .map(buildLiveBrowserGym)
         .sort((left, right) => {
@@ -247,6 +259,7 @@ export function App() {
         setSelectedGymId(mapped[0]?.id ?? null);
         setLiveSearch((current) => ({
           ...current,
+          ...nextLiveSearch,
           query: response.query,
           resolvedLabel: response.origin.address || response.origin.name,
         }));
@@ -258,11 +271,24 @@ export function App() {
       });
     } catch (loadError) {
       setError(
-        loadError instanceof Error ? loadError.message : "Failed to run live search.",
+        toUserFacingErrorMessage(
+          loadError,
+          "We couldn't run that nearby search right now.",
+        ),
       );
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handlePublishedSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await loadPublishedCatalog(filters);
+  }
+
+  async function handleLiveSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await runLiveSearch(liveSearch);
   }
 
   return (
@@ -285,7 +311,36 @@ export function App() {
           health={health}
         />
 
-        {error ? <div className="error-banner">{error}</div> : null}
+        {error ? (
+          <div className="error-banner">
+            <div>
+              <strong>Something needs attention</strong>
+              <p>{error}</p>
+            </div>
+            <div className="error-banner-actions">
+              <button
+                type="button"
+                className="chip active"
+                onClick={() => {
+                  if (mode === "live") {
+                    void runLiveSearch();
+                    return;
+                  }
+                  void loadPublishedCatalog();
+                }}
+              >
+                Try again
+              </button>
+              <button
+                type="button"
+                className="chip"
+                onClick={() => setError(null)}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         <div className="discovery-shell">
           <aside className="search-rail">
@@ -323,6 +378,13 @@ export function App() {
               liveRadiusLabel={liveRadiusLabel}
               liveSearchSummary={liveSearchSummary}
               onQueryChange={setQuery}
+              onExpandLiveRadius={() =>
+                setLiveSearch((current) => ({
+                  ...current,
+                  radiusMiles: String(nextSuggestedRadiusMiles),
+                }))
+              }
+              onSwitchToLiveMode={() => setMode("live")}
               onSelectGym={setSelectedGymId}
             />
           </section>

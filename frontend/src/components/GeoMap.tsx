@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import type { BrowserGym } from "../features/gym-browser/types";
-import { buildMapPoints, getBounds } from "../features/gym-browser/utils";
+import { buildMapPoints, getBounds, projectPoint } from "../features/gym-browser/utils";
 
 const MAP_WIDTH = 720;
 const MAP_HEIGHT = 420;
@@ -16,16 +16,33 @@ type GeoMapProps = {
 };
 
 export function GeoMap(props: GeoMapProps) {
+  const bounds = useMemo(
+    () => getBounds(props.gyms, props.nearbyLat, props.nearbyLon),
+    [props.gyms, props.nearbyLat, props.nearbyLon],
+  );
   const points = useMemo(
     () => buildMapPoints(props.gyms, MAP_WIDTH, MAP_HEIGHT, MAP_PADDING, props.nearbyLat, props.nearbyLon),
     [props.gyms, props.nearbyLat, props.nearbyLon],
   );
+  const originPoint = useMemo(() => {
+    if (props.nearbyLat == null || props.nearbyLon == null || !points.length) {
+      return null;
+    }
+    return projectPoint(
+      props.nearbyLat,
+      props.nearbyLon,
+      bounds,
+      MAP_WIDTH,
+      MAP_HEIGHT,
+      MAP_PADDING,
+    );
+  }, [bounds, points.length, props.nearbyLat, props.nearbyLon]);
+  const selectedPoint =
+    points.find((point) => point.gym.id === props.selectedGymId) ?? null;
 
   if (!points.length) {
     return <div className="map-empty">Search for a place to see gyms on the map.</div>;
   }
-
-  const bounds = getBounds(props.gyms);
 
   return (
     <div className="geo-stage">
@@ -42,6 +59,31 @@ export function GeoMap(props: GeoMapProps) {
             </g>
           );
         })}
+        {originPoint ? (
+          <g className="geo-origin-group">
+            <circle
+              cx={originPoint.x}
+              cy={originPoint.y}
+              r="22"
+              className="geo-origin-ring"
+            />
+            <circle
+              cx={originPoint.x}
+              cy={originPoint.y}
+              r="7"
+              className="geo-origin-dot"
+            />
+          </g>
+        ) : null}
+        {originPoint && selectedPoint ? (
+          <line
+            x1={originPoint.x}
+            y1={originPoint.y}
+            x2={selectedPoint.x}
+            y2={selectedPoint.y}
+            className="geo-origin-link"
+          />
+        ) : null}
         {points.map((point) => {
           const selected = point.gym.id === props.selectedGymId;
 
@@ -49,6 +91,11 @@ export function GeoMap(props: GeoMapProps) {
             <g key={point.gym.id} className="geo-point-group" onClick={() => props.onSelect(point.gym.id)}>
               {selected ? <circle cx={point.x} cy={point.y} r="13" className="geo-point-halo" /> : null}
               <circle cx={point.x} cy={point.y} r={selected ? 7 : 5} className={selected ? "geo-point selected" : "geo-point"} />
+              {selected ? (
+                <text x={point.x + 12} y={point.y - 10} className="geo-point-label">
+                  {point.distanceLabel ?? point.gym.name}
+                </text>
+              ) : null}
             </g>
           );
         })}
@@ -63,8 +110,12 @@ export function GeoMap(props: GeoMapProps) {
           <strong>{(bounds.maxLat - bounds.minLat).toFixed(2)}° north to south</strong>
         </div>
         <div className="geo-legend-card">
-          <span>Tip</span>
-          <strong>Click a pin to open that gym</strong>
+          <span>{originPoint ? "Origin" : "Tip"}</span>
+          <strong>
+            {originPoint
+              ? "Gold marker shows your search center"
+              : "Click a pin to open that gym"}
+          </strong>
         </div>
       </div>
     </div>

@@ -66,6 +66,60 @@ function extractErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
+function extractApiDetail(error: unknown): string | null {
+  if (!(error instanceof ApiError)) {
+    return null;
+  }
+
+  const body = error.body as
+    | { error?: { message?: { detail?: unknown } | string } }
+    | undefined;
+  const message = body?.error?.message;
+
+  if (typeof message === "string") {
+    return message;
+  }
+  if (
+    message
+    && typeof message === "object"
+    && "detail" in message
+    && typeof message.detail === "string"
+  ) {
+    return message.detail;
+  }
+
+  return null;
+}
+
+export function toUserFacingErrorMessage(
+  error: unknown,
+  fallback: string,
+): string {
+  const detail = extractApiDetail(error) ?? extractErrorMessage(error, fallback);
+  const normalized = detail.toLowerCase();
+
+  if (normalized.includes("rate limited")) {
+    return "Too many searches are happening right now. Give it a moment, then try again.";
+  }
+  if (normalized.includes("temporarily unavailable")) {
+    return "Search is temporarily unavailable. Please try again in a moment.";
+  }
+  if (normalized.includes("no place match found")) {
+    return "We couldn't match that place. Try a city, neighborhood, or ZIP code nearby.";
+  }
+  if (normalized.includes("tomtom_api_key")) {
+    return "Live search isn't configured right now.";
+  }
+  if (normalized.includes("radius in miles greater than zero")) {
+    return "Choose a radius greater than zero miles.";
+  }
+  if (normalized.includes("requires a city, neighborhood, or place")) {
+    return "Enter a city, neighborhood, landmark, or ZIP code to search nearby gyms.";
+  }
+
+  return detail || fallback;
+}
+
 function summarizeReadiness(payload: unknown): {
   summary: string;
   hint: string | null;
