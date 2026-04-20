@@ -135,6 +135,7 @@ The frontend is the main product experience for GymDB. It is built around a near
 
 It supports:
 
+- a shipped Nashville, TN default slice so the app opens with real gyms in a 10-mile radius before the user runs a new search
 - nearby-first live gym search over `/v2/live/search`, using OpenStreetMap as the primary gym source and TomTom for place resolution plus enrichment
 - curated shortlist browsing over `/v2/gyms` when you want a tighter GymDB view
 - place-based search without exposing raw latitude/longitude fields in the browser
@@ -288,6 +289,14 @@ Then start the API:
 ```bash
 python -m uvicorn api.main:app --reload
 ```
+
+If you want the local Postgres container to mirror the shipped Nashville default slice on an existing database, run:
+
+```bash
+.\.venv\Scripts\python.exe .\scripts\sync_dataset_to_postgres.py
+```
+
+Fresh Docker volumes also get the same Nashville slice automatically through the dev seed file in `database/schema/999_seed_dev.sql`.
 
 To publish a new city or place by name instead of hand-managing coordinates, use the ingest CLI with TomTom geocoding:
 

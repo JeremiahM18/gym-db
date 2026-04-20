@@ -41,7 +41,7 @@ At this stage:
 - core tables exist to represent canonical gym records and locations
 - PostGIS is enabled and spatial indexes are in place
 - schema changes are applied exclusively through versioned migrations
-- seed data may be used for local development and testing
+- seed data is used for local development and to ship the default Nashville demo slice
 
 The database does **not** store inferred attributes or domain interpretations.
 Those remain the responsibility of the domain and inference layers.
@@ -156,6 +156,13 @@ It creates a `_migrations` table on first run and skips files already recorded t
 
 Note: Docker Compose auto-applies schema files from `docker-entrypoint-initdb.d` only on the **first** container start (when the volume is empty). For an existing volume, use `migrate.sh` to apply new migrations.
 The script defaults to the local bootstrap/admin database user so it can create `_migrations` and apply DDL safely. The application should continue to run as `gymdb_app`.
+
+The dev seed currently mirrors the shipped Nashville 10-mile default dataset so fresh Docker boots have a credible nearby state immediately. On an already-running local database, you can resync that same dataset into Postgres with:
+
+```bash
+cd backend
+.\.venv\Scripts\python.exe .\scripts\sync_dataset_to_postgres.py
+```
 
 CI also runs `migrate.sh` against a fresh PostGIS service and verifies that every non-seed migration file is recorded in `_migrations`. That keeps the checked-in schema order honest instead of trusting manual local runs.
 
