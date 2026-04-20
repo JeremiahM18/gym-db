@@ -2,9 +2,9 @@
 
 GymDB is a full-stack geospatial data platform for discovering, normalizing, enriching, and serving gym location data.
 
-The project combines a FastAPI backend, OpenStreetMap-first live gym search with TomTom verification and enrichment, PostGIS-backed spatial querying, deterministic inference, provenance-aware review workflows, and a React browser client that separates live search from the curated published catalog.
+The project combines a FastAPI backend, OpenStreetMap-first live gym search with TomTom verification and enrichment, PostGIS-backed spatial querying, deterministic inference, provenance-aware review workflows, and a React browser client built around nearby-first, map-first discovery.
 
-This is not a CRUD demo. It is a systems-oriented project focused on data quality, stable contracts, explainability, and operational discipline.
+GymDB is designed to behave like a real product and a trustworthy data platform at the same time: fast place search for users, stable contracts and explainable enrichment for downstream clients.
 
 ## What Problem It Solves
 
@@ -20,7 +20,7 @@ Public sources such as OpenStreetMap are useful, but they are noisy:
 
 GymDB exists to turn messy location data into a trustworthy platform that downstream clients can browse, query, audit, and build on.
 
-## Why This Project Is Strong
+## Why It Works
 
 - Backend-first architecture with clear boundaries between domain, application, infrastructure, database, and API layers
 - Real geospatial querying with PostgreSQL + PostGIS
@@ -124,20 +124,25 @@ curl -H "Authorization: Bearer <token>" \
 
 If you explicitly enable `ENABLE_DEV_AUTH_BYPASS=true` locally, you can exercise the frontend and public endpoints without Cognito during development.
 
-## Frontend Demo Surface
+## Frontend Product Surface
 
-The frontend is not filler. It is a real operator/demo client for the backend.
+The frontend is the main product experience for GymDB. It is built around a nearby-first flow:
+
+- start with a place
+- choose a radius
+- compare gyms in a dense list
+- keep the map visible while you inspect details
 
 It supports:
 
-- published catalog browsing over `/v2/gyms`
-- live world gym search over `/v2/live/search`, using OpenStreetMap as the primary gym source and TomTom for place resolution plus enrichment
+- nearby-first live gym search over `/v2/live/search`, using OpenStreetMap as the primary gym source and TomTom for place resolution plus enrichment
+- curated shortlist browsing over `/v2/gyms` when you want a tighter GymDB view
 - place-based search without exposing raw latitude/longitude fields in the browser
-- filtering by confidence, tier, specialty, 24/7 access, and lifter friendliness
-- drill-in inspection of curated published inference details, confidence, and reasons
-- fast live result inspection with outbound actions and place context
+- filtering by tier, specialty, 24/7 access, and lifter friendliness in the curated surface
+- fast inspection of live results with distance, address, hours, phone, website, and outbound actions
+- drill-in inspection of curated published inference details and confidence
 - source-backed actions like website, phone, Google Maps, and OpenStreetMap
-- a geo canvas that renders result coordinates into an interactive map-like panel
+- a map-first layout that keeps the search center, results, and selected gym in view together
 - service liveness and readiness visibility from the browser
 
 ## Database Story
@@ -176,8 +181,6 @@ gym-db/
 ```
 
 ## Quality and Verification
-
-GymDB is strongest when judged as an engineering project, not just a feature checklist.
 
 The repo includes:
 
@@ -286,8 +289,6 @@ Then start the API:
 python -m uvicorn api.main:app --reload
 ```
 
-Important: the backend is currently configured with `data/`-relative paths, so start it from the `backend/` directory unless you override those settings explicitly.
-
 To publish a new city or place by name instead of hand-managing coordinates, use the ingest CLI with TomTom geocoding:
 
 ```bash
@@ -346,7 +347,7 @@ That is still a development setup, but it is cleaner than running the applicatio
 
 ## What This Project Demonstrates
 
-GymDB shows the kind of engineering work that matters in backend and systems-heavy roles:
+GymDB demonstrates:
 
 - designing stable interfaces instead of ad hoc responses
 - treating data quality and provenance as product features
@@ -354,4 +355,4 @@ GymDB shows the kind of engineering work that matters in backend and systems-hea
 - building geospatial and operational concerns into the architecture early
 - using tests and contracts to protect behavior over time
 
-It is not “done,” but it is already a serious, credible project with clear depth.
+It is not finished, but it is now much closer to a real product than a backend showcase.
