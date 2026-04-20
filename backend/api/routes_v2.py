@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from math import asin, cos, radians, sin, sqrt
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -119,7 +120,7 @@ def list_gyms_v2(
 
 
 @router.get("/geocode", response_model=GeocodeResponseV2, tags=["geocode"])
-def geocode_location_v2(
+async def geocode_location_v2(
     q: str = Query(..., min_length=2, description="City, neighborhood, or place name"),
     limit: int = Query(5, ge=1, le=10),
     settings: APISettings = Depends(get_settings),
@@ -138,7 +139,7 @@ def geocode_location_v2(
         base_url=settings.tomtom_base_url,
     )
     try:
-        places = client.geocode(query=q, limit=limit)
+        places = await asyncio.to_thread(client.geocode, query=q, limit=limit)
     except RequestException as exc:
         raise HTTPException(
             status_code=503,
@@ -169,7 +170,7 @@ def geocode_location_v2(
     response_model=LiveGymSearchResponseV2,
     tags=["live-search"],
 )
-def live_search_gyms_v2(
+async def live_search_gyms_v2(
     place: str = Query(..., min_length=2, description="City, neighborhood, or place"),
     q: str = Query(
         "gym",
@@ -195,7 +196,7 @@ def live_search_gyms_v2(
     )
 
     try:
-        origins = client.geocode(query=place, limit=1)
+        origins = await asyncio.to_thread(client.geocode, query=place, limit=1)
     except RequestException as exc:
         raise HTTPException(
             status_code=503,
@@ -212,7 +213,7 @@ def live_search_gyms_v2(
     search_query = q.strip() or "gym"
 
     try:
-        elements = fetch_gyms(radius_m, origin.lat, origin.lon)
+        elements = await asyncio.to_thread(fetch_gyms, radius_m, origin.lat, origin.lon)
     except OverpassUnavailableError as exc:
         raise HTTPException(
             status_code=503,
@@ -224,7 +225,8 @@ def live_search_gyms_v2(
         gym.id = compute_gym_id(gym.norm_name, gym.lat, gym.lon)
 
     try:
-        places = client.search_gyms(
+        places = await asyncio.to_thread(
+            client.search_gyms,
             lat=origin.lat,
             lon=origin.lon,
             radius_m=radius_m,
