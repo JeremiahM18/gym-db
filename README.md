@@ -122,7 +122,7 @@ curl -H "Authorization: Bearer <token>" \
   "http://localhost:8000/v2/review/coverage?status=unconfirmed&contradictions_only=true"
 ```
 
-If you enable `ENABLE_DEV_AUTH_BYPASS=true` locally, you can exercise the frontend and public endpoints without Cognito during development.
+If you explicitly enable `ENABLE_DEV_AUTH_BYPASS=true` locally, you can exercise the frontend and public endpoints without Cognito during development.
 
 ## Frontend Demo Surface
 
@@ -261,14 +261,20 @@ Or bootstrap the local env files automatically from the repo root:
 .\scripts\bootstrap-local.ps1
 ```
 
-The checked-in `backend/.env.example` already enables local dev auth bypass. If you want to confirm the expected local values, `backend/.env` should include:
+The checked-in `backend/.env.example` keeps dev auth bypass off by default. If you want to work locally without Cognito, turn it on explicitly in your untracked `backend/.env`. A minimal local example looks like:
 
 ```env
-ENABLE_DEV_AUTH_BYPASS=true
+ENABLE_DEV_AUTH_BYPASS=false
 POSTGRES_DSN=postgresql+psycopg://gymdb_app:gymdb_app_password@localhost:5432/gymdb
 REQUIRE_TOMTOM_PUBLISH_VALIDATION=true
 # Required for ingest / publish flows:
 TOMTOM_API_KEY=<your tomtom api key>
+```
+
+For local-only development without Cognito, flip the flag in `backend/.env`:
+
+```env
+ENABLE_DEV_AUTH_BYPASS=true
 ```
 
 TomTom validation is now the default publish gate. You also need `TOMTOM_API_KEY` for the live-search surface because the browser resolves places through TomTom and uses it to verify or enrich OpenStreetMap gyms. If you only want to browse an already-published dataset and do not need live search, the key can stay unset.

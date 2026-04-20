@@ -5,9 +5,10 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
-from api.auth.dependencies import require_user
+from api.auth.dependencies import require_admin, require_user
 from api.deps import get_gym_store
 from api.main import app
 from api.resources import create_store
@@ -123,3 +124,29 @@ def test_create_store_reuses_cached_store_for_same_registry():
         assert first is second
     finally:
         shutil.rmtree(root, ignore_errors=True)
+
+
+def test_require_user_dev_bypass_returns_minimal_claims():
+    claims = require_user(
+        creds=None,
+        settings=APISettings(enable_dev_auth_bypass=True),
+    )
+
+    assert claims["sub"] == "dev-user"
+    assert claims["email"] == "dev@gymdb.local"
+    assert claims["cognito:groups"] == []
+    assert claims["dev"] is True
+
+
+def test_require_admin_rejects_dev_bypass_claims():
+    with pytest.raises(Exception) as exc_info:
+        require_admin(
+            claims={
+                "sub": "dev-user",
+                "email": "dev@gymdb.local",
+                "cognito:groups": [],
+                "dev": True,
+            }
+        )
+
+    assert exc_info.value.status_code == 403

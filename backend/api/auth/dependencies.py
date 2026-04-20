@@ -24,7 +24,7 @@ def require_user(
             return {
                 "sub": "dev-user",
                 "email": "dev@gymdb.local",
-                "cognito:groups": ["admin"],
+                "cognito:groups": [],
                 "dev": True,
             }
 
