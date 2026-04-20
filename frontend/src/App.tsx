@@ -28,8 +28,6 @@ import {
   buildSelectedActionLinks,
   filterGymsByQuery,
   formatMilesValue,
-  getAverageConfidence,
-  getTopSpecialty,
   milesToMeters,
   parseNumber,
 } from "./features/gym-browser/utils";
@@ -169,11 +167,6 @@ export function App() {
 
   const activeRows = mode === "published" ? visiblePublished : visibleLive;
   const hasLiveSearchRun = liveOrigin != null || liveResults.length > 0;
-  const averageConfidence = useMemo(
-    () => getAverageConfidence(activeRows),
-    [activeRows],
-  );
-  const topSpecialty = useMemo(() => getTopSpecialty(activeRows), [activeRows]);
 
   const liveRadiusLabel = liveRadiusMiles != null
     ? formatMilesValue(liveRadiusMiles)
@@ -300,13 +293,9 @@ export function App() {
         <HeroSection
           mode={mode}
           activeRowCount={activeRows.length}
-          averageConfidence={averageConfidence}
           liveRadiusLabel={liveRadiusLabel}
           livePlaceLabel={livePlaceLabel}
-          liveSearchSummary={liveSearchSummary}
           hasLiveSearchRun={hasLiveSearchRun}
-          topSpecialty={topSpecialty}
-          selectedActionLinks={selectedActionLinks}
         />
 
         <StatusStrip
@@ -393,12 +382,6 @@ export function App() {
           </section>
 
           <section className="detail-rail">
-            <SelectedGymPanel
-              detailLoading={detailLoading}
-              mode={mode}
-              selectedGym={selectedGym}
-              selectedActionLinks={selectedActionLinks}
-            />
             <GeoCanvasPanel
               mode={mode}
               gyms={activeRows}
@@ -409,6 +392,12 @@ export function App() {
               nearbyLon={mode === "live" ? liveOrigin?.lon : undefined}
               livePlaceLabel={mode === "live" ? livePlaceLabel : undefined}
               liveRadiusLabel={mode === "live" ? liveRadiusLabel : undefined}
+            />
+            <SelectedGymPanel
+              detailLoading={detailLoading}
+              mode={mode}
+              selectedGym={selectedGym}
+              selectedActionLinks={selectedActionLinks}
             />
           </section>
         </div>

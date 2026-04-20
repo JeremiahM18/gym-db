@@ -325,7 +325,7 @@ test("loads the published catalog and selected gym details", async ({ page }) =>
 
   await expect(
     page.getByRole("heading", {
-      name: /Find gyms around any place/i,
+      name: /Find gyms near any place/i,
     }),
   ).toBeVisible();
   await expect(page.getByText("Search service: ready")).toBeVisible();
@@ -349,7 +349,7 @@ test("refreshes the published catalog with a server-backed specialty filter", as
 
   await expect(page.getByRole("button", { name: /Downtown Strength/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /Riverfront Barbell/i })).toHaveCount(0);
-  await expect(page.getByText("Top gym style").locator("..")).toContainText(
+  await expect(page.getByRole("button", { name: /Downtown Strength/i })).toContainText(
     "Powerlifting",
   );
 });
@@ -378,6 +378,6 @@ test("runs live search without exposing latitude or longitude inputs", async ({
   await expect(
     page
       .locator(".detail-facts .stat-card")
-      .filter({ hasText: "ViewNearby search" }),
+      .filter({ hasText: "Trust signalsWebsite + phone" }),
   ).toBeVisible();
 });

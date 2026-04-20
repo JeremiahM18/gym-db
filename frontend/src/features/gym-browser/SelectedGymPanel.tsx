@@ -29,7 +29,7 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
     return (
       <Panel title="Gym Details" subtitle={subtitle} accent="Selected Gym">
         <div className="empty-state">
-          Pick a gym from the list to see hours, amenities, contact details, and overall fit.
+          Pick a gym from the list to see hours, address, contact details, and overall fit.
         </div>
       </Panel>
     );
@@ -94,11 +94,6 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
 
         <div className="detail-facts">
           <StatCard
-            label="View"
-            value={props.selectedGym.sourceKind === "published" ? "Curated picks" : "Nearby search"}
-            tone="cool"
-          />
-          <StatCard
             label="Area"
             value={props.selectedGym.cityState}
             tone="warm"
@@ -120,6 +115,19 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
                   ? "24/7"
                   : "Available"
             }
+          />
+          <StatCard
+            label="Trust signals"
+            value={
+              props.selectedGym.website && props.selectedGym.phone
+                ? "Website + phone"
+                : props.selectedGym.website
+                  ? "Website listed"
+                  : props.selectedGym.phone
+                    ? "Phone listed"
+                    : "Basic listing"
+            }
+            tone="cool"
           />
         </div>
 

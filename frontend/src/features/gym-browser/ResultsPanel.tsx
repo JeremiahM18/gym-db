@@ -29,10 +29,10 @@ export function ResultsPanel(props: ResultsPanelProps) {
       title="Gyms"
       subtitle={
         props.mode === "published"
-          ? "Review the tighter shortlist from the current GymDB catalog."
+          ? "Review the tighter shortlist."
           : props.hasLiveSearchRun
             ? `See gyms within ${props.liveRadiusLabel} of ${props.livePlaceLabel}.`
-            : "Run a nearby search to compare gyms around a place."
+            : "Nearby gyms will appear here."
       }
       accent="Results"
     >
@@ -135,18 +135,21 @@ export function ResultsPanel(props: ResultsPanelProps) {
                     <strong>{gym.name}</strong>
                     <span className="city-pill">{gym.cityState}</span>
                   </div>
-                  <span>
-                    {gym.specialty ? titleCase(gym.specialty) : gym.sourceLabel}
-                  </span>
                   <p className="result-subcopy">
                     {gym.address ?? "Coordinates available"}
                   </p>
                   <div className="result-chip-row">
+                    {gym.specialty ? (
+                      <span className="mini-chip">{titleCase(gym.specialty)}</span>
+                    ) : null}
                     {gym.website ? <span className="mini-chip">Website</span> : null}
                     {gym.phone ? <span className="mini-chip">Phone</span> : null}
-                    {gym.is247 ? <span className="mini-chip">24/7</span> : null}
+                    {gym.is247 ? <span className="mini-chip">Open 24/7</span> : null}
+                    {gym.openingHours && !gym.is247 ? (
+                      <span className="mini-chip">Hours listed</span>
+                    ) : null}
                     {gym.sourceKind === "live" ? (
-                      <span className="mini-chip">Nearby match</span>
+                      <span className="mini-chip">Nearby</span>
                     ) : null}
                   </div>
                 </div>
@@ -158,7 +161,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
                         ? formatConfidence(gym.confidenceScore)
                         : "live"}
                   </span>
-                  <span>{gym.tier ? titleCase(gym.tier) : gym.sourceLabel}</span>
+                  <span>{gym.tier ? titleCase(gym.tier) : "Gym"}</span>
                 </div>
               </button>
             ))

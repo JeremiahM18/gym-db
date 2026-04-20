@@ -59,7 +59,7 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
   return (
     <Panel
       title="Search"
-      subtitle="Start with a place and radius. Use curated picks when you want a tighter shortlist after exploring."
+      subtitle="Search nearby first. Use curated picks when you want a tighter shortlist."
       accent="Find Gyms"
     >
       <div className="search-intro">
@@ -68,11 +68,6 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
             ? "Nearby search is the main way to explore a city."
             : "Curated picks is the tighter follow-up view."}
         </strong>
-        <p>
-          {props.mode === "live"
-            ? "Pick a place, set a radius, and compare gyms by distance, amenities, and fit."
-            : "Use curated picks when you want a cleaner, more selective pass after exploring the broader area."}
-        </p>
       </div>
       <div className="source-switcher" role="group" aria-label="Search view">
         <button
@@ -96,10 +91,6 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
           <div className="live-search-summary">
             <span className="live-search-summary-label">Live Search</span>
             <strong>{props.liveSearchSummary}</strong>
-            <p>
-              Search around any city, neighborhood, or landmark and see nearby gyms ordered by
-              distance.
-            </p>
           </div>
           <label>
             <span>Gym type or brand</span>
@@ -114,8 +105,7 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
               placeholder="gym, crossfit, powerlifting, pilates"
             />
             <small className="field-hint">
-              Keep <strong>gym</strong> for a broad search, or get more specific with a style,
-              amenity, or brand.
+              Keep <strong>gym</strong> for a broad search, or get more specific.
             </small>
           </label>
           <label>
@@ -132,7 +122,7 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
               placeholder="Nashville, TN"
             />
             <small className="field-hint">
-              Try a city, neighborhood, ZIP code, or landmark.
+              City, neighborhood, ZIP code, or landmark.
             </small>
           </label>
           <div className="place-preset-row" role="group" aria-label="Suggested places">
@@ -169,7 +159,7 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
               placeholder="10"
             />
             <small className="field-hint">
-              Search within about {props.liveRadiusLabel} of the place you picked.
+              About {props.liveRadiusLabel} around your chosen place.
             </small>
           </label>
           <div className="radius-preset-row" role="group" aria-label="Radius quick picks">
@@ -210,10 +200,6 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
           <div className="live-search-summary catalog-summary">
             <span className="live-search-summary-label">Curated GymDB View</span>
             <strong>Compare the tighter shortlist</strong>
-            <p>
-              Use curated picks when you want a cleaner review of the current catalog instead of
-              the broader nearby search.
-            </p>
           </div>
           <label>
             <span>Listing quality</span>
