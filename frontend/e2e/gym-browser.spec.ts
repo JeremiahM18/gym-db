@@ -239,7 +239,7 @@ test.beforeEach(async ({ page }) => {
         query: "gym",
         place_query: isFranklin ? "Franklin, TN" : "Nashville, TN",
         count: 2,
-        radius_m: 8047,
+        radius_m: isFranklin ? 8047 : 16093,
         origin: {
           id: "origin-1",
           name: isFranklin ? "Franklin, TN" : "Nashville, TN",
@@ -406,6 +406,9 @@ test("loads the published catalog and selected gym details", async ({ page }) =>
   await expect(
     page.getByRole("heading", { level: 3, name: "Nashville Strength Club" }),
   ).toBeVisible();
+  await expect(page.locator(".results-context-banner strong")).toHaveText(
+    "2 gyms within 10 mi of Nashville, TN",
+  );
   await page.getByRole("button", { name: "Curated picks", exact: true }).click();
   await expect(page.getByRole("button", { name: /Downtown Strength/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Gym Details" })).toBeVisible();
