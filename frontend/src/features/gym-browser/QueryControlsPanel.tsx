@@ -195,7 +195,7 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
           ) : null}
           <div className="controls-actions">
             <button className="secondary-button" type="submit" disabled={props.loading}>
-              Find gyms around this place
+              Search gyms
             </button>
           </div>
         </form>
