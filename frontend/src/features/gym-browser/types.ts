@@ -75,6 +75,6 @@ export const defaultFilters: FiltersState = {
 export const defaultLiveSearch: LiveSearchState = {
   query: "gym",
   placeQuery: "Nashville, TN",
-  radiusMiles: "10",
+  radiusMiles: "5",
   resolvedLabel: "",
 };

@@ -226,93 +226,163 @@ test.beforeEach(async ({ page }) => {
   });
 
   await page.route("**/v2/live/search**", async (route) => {
+    const url = new URL(route.request().url());
+    const place = url.searchParams.get("place") ?? "";
+    const normalizedPlace = place.toLowerCase();
+    const isFranklin = normalizedPlace.includes("franklin");
+
     await route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
         api_version: "2.0.0",
         query: "gym",
-        place_query: "Franklin, TN",
+        place_query: isFranklin ? "Franklin, TN" : "Nashville, TN",
         count: 2,
-        radius_m: 25000,
+        radius_m: 8047,
         origin: {
           id: "origin-1",
-          name: "Franklin, TN",
-          lat: 35.9251,
-          lon: -86.8689,
-          address: "Franklin, TN",
-          city: "Franklin",
+          name: isFranklin ? "Franklin, TN" : "Nashville, TN",
+          lat: isFranklin ? 35.9251 : 36.1627,
+          lon: isFranklin ? -86.8689 : -86.7816,
+          address: isFranklin ? "Franklin, TN" : "Nashville, TN",
+          city: isFranklin ? "Franklin" : "Nashville",
           country_code: "US",
         },
         results: [
           {
-            ...buildGym({
-              id: "live-1",
-              name: "Franklin Strength Club",
-              lat: 35.923,
-              lon: -86.865,
-              tags: {
-                name: "Franklin Strength Club",
-                website: "https://franklinstrength.example.com",
-                phone: "615-555-7777",
-                "addr:city": "Franklin",
-                "addr:state": "TN",
-                "addr:street": "Main St",
-                "addr:housenumber": "101",
-                opening_hours: "24/7",
-                amenity: "gym",
-              },
-              source_provenance: {
-                primary: "osm",
-                confirmed_by: ["tomtom"],
-                match_status: "matched",
-                external_refs: {
-                  tomtom: {
-                    provider: "tomtom",
-                    external_id: "tt-live-1",
+            ...(isFranklin
+              ? buildGym({
+                  id: "live-1",
+                  name: "Franklin Strength Club",
+                  lat: 35.923,
+                  lon: -86.865,
+                  tags: {
                     name: "Franklin Strength Club",
-                    status: "matched",
-                    distance_m: 20,
-                    city: "Franklin",
-                    url: "https://franklinstrength.example.com",
+                    website: "https://franklinstrength.example.com",
+                    phone: "615-555-7777",
+                    "addr:city": "Franklin",
+                    "addr:state": "TN",
+                    "addr:street": "Main St",
+                    "addr:housenumber": "101",
+                    opening_hours: "24/7",
+                    amenity: "gym",
                   },
-                },
-              },
-            }),
-            distance_m: 412,
+                  source_provenance: {
+                    primary: "osm",
+                    confirmed_by: ["tomtom"],
+                    match_status: "matched",
+                    external_refs: {
+                      tomtom: {
+                        provider: "tomtom",
+                        external_id: "tt-live-1",
+                        name: "Franklin Strength Club",
+                        status: "matched",
+                        distance_m: 20,
+                        city: "Franklin",
+                        url: "https://franklinstrength.example.com",
+                      },
+                    },
+                  },
+                })
+              : buildGym({
+                  id: "live-1",
+                  name: "Nashville Strength Club",
+                  lat: 36.164,
+                  lon: -86.782,
+                  tags: {
+                    name: "Nashville Strength Club",
+                    website: "https://nashvillestrength.example.com",
+                    phone: "615-555-7777",
+                    "addr:city": "Nashville",
+                    "addr:state": "TN",
+                    "addr:street": "Broadway",
+                    "addr:housenumber": "101",
+                    opening_hours: "24/7",
+                    amenity: "gym",
+                  },
+                  source_provenance: {
+                    primary: "osm",
+                    confirmed_by: ["tomtom"],
+                    match_status: "matched",
+                    external_refs: {
+                      tomtom: {
+                        provider: "tomtom",
+                        external_id: "tt-live-1",
+                        name: "Nashville Strength Club",
+                        status: "matched",
+                        distance_m: 20,
+                        city: "Nashville",
+                        url: "https://nashvillestrength.example.com",
+                      },
+                    },
+                  },
+                })),
+            distance_m: isFranklin ? 412 : 575,
           },
           {
-            ...buildGym({
-              id: "live-2",
-              name: "Cool Springs Athletic Club",
-              lat: 35.955,
-              lon: -86.801,
-              tags: {
-                name: "Cool Springs Athletic Club",
-                "addr:city": "Franklin",
-                "addr:state": "TN",
-                "addr:street": "Cool Springs Blvd",
-                "addr:housenumber": "200",
-                amenity: "gym",
-              },
-              source_provenance: {
-                primary: "osm",
-                confirmed_by: [],
-                match_status: "name_mismatch",
-                external_refs: {
-                  tomtom: {
-                    provider: "tomtom",
-                    external_id: "tt-live-2",
+            ...(isFranklin
+              ? buildGym({
+                  id: "live-2",
+                  name: "Cool Springs Athletic Club",
+                  lat: 35.955,
+                  lon: -86.801,
+                  tags: {
                     name: "Cool Springs Athletic Club",
-                    status: "name_mismatch",
-                    distance_m: 35,
-                    city: "Franklin",
-                    url: null,
+                    "addr:city": "Franklin",
+                    "addr:state": "TN",
+                    "addr:street": "Cool Springs Blvd",
+                    "addr:housenumber": "200",
+                    amenity: "gym",
                   },
-                },
-              },
-            }),
-            distance_m: 6832,
+                  source_provenance: {
+                    primary: "osm",
+                    confirmed_by: [],
+                    match_status: "name_mismatch",
+                    external_refs: {
+                      tomtom: {
+                        provider: "tomtom",
+                        external_id: "tt-live-2",
+                        name: "Cool Springs Athletic Club",
+                        status: "name_mismatch",
+                        distance_m: 35,
+                        city: "Franklin",
+                        url: null,
+                      },
+                    },
+                  },
+                })
+              : buildGym({
+                  id: "live-2",
+                  name: "East Bank Barbell",
+                  lat: 36.175,
+                  lon: -86.758,
+                  tags: {
+                    name: "East Bank Barbell",
+                    "addr:city": "Nashville",
+                    "addr:state": "TN",
+                    "addr:street": "Woodland St",
+                    "addr:housenumber": "200",
+                    amenity: "gym",
+                  },
+                  source_provenance: {
+                    primary: "osm",
+                    confirmed_by: [],
+                    match_status: "name_mismatch",
+                    external_refs: {
+                      tomtom: {
+                        provider: "tomtom",
+                        external_id: "tt-live-2",
+                        name: "East Bank Barbell",
+                        status: "name_mismatch",
+                        distance_m: 35,
+                        city: "Nashville",
+                        url: null,
+                      },
+                    },
+                  },
+                })),
+            distance_m: isFranklin ? 6832 : 2780,
           },
         ],
       }),
@@ -330,6 +400,12 @@ test("loads the published catalog and selected gym details", async ({ page }) =>
   ).toBeVisible();
   await expect(page.getByText("Search service: ready")).toBeVisible();
   await expect(page.getByText("Data readiness")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Nashville Strength Club/i }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 3, name: "Nashville Strength Club" }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Curated picks", exact: true }).click();
   await expect(page.getByRole("button", { name: /Downtown Strength/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Gym Details" })).toBeVisible();
@@ -366,7 +442,7 @@ test("runs live search without exposing latitude or longitude inputs", async ({
     .locator("form")
     .filter({ has: page.getByRole("button", { name: "Search gyms", exact: true }) });
   await liveForm.getByPlaceholder("Nashville, TN").fill("Franklin, TN");
-  await liveForm.getByPlaceholder("10").fill("5");
+  await liveForm.getByRole("textbox", { name: /^Radius\b/i }).fill("5");
   await page.getByRole("button", { name: "Search gyms", exact: true }).click();
 
   await expect(page.getByRole("button", { name: /Franklin Strength Club/i })).toBeVisible();

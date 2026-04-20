@@ -72,17 +72,95 @@ export function App() {
     const controller = new AbortController();
 
     async function bootstrap() {
+      const initialRadiusMiles = parseNumber(defaultLiveSearch.radiusMiles);
+      const initialRadiusMeters =
+        initialRadiusMiles != null ? milesToMeters(initialRadiusMiles) : undefined;
+
       try {
-        const [healthSnapshot, gyms] = await Promise.all([
+        const [healthResult, publishedResult, liveResult] = await Promise.allSettled([
           getHealth(controller.signal),
           listGyms(buildGymFilters(defaultFilters), controller.signal),
+          initialRadiusMeters != null
+            ? liveSearchGyms(
+                defaultLiveSearch.placeQuery,
+                defaultLiveSearch.query,
+                initialRadiusMeters,
+                controller.signal,
+              )
+            : Promise.reject(new Error("Invalid default live-search radius.")),
         ]);
 
+        if (controller.signal.aborted) {
+          return;
+        }
+
         startTransition(() => {
-          const mapped = gyms.results.map(buildPublishedBrowserGym);
-          setHealth(healthSnapshot);
-          setPublishedResults(mapped);
-          setSelectedGymId(mapped[0]?.id ?? null);
+          if (healthResult.status === "fulfilled") {
+            setHealth(healthResult.value);
+          }
+
+          const publishedGyms =
+            publishedResult.status === "fulfilled"
+              ? publishedResult.value.results.map(buildPublishedBrowserGym)
+              : [];
+          setPublishedResults(publishedGyms);
+
+          if (liveResult.status === "fulfilled") {
+            const mappedLive = liveResult.value.results
+              .map(buildLiveBrowserGym)
+              .sort((left, right) => {
+                if (left.distanceM == null && right.distanceM == null) {
+                  return left.name.localeCompare(right.name);
+                }
+                if (left.distanceM == null) {
+                  return 1;
+                }
+                if (right.distanceM == null) {
+                  return -1;
+                }
+                return left.distanceM - right.distanceM;
+              });
+
+            setMode("live");
+            setLiveResults(mappedLive);
+            setSelectedGymId(mappedLive[0]?.id ?? publishedGyms[0]?.id ?? null);
+            setLiveSearch({
+              ...defaultLiveSearch,
+              query: liveResult.value.query,
+              resolvedLabel:
+                liveResult.value.origin.address || liveResult.value.origin.name,
+            });
+            setLiveOrigin({
+              lat: liveResult.value.origin.lat,
+              lon: liveResult.value.origin.lon,
+              label: liveResult.value.origin.address || liveResult.value.origin.name,
+            });
+            return;
+          }
+
+          setMode("published");
+          setSelectedGymId(publishedGyms[0]?.id ?? null);
+
+          if (publishedGyms.length === 0) {
+            setError(
+              toUserFacingErrorMessage(
+                liveResult.status === "rejected"
+                  ? liveResult.reason
+                  : new Error("No gyms were available."),
+                "We couldn't load gyms right now.",
+              ),
+            );
+            return;
+          }
+
+          if (liveResult.status === "rejected") {
+            setError(
+              toUserFacingErrorMessage(
+                liveResult.reason,
+                "Live search isn't available right now, so we're showing curated gyms instead.",
+              ),
+            );
+          }
         });
       } catch (loadError) {
         if (controller.signal.aborted) {
