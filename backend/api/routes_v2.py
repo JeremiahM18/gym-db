@@ -16,6 +16,7 @@ from api.schemas_v2 import (
     GymsListResponseV2,
     LiveGymSearchResponseV2,
 )
+from api.settings import APISettings, get_settings
 from gymdb.application.coverage import apply_tomtom_coverage
 from gymdb.domain.inference import apply_inference
 from gymdb.domain.processing import (
@@ -27,6 +28,10 @@ from gymdb.domain.processing import (
 from gymdb.domain.scoring import compute_confidence
 from gymdb.gyms.protocol import GymStoreProtocol
 from gymdb.gyms.queries import get_gym_by_id, list_gyms
+from gymdb.infrastructure.live_search_cache import (
+    load_cached_elements,
+    write_cached_elements,
+)
 from gymdb.infrastructure.overpass_client import OverpassUnavailableError, fetch_gyms
 from gymdb.infrastructure.tomtom_client import TomTomClient
 
@@ -113,6 +118,7 @@ async def geocode_location_v2(
     q: str = Query(..., min_length=2, description="City, neighborhood, or place name"),
     limit: int = Query(5, ge=1, le=10),
     tomtom_client: TomTomClient | None = Depends(get_tomtom_client),
+    settings: APISettings = Depends(get_settings),
 ):
     if tomtom_client is None:
         raise HTTPException(
@@ -124,11 +130,21 @@ async def geocode_location_v2(
         )
 
     try:
-        places = await asyncio.to_thread(tomtom_client.geocode, query=q, limit=limit)
+        async with asyncio.timeout(settings.live_search_upstream_timeout_seconds):
+            places = await asyncio.to_thread(
+                tomtom_client.geocode,
+                query=q,
+                limit=limit,
+            )
     except RequestException as exc:
         raise HTTPException(
             status_code=503,
             detail="TomTom geocoding is temporarily unavailable.",
+        ) from exc
+    except TimeoutError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="TomTom geocoding timed out.",
         ) from exc
 
     return {
@@ -166,6 +182,7 @@ async def live_search_gyms_v2(
     limit: int = Query(25, ge=1, le=50),
     _: None = Depends(enforce_live_search_rate_limit),
     tomtom_client: TomTomClient | None = Depends(get_tomtom_client),
+    settings: APISettings = Depends(get_settings),
 ):
     if tomtom_client is None:
         raise HTTPException(
@@ -177,11 +194,21 @@ async def live_search_gyms_v2(
         )
 
     try:
-        origins = await asyncio.to_thread(tomtom_client.geocode, query=place, limit=1)
+        async with asyncio.timeout(settings.live_search_upstream_timeout_seconds):
+            origins = await asyncio.to_thread(
+                tomtom_client.geocode,
+                query=place,
+                limit=1,
+            )
     except RequestException as exc:
         raise HTTPException(
             status_code=503,
             detail="TomTom place resolution is temporarily unavailable.",
+        ) from exc
+    except TimeoutError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="TomTom place resolution timed out.",
         ) from exc
 
     if not origins:
@@ -192,31 +219,85 @@ async def live_search_gyms_v2(
 
     origin = origins[0]
     search_query = q.strip() or "gym"
+    cached_entry = load_cached_elements(
+        settings.live_search_cache_root,
+        lat=origin.lat,
+        lon=origin.lon,
+        radius_m=radius_m,
+    )
+    cache_is_fresh = (
+        cached_entry is not None
+        and cached_entry.age_seconds <= settings.live_search_cache_ttl_seconds
+    )
 
-    try:
-        elements = await asyncio.to_thread(fetch_gyms, radius_m, origin.lat, origin.lon)
-    except OverpassUnavailableError as exc:
-        raise HTTPException(
-            status_code=503,
-            detail=str(exc),
-        ) from exc
+    if cache_is_fresh:
+        assert cached_entry is not None
+        elements = cached_entry.elements
+    else:
+        overpass_error: str | None = None
+        try:
+            async with asyncio.timeout(settings.live_search_upstream_timeout_seconds):
+                elements = await asyncio.to_thread(
+                    fetch_gyms,
+                    radius_m,
+                    origin.lat,
+                    origin.lon,
+                    timeout_seconds=settings.live_search_overpass_timeout_seconds,
+                    max_attempts=settings.live_search_overpass_max_attempts,
+                    backoff_seconds=0.0,
+                )
+            await asyncio.to_thread(
+                write_cached_elements,
+                settings.live_search_cache_root,
+                lat=origin.lat,
+                lon=origin.lon,
+                radius_m=radius_m,
+                origin={
+                    "id": origin.id,
+                    "name": origin.name,
+                    "lat": origin.lat,
+                    "lon": origin.lon,
+                    "address": origin.address,
+                    "city": origin.city,
+                    "country_code": origin.country_code,
+                },
+                elements=elements,
+            )
+        except OverpassUnavailableError as exc:
+            overpass_error = str(exc)
+            if cached_entry is not None:
+                elements = cached_entry.elements
+            else:
+                raise HTTPException(status_code=503, detail=overpass_error) from exc
+        except TimeoutError as exc:
+            overpass_error = "Live OpenStreetMap search timed out."
+            if cached_entry is not None:
+                elements = cached_entry.elements
+            else:
+                raise HTTPException(status_code=503, detail=overpass_error) from exc
 
     gyms = deduplicate(elements)
     for gym in gyms:
         gym.id = compute_gym_id(gym.norm_name, gym.lat, gym.lon)
 
     try:
-        places = await asyncio.to_thread(
-            tomtom_client.search_gyms,
-            lat=origin.lat,
-            lon=origin.lon,
-            radius_m=radius_m,
-            limit=max(len(gyms) * 2, 100),
-        )
+        async with asyncio.timeout(settings.live_search_upstream_timeout_seconds):
+            places = await asyncio.to_thread(
+                tomtom_client.search_gyms,
+                lat=origin.lat,
+                lon=origin.lon,
+                radius_m=radius_m,
+                limit=max(len(gyms) * 2, 100),
+            )
     except RequestException as exc:
         raise HTTPException(
             status_code=503,
             detail="TomTom live verification is temporarily unavailable.",
+        ) from exc
+    except TimeoutError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="TomTom live verification timed out.",
         ) from exc
 
     apply_tomtom_coverage(gyms, places)

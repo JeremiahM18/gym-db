@@ -57,8 +57,9 @@ def _retry_sleep(
     sleep_fn: Callable[[float], None],
     *,
     attempt: int,
+    backoff_seconds: float,
 ) -> None:
-    sleep_fn(settings.overpass_backoff_seconds * attempt)
+    sleep_fn(backoff_seconds * attempt)
 
 
 def fetch_gyms(
@@ -68,12 +69,21 @@ def fetch_gyms(
     *,
     session: requests.Session | None = None,
     sleep_fn: Callable[[float], None] = time.sleep,
+    timeout_seconds: int | None = None,
+    max_attempts: int | None = None,
+    backoff_seconds: float | None = None,
 ) -> list[dict[str, Any]]:
     query = build_query(radius_meters, lat, lon)
     http = session or requests.Session()
     last_error: Exception | None = None
     urls = _candidate_urls()
-    total_attempts = max(settings.overpass_max_attempts, 1)
+    total_attempts = max(max_attempts or settings.overpass_max_attempts, 1)
+    request_timeout_seconds = timeout_seconds or settings.overpass_timeout_seconds
+    retry_backoff_seconds = (
+        backoff_seconds
+        if backoff_seconds is not None
+        else settings.overpass_backoff_seconds
+    )
 
     for url_index, url in enumerate(urls):
         for attempt in range(1, total_attempts + 1):
@@ -81,7 +91,7 @@ def fetch_gyms(
                 response = http.post(
                     url,
                     data=query,
-                    timeout=settings.overpass_timeout_seconds,
+                    timeout=request_timeout_seconds,
                 )
                 response.raise_for_status()
                 payload = response.json()
@@ -106,7 +116,11 @@ def fetch_gyms(
             is_last_url = url_index == len(urls) - 1
             if is_last_attempt and is_last_url:
                 break
-            _retry_sleep(sleep_fn, attempt=attempt)
+            _retry_sleep(
+                sleep_fn,
+                attempt=attempt,
+                backoff_seconds=retry_backoff_seconds,
+            )
 
     detail = str(last_error) if last_error else "unknown upstream failure"
     raise OverpassUnavailableError(

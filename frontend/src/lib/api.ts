@@ -104,6 +104,9 @@ export function toUserFacingErrorMessage(
   if (normalized.includes("temporarily unavailable")) {
     return "Search is temporarily unavailable. Please try again in a moment.";
   }
+  if (normalized.includes("timed out")) {
+    return "Search took too long to respond. Please try again in a moment.";
+  }
   if (normalized.includes("no place match found")) {
     return "We couldn't match that place. Try a city, neighborhood, or ZIP code nearby.";
   }
