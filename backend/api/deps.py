@@ -10,6 +10,7 @@ from api.settings import APISettings, get_settings
 from gymdb.gyms.store_dataset import DatasetGymStore
 from gymdb.infrastructure.db.db_engine import get_connection
 from gymdb.infrastructure.db.errors import DatabaseUnavailable, QueryFailed
+from gymdb.infrastructure.tomtom_client import TomTomClient
 
 # Core application dependencies
 
@@ -35,6 +36,20 @@ def get_gym_store(
     - Filesystem paths are referenced
     """
     return create_store(settings)
+
+
+def get_tomtom_client(
+    settings: APISettings = Depends(get_settings),
+) -> TomTomClient | None:
+    """
+    Application-level dependency for TomTom API access.
+    """
+    if not settings.tomtom_api_key:
+        return None
+    return TomTomClient(
+        api_key=settings.tomtom_api_key,
+        base_url=settings.tomtom_base_url,
+    )
 
 
 # Error translation (DB -> HTTP)

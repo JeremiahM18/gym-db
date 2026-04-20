@@ -76,17 +76,19 @@ class TomTomClient:
         lon: float,
         radius_m: int,
         limit: int = 100,
-        country_set: str = "US",
+        country_set: str | None = None,
     ) -> list[TomTomPlace]:
+        params: dict[str, str | int | float] = {
+            "lat": lat,
+            "lon": lon,
+            "radius": radius_m,
+            "limit": limit,
+        }
+        if country_set:
+            params["countrySet"] = country_set
         payload = self._get(
             "/search/2/categorySearch/gym.json",
-            params={
-                "lat": lat,
-                "lon": lon,
-                "radius": radius_m,
-                "limit": limit,
-                "countrySet": country_set,
-            },
+            params=params,
         )
         return self._parse_places(payload)
 
@@ -95,7 +97,7 @@ class TomTomClient:
         *,
         query: str,
         limit: int = 25,
-        country_set: str = "US",
+        country_set: str | None = None,
         lat: float | None = None,
         lon: float | None = None,
         radius_m: int | None = None,
@@ -104,9 +106,10 @@ class TomTomClient:
     ) -> list[TomTomPlace]:
         params: dict[str, str | int | float] = {
             "limit": limit,
-            "countrySet": country_set,
             "idxSet": "POI",
         }
+        if country_set:
+            params["countrySet"] = country_set
         if lat is not None and lon is not None:
             params["lat"] = lat
             params["lon"] = lon
@@ -130,18 +133,20 @@ class TomTomClient:
         lon: float,
         radius_m: int,
         limit: int = 25,
-        country_set: str = "US",
+        country_set: str | None = None,
     ) -> list[TomTomPlace]:
         encoded_category = quote(category, safe="")
+        params: dict[str, str | int | float] = {
+            "lat": lat,
+            "lon": lon,
+            "radius": radius_m,
+            "limit": limit,
+        }
+        if country_set:
+            params["countrySet"] = country_set
         payload = self._get(
             f"/search/2/categorySearch/{encoded_category}.json",
-            params={
-                "lat": lat,
-                "lon": lon,
-                "radius": radius_m,
-                "limit": limit,
-                "countrySet": country_set,
-            },
+            params=params,
         )
         return self._parse_places(payload)
 
@@ -150,14 +155,16 @@ class TomTomClient:
         *,
         query: str,
         limit: int = 5,
-        country_set: str = "US",
+        country_set: str | None = None,
     ) -> list[TomTomPlace]:
         encoded_query = quote(query, safe="")
+        params: dict[str, str | int | float] = {
+            "limit": limit,
+        }
+        if country_set:
+            params["countrySet"] = country_set
         payload = self._get(
             f"/search/2/geocode/{encoded_query}.json",
-            params={
-                "limit": limit,
-                "countrySet": country_set,
-            },
+            params=params,
         )
         return self._parse_places(payload)

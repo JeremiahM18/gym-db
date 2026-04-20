@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import asyncio
-from math import asin, cos, radians, sin, sqrt
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from requests import RequestException
 
 from api.auth.dependencies import require_user
-from api.deps import get_gym_store
+from api.deps import get_gym_store, get_tomtom_client
 from api.embeddings_views import serialize_gym_embedding_v2
 from api.normalizers import serialize_domain_gym, serialize_gym, translate_store_error
 from api.schemas_v2 import (
@@ -17,10 +16,14 @@ from api.schemas_v2 import (
     GymsListResponseV2,
     LiveGymSearchResponseV2,
 )
-from api.settings import APISettings, get_settings
 from gymdb.application.coverage import apply_tomtom_coverage
 from gymdb.domain.inference import apply_inference
-from gymdb.domain.processing import compute_gym_id, deduplicate, normalize_name
+from gymdb.domain.processing import (
+    compute_gym_id,
+    deduplicate,
+    haversine_meters,
+    normalize_name,
+)
 from gymdb.domain.scoring import compute_confidence
 from gymdb.gyms.protocol import GymStoreProtocol
 from gymdb.gyms.queries import get_gym_by_id, list_gyms
@@ -31,21 +34,6 @@ from gymdb.infrastructure.tomtom_client import TomTomClient
 # Changes require schema + test updates
 
 router = APIRouter(prefix="/v2", tags=["gyms"], dependencies=[Depends(require_user)])
-
-
-def _haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    earth_radius_m = 6_371_000
-    d_lat = radians(lat2 - lat1)
-    d_lon = radians(lon2 - lon1)
-    origin_lat = radians(lat1)
-    target_lat = radians(lat2)
-
-    a = (
-        sin(d_lat / 2) ** 2
-        + cos(origin_lat) * cos(target_lat) * sin(d_lon / 2) ** 2
-    )
-    c = 2 * asin(sqrt(a))
-    return earth_radius_m * c
 
 
 _BROAD_LIVE_SEARCH_TERMS = {
@@ -123,9 +111,9 @@ def list_gyms_v2(
 async def geocode_location_v2(
     q: str = Query(..., min_length=2, description="City, neighborhood, or place name"),
     limit: int = Query(5, ge=1, le=10),
-    settings: APISettings = Depends(get_settings),
+    tomtom_client: TomTomClient | None = Depends(get_tomtom_client),
 ):
-    if not settings.tomtom_api_key:
+    if tomtom_client is None:
         raise HTTPException(
             status_code=503,
             detail=(
@@ -134,12 +122,8 @@ async def geocode_location_v2(
             ),
         )
 
-    client = TomTomClient(
-        api_key=settings.tomtom_api_key,
-        base_url=settings.tomtom_base_url,
-    )
     try:
-        places = await asyncio.to_thread(client.geocode, query=q, limit=limit)
+        places = await asyncio.to_thread(tomtom_client.geocode, query=q, limit=limit)
     except RequestException as exc:
         raise HTTPException(
             status_code=503,
@@ -179,9 +163,9 @@ async def live_search_gyms_v2(
     ),
     radius_m: int = Query(25_000, ge=500, le=400_000),
     limit: int = Query(25, ge=1, le=50),
-    settings: APISettings = Depends(get_settings),
+    tomtom_client: TomTomClient | None = Depends(get_tomtom_client),
 ):
-    if not settings.tomtom_api_key:
+    if tomtom_client is None:
         raise HTTPException(
             status_code=503,
             detail=(
@@ -190,13 +174,8 @@ async def live_search_gyms_v2(
             ),
         )
 
-    client = TomTomClient(
-        api_key=settings.tomtom_api_key,
-        base_url=settings.tomtom_base_url,
-    )
-
     try:
-        origins = await asyncio.to_thread(client.geocode, query=place, limit=1)
+        origins = await asyncio.to_thread(tomtom_client.geocode, query=place, limit=1)
     except RequestException as exc:
         raise HTTPException(
             status_code=503,
@@ -226,7 +205,7 @@ async def live_search_gyms_v2(
 
     try:
         places = await asyncio.to_thread(
-            client.search_gyms,
+            tomtom_client.search_gyms,
             lat=origin.lat,
             lon=origin.lon,
             radius_m=radius_m,
@@ -248,7 +227,7 @@ async def live_search_gyms_v2(
         gym for gym in gyms if _matches_live_query(gym, search_query)
     ]
     filtered_gyms.sort(
-        key=lambda gym: _haversine_meters(origin.lat, origin.lon, gym.lat, gym.lon)
+        key=lambda gym: haversine_meters(origin.lat, origin.lon, gym.lat, gym.lon)
     )
     limited_gyms = filtered_gyms[:limit]
 
@@ -270,7 +249,7 @@ async def live_search_gyms_v2(
         "results": [
             {
                 **serialize_domain_gym(gym),
-                "distance_m": _haversine_meters(
+                "distance_m": haversine_meters(
                     origin.lat,
                     origin.lon,
                     gym.lat,
