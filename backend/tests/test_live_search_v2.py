@@ -1,5 +1,8 @@
+from requests import RequestException
+
 from api.main import app
 from api.settings import APISettings, get_settings
+from gymdb.infrastructure.overpass_client import OverpassUnavailableError
 from gymdb.infrastructure.tomtom_client import TomTomPlace
 
 
@@ -106,6 +109,89 @@ def test_live_search_returns_results(client, override_auth, monkeypatch):
     assert data["results"][0]["source_provenance"]["confirmed_by"] == ["tomtom"]
     assert data["results"][0]["tags"]["website"] == "https://franklinstrength.example.com"
     assert data["results"][0]["distance_m"] > 0
+
+
+def test_live_search_returns_404_when_place_is_not_found(
+    client, override_auth, monkeypatch
+):
+    client.app.dependency_overrides[get_settings] = lambda: APISettings(
+        tomtom_api_key="test-key",
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.geocode",
+        lambda self, query, limit=1, country_set=None: [],
+    )
+
+    try:
+        resp = client.get("/v2/live/search?place=Atlantis")
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
+
+    assert resp.status_code == 404
+    assert (
+        resp.json()["error"]["message"]["detail"]
+        == 'No place match found for "Atlantis".'
+    )
+
+
+def test_live_search_returns_503_when_place_resolution_fails(
+    client, override_auth, monkeypatch
+):
+    client.app.dependency_overrides[get_settings] = lambda: APISettings(
+        tomtom_api_key="test-key",
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.geocode",
+        lambda self, query, limit=1, country_set=None: (_ for _ in ()).throw(
+            RequestException("tomtom down")
+        ),
+    )
+
+    try:
+        resp = client.get("/v2/live/search?place=Franklin%2C%20TN")
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
+
+    assert resp.status_code == 503
+    assert "place resolution is temporarily unavailable" in resp.text
+
+
+def test_live_search_returns_503_when_overpass_fails(
+    client, override_auth, monkeypatch
+):
+    client.app.dependency_overrides[get_settings] = lambda: APISettings(
+        tomtom_api_key="test-key",
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.geocode",
+        lambda self, query, limit=1, country_set=None: [
+            TomTomPlace(
+                id="place-1",
+                name="Franklin, TN",
+                lat=35.9251,
+                lon=-86.8689,
+                address="Franklin, TN",
+                city="Franklin",
+                country_code="US",
+                url=None,
+                raw={},
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.fetch_gyms",
+        lambda radius_meters, lat, lon: (_ for _ in ()).throw(
+            OverpassUnavailableError("Overpass is temporarily unavailable.")
+        ),
+    )
+
+    try:
+        resp = client.get("/v2/live/search?place=Franklin%2C%20TN")
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
+
+    assert resp.status_code == 503
+    assert "Overpass is temporarily unavailable" in resp.text
 
 
 def test_live_search_allows_non_us_origin(client, override_auth, monkeypatch):

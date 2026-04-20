@@ -90,19 +90,20 @@ def list_gyms_v2(
             lat=lat,
             lon=lon,
             radius_m=radius_m,
-            limit=limit,
+            limit=limit + 1,
             offset=offset,
         )
     except Exception as exc:
         raise translate_store_error(exc) from exc
 
-    results = [serialize_gym(gym) for gym in gyms]
+    has_more = len(gyms) > limit
+    results = [serialize_gym(gym) for gym in gyms[:limit]]
 
     return {
         "api_version": "v2",
         "region": region,
         "count": len(results),
-        "has_more": len(results) == limit,
+        "has_more": has_more,
         "results": results,
     }
 

@@ -23,4 +23,4 @@ The separate `/v2/gyms/geo/nearby` route is a lower-level PostGIS query surface 
 Frontend clients may safely generate SDKs from the exported backend OpenAPI schema.
 The checked-in `backend/openapi.json` snapshot is treated as part of the contract and is verified in CI against the live FastAPI app.
 The checked-in frontend generated client is also verified in CI against that snapshot to prevent backend/frontend drift.
-`has_more` on list responses is currently an approximate signal based on `len(results) == limit`, not an exact `limit + 1` pagination probe.
+`has_more` on list responses uses an exact `limit + 1` pagination probe so clients can trust the signal without a separate count query.
