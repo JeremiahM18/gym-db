@@ -114,7 +114,7 @@ export function toUserFacingErrorMessage(
     return "Choose a radius greater than zero miles.";
   }
   if (normalized.includes("requires a city, neighborhood, or place")) {
-    return "Enter a city, neighborhood, landmark, or ZIP code to search nearby gyms.";
+    return "Enter a city, neighborhood, landmark, or ZIP code in the Place field to search around that place.";
   }
 
   return detail || fallback;

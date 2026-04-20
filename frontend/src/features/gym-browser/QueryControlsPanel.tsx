@@ -59,15 +59,18 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
   return (
     <Panel
       title="Search"
-      subtitle="Search nearby first. Use curated picks when you want a tighter shortlist."
+      subtitle="Search around the place you enter. Use curated picks when you want a tighter shortlist."
       accent="Find Gyms"
     >
       <div className="search-intro">
         <strong>
           {props.mode === "live"
-            ? "Nearby search is the main way to explore a city."
+            ? "Search around the place you choose."
             : "Curated picks is the tighter follow-up view."}
         </strong>
+        {props.mode === "live" ? (
+          <p>This uses the Place field below, not your current location.</p>
+        ) : null}
       </div>
       <div className="source-switcher" role="group" aria-label="Search view">
         <button
@@ -75,7 +78,7 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
           type="button"
           onClick={() => props.onModeChange("live")}
         >
-          Nearby search
+          Search around a place
         </button>
         <button
           className={props.mode === "published" ? "chip active" : "chip"}
@@ -91,6 +94,7 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
           <div className="live-search-summary">
             <span className="live-search-summary-label">Live Search</span>
             <strong>{props.liveSearchSummary}</strong>
+            <p>We search around the place in the Place field and rank gyms by distance.</p>
           </div>
           <label>
             <span>Gym type or brand</span>
@@ -159,7 +163,7 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
               placeholder="10"
             />
             <small className="field-hint">
-              About {props.liveRadiusLabel} around your chosen place.
+              About {props.liveRadiusLabel} around the place in the Place field.
             </small>
           </label>
           <div className="radius-preset-row" role="group" aria-label="Radius quick picks">
@@ -191,7 +195,7 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
           ) : null}
           <div className="controls-actions">
             <button className="secondary-button" type="submit" disabled={props.loading}>
-              Find nearby gyms
+              Find gyms around this place
             </button>
           </div>
         </form>

@@ -215,7 +215,7 @@ export function App() {
 
     if (!placeQuery) {
       setError(
-        "Enter a city, neighborhood, landmark, or ZIP code to search nearby gyms.",
+        "Enter a city, neighborhood, landmark, or ZIP code in the Place field to search around that place.",
       );
       setLoading(false);
       return;

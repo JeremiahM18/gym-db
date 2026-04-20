@@ -31,8 +31,8 @@ export function ResultsPanel(props: ResultsPanelProps) {
         props.mode === "published"
           ? "Review the tighter shortlist."
           : props.hasLiveSearchRun
-            ? `See gyms within ${props.liveRadiusLabel} of ${props.livePlaceLabel}.`
-            : "Nearby gyms will appear here."
+            ? `See gyms within ${props.liveRadiusLabel} of the place you chose: ${props.livePlaceLabel}.`
+            : "Gyms around the place you choose will appear here."
       }
       accent="Results"
     >
@@ -49,7 +49,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
             ? "Use this tighter view when you want a cleaner shortlist to compare."
             : props.hasLiveSearchRun
               ? props.liveSearchSummary
-              : "Search a city, neighborhood, landmark, or ZIP code to see nearby gyms ranked by distance."}
+              : "Enter a city, neighborhood, landmark, or ZIP code to search around that place."}
         </span>
       </div>
       <div className="toolbar-row toolbar-row-single">
@@ -96,7 +96,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
                   ? "Try broadening the filters or switch back to place search to explore a wider area."
                   : props.hasLiveSearchRun
                     ? `We didn’t find gyms for ${props.liveSearchSummary}. Widen the radius or search a nearby place.`
-                    : "Choose a place, pick a radius, and we'll map nearby gyms here."}
+                    : "Choose a place, pick a radius, and we’ll show gyms around that place here."}
               </p>
               <div className="empty-state-actions">
                 {props.mode === "published" ? (
@@ -105,7 +105,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
                     className="chip active"
                     onClick={props.onSwitchToLiveMode}
                   >
-                    Go back to nearby search
+                    Go back to place search
                   </button>
                 ) : (
                   <button

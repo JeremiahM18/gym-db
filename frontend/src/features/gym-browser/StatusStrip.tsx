@@ -21,7 +21,7 @@ export function StatusStrip(props: StatusStripProps) {
           <small className="status-note">{props.health.readinessHint}</small>
         ) : null}
       </div>
-      <div className="status-pill neutral">Nearby search is the main path. Curated picks is there when you want a tighter shortlist.</div>
+      <div className="status-pill neutral">Place search uses the Place field and radius below. Curated picks is there when you want a tighter shortlist.</div>
     </section>
   );
 }

@@ -362,10 +362,10 @@ test("runs live search without exposing latitude or longitude inputs", async ({
   await expect(page.getByLabel("Latitude")).toHaveCount(0);
   await expect(page.getByLabel("Longitude")).toHaveCount(0);
 
-  const liveForm = page.locator("form").filter({ has: page.getByRole("button", { name: "Find nearby gyms" }) });
+  const liveForm = page.locator("form").filter({ has: page.getByRole("button", { name: "Find gyms around this place" }) });
   await liveForm.getByPlaceholder("Nashville, TN").fill("Franklin, TN");
   await liveForm.getByPlaceholder("10").fill("5");
-  await page.getByRole("button", { name: "Find nearby gyms" }).click();
+  await page.getByRole("button", { name: "Find gyms around this place" }).click();
 
   await expect(page.getByRole("button", { name: /Franklin Strength Club/i })).toBeVisible();
   await expect(
