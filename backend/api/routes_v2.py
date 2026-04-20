@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from requests import RequestException
 
 from api.auth.dependencies import require_user
-from api.deps import get_gym_store, get_tomtom_client
+from api.deps import enforce_live_search_rate_limit, get_gym_store, get_tomtom_client
 from api.embeddings_views import serialize_gym_embedding_v2
 from api.normalizers import serialize_domain_gym, serialize_gym, translate_store_error
 from api.schemas_v2 import (
@@ -163,6 +163,7 @@ async def live_search_gyms_v2(
     ),
     radius_m: int = Query(25_000, ge=500, le=400_000),
     limit: int = Query(25, ge=1, le=50),
+    _: None = Depends(enforce_live_search_rate_limit),
     tomtom_client: TomTomClient | None = Depends(get_tomtom_client),
 ):
     if tomtom_client is None:

@@ -178,3 +178,57 @@ def test_live_search_allows_non_us_origin(client, override_auth, monkeypatch):
     assert data["origin"]["name"] == "London, UK"
     assert data["origin"]["country_code"] == "GB"
     assert data["results"][0]["name"] == "London Strength Club"
+
+
+def test_live_search_is_rate_limited(client, override_auth, monkeypatch):
+    client.app.dependency_overrides[get_settings] = lambda: APISettings(
+        tomtom_api_key="test-key",
+        live_search_rate_limit=1,
+        live_search_window_seconds=60,
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.geocode",
+        lambda self, query, limit=1, country_set=None: [
+            TomTomPlace(
+                id="place-1",
+                name="Franklin, TN",
+                lat=35.9251,
+                lon=-86.8689,
+                address="Franklin, TN",
+                city="Franklin",
+                country_code="US",
+                url=None,
+                raw={},
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.fetch_gyms",
+        lambda radius_meters, lat, lon: [
+            {
+                "type": "node",
+                "id": 101,
+                "lat": 35.9201,
+                "lon": -86.8621,
+                "tags": {
+                    "name": "Franklin Strength Club",
+                    "amenity": "gym",
+                },
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.search_gyms",
+        lambda self, lat, lon, radius_m, limit=100, country_set=None: [],
+    )
+
+    try:
+        first = client.get("/v2/live/search?place=Franklin%2C%20TN")
+        second = client.get("/v2/live/search?place=Franklin%2C%20TN")
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.headers["Retry-After"] == "60"
+    assert "rate limited" in second.text

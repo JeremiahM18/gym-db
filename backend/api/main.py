@@ -93,6 +93,7 @@ async def http_exception_handler(
                 ),
             }
         },
+        headers=exc.headers,
     )
 
 

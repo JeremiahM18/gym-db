@@ -4,7 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
 from api.auth.dependencies import require_user
-from api.deps import get_gym_store
+from api.deps import get_gym_store, reset_rate_limiter
 from api.main import app
 from api.settings import APISettings, get_settings
 from gymdb.domain.inference import apply_inference
@@ -82,6 +82,13 @@ def client():
     yield TestClient(app)
 
     app.dependency_overrides.pop(get_gym_store, None)
+
+
+@pytest.fixture(autouse=True)
+def reset_test_rate_limiter():
+    reset_rate_limiter()
+    yield
+    reset_rate_limiter()
 
 
 @pytest.fixture()

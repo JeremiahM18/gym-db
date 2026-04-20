@@ -5,6 +5,8 @@ from pathlib import Path
 
 from gymdb.settings import GymDBSettings
 
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+
 
 class APISettings(GymDBSettings):
     """
@@ -17,8 +19,8 @@ class APISettings(GymDBSettings):
     """
 
     # Filesystem / registry
-    registry_path: Path = Path("data/registry.json")
-    dataset_root: Path = Path("data")
+    registry_path: Path = BACKEND_ROOT / "data/registry.json"
+    dataset_root: Path = BACKEND_ROOT / "data"
 
     # Auth (Cognito)
     aws_region: str = "us-east-1"
@@ -29,6 +31,8 @@ class APISettings(GymDBSettings):
     # Ops flags
     enable_internal: bool = False
     enable_dev_auth_bypass: bool = False
+    live_search_rate_limit: int = 8
+    live_search_window_seconds: int = 60
 
     # Browser clients
     cors_allowed_origins: list[str] = [
