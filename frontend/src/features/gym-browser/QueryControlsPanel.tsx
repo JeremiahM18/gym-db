@@ -56,6 +56,18 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
       subtitle="Start with a place and radius, or switch to the curated catalog when you want a tighter GymDB view."
       accent="Find Gyms"
     >
+      <div className="search-intro">
+        <strong>
+          {props.mode === "live"
+            ? "Live nearby search is the fastest way to explore a city."
+            : "Curated gyms lets you browse the tighter GymDB catalog."}
+        </strong>
+        <p>
+          {props.mode === "live"
+            ? "Pick a place, set a radius, and compare gyms by distance, amenities, and fit."
+            : "Use curated results when you want a cleaner, more selective pass over published gyms."}
+        </p>
+      </div>
       <div className="source-switcher">
         <button
           className={props.mode === "live" ? "chip active" : "chip"}
@@ -188,9 +200,9 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
                 }))
               }
             >
-              <option value="all">All catalog listings</option>
-              <option value="reviewed">More verified listings</option>
-              <option value="strongest">Strongest matches only</option>
+              <option value="all">Everything in the catalog</option>
+              <option value="reviewed">More reviewed listings</option>
+              <option value="strongest">Only the strongest matches</option>
             </select>
           </label>
           <label>

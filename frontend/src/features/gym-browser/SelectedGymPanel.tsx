@@ -63,6 +63,29 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
           </div>
         </div>
 
+        <div className="detail-spotlight">
+          <div>
+            <span className="detail-spotlight-label">At a glance</span>
+            <strong>
+              {props.selectedGym.distanceM != null
+                ? `${formatMilesFromMeters(props.selectedGym.distanceM)} away`
+                : "Ready to compare"}
+            </strong>
+            <p>
+              {props.selectedGym.address ??
+                "Address details are still limited, but this gym is included in the current search."}
+            </p>
+          </div>
+          <div className="detail-spotlight-meta">
+            {props.selectedGym.is247 ? <span className="mini-chip">Open 24/7</span> : null}
+            {props.selectedGym.website ? <span className="mini-chip">Has website</span> : null}
+            {props.selectedGym.phone ? <span className="mini-chip">Has phone</span> : null}
+            {props.selectedGym.lifterFriendly ? (
+              <span className="mini-chip">Lifter-friendly</span>
+            ) : null}
+          </div>
+        </div>
+
         <div className="action-rail">
           {props.selectedActionLinks.map((link) => (
             <ActionPill key={link.href} {...link} />

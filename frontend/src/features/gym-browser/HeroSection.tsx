@@ -28,6 +28,22 @@ export function HeroSection(props: HeroSectionProps) {
             ? `Searching now: ${props.liveSearchSummary}.`
             : "Use curated gyms when you want the tighter GymDB view of the current catalog."}
         </p>
+        <div className="hero-value-row">
+          <div className="hero-value-card">
+            <span>Best for</span>
+            <strong>
+              {props.mode === "live" ? "Exploring a real area" : "Reviewing quality picks"}
+            </strong>
+          </div>
+          <div className="hero-value-card">
+            <span>What stands out</span>
+            <strong>
+              {props.mode === "live"
+                ? "Distance-first discovery"
+                : "Stronger signals and fit"}
+            </strong>
+          </div>
+        </div>
         <div className="hero-actions">
           {props.selectedActionLinks.slice(0, 3).map((link) => (
             <ActionPill key={link.href} {...link} />

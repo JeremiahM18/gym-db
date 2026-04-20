@@ -19,6 +19,7 @@ type ResultsPanelProps = {
 export function ResultsPanel(props: ResultsPanelProps) {
   const activeRows =
     props.mode === "published" ? props.visiblePublished : props.visibleLive;
+  const loadingPlaceholders = Array.from({ length: 4 }, (_, index) => index);
 
   return (
     <Panel
@@ -57,7 +58,19 @@ export function ResultsPanel(props: ResultsPanelProps) {
 
       <div className="result-list">
         {props.loading ? (
-          <div className="empty-state">Finding gyms for you...</div>
+          loadingPlaceholders.map((placeholder) => (
+            <div key={placeholder} className="result-card skeleton-card" aria-hidden="true">
+              <div className="result-primary">
+                <div className="skeleton skeleton-line skeleton-line-title" />
+                <div className="skeleton skeleton-line" />
+                <div className="skeleton skeleton-line skeleton-line-short" />
+              </div>
+              <div className="result-metrics">
+                <div className="skeleton skeleton-pill" />
+                <div className="skeleton skeleton-pill skeleton-pill-short" />
+              </div>
+            </div>
+          ))
         ) : null}
         {!props.loading && !activeRows.length ? (
           <div className="empty-state">

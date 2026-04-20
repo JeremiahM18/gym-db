@@ -60,7 +60,7 @@ export function GeoMap(props: GeoMapProps) {
         </div>
         <div className="geo-legend-card">
           <span>Map range</span>
-          <strong>{(bounds.maxLat - bounds.minLat).toFixed(2)} degrees north to south</strong>
+          <strong>{(bounds.maxLat - bounds.minLat).toFixed(2)}° north to south</strong>
         </div>
         <div className="geo-legend-card">
           <span>Tip</span>
