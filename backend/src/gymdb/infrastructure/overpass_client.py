@@ -48,6 +48,11 @@ def _is_retryable_http_error(error: requests.HTTPError) -> bool:
     return response is not None and response.status_code in _RETRYABLE_STATUS_CODES
 
 
+def _http_status_code(error: requests.HTTPError) -> int | str:
+    response = error.response
+    return response.status_code if response is not None else "unknown"
+
+
 def _retry_sleep(
     sleep_fn: Callable[[float], None],
     *,
@@ -88,9 +93,10 @@ def fetch_gyms(
             except requests.HTTPError as exc:
                 last_error = exc
                 if not _is_retryable_http_error(exc):
-                    status_code = (
-                        exc.response.status_code if exc.response else "unknown"
-                    )
+                    status_code = _http_status_code(exc)
+                    is_last_url = url_index == len(urls) - 1
+                    if not is_last_url:
+                        break
                     raise OverpassUnavailableError(
                         "Overpass returned a non-retryable HTTP error "
                         f"({status_code}) while fetching gyms."

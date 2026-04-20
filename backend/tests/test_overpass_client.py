@@ -179,3 +179,38 @@ def test_fetch_gyms_raises_immediately_for_non_retryable_http_error(monkeypatch)
         assert "non-retryable HTTP error (400)" in str(exc)
     else:
         raise AssertionError("Expected OverpassUnavailableError")
+
+
+def test_fetch_gyms_uses_fallback_after_non_retryable_http_error(monkeypatch):
+    monkeypatch.setattr(
+        "gymdb.infrastructure.overpass_client.settings.overpass_url",
+        "https://primary.example/api/interpreter",
+    )
+    monkeypatch.setattr(
+        "gymdb.infrastructure.overpass_client.settings.overpass_fallback_url",
+        "https://fallback.example/api/interpreter",
+    )
+    monkeypatch.setattr(
+        "gymdb.infrastructure.overpass_client.settings.overpass_max_attempts",
+        1,
+    )
+    session = FakeSession(
+        [
+            FakeResponse(status_code=403, raise_http=True),
+            FakeResponse(payload={"elements": [{"id": 3}]}),
+        ]
+    )
+
+    elements = fetch_gyms(
+        1000,
+        36.16,
+        -86.78,
+        session=session,
+        sleep_fn=lambda _: None,
+    )
+
+    assert elements == [{"id": 3}]
+    assert session.calls == [
+        "https://primary.example/api/interpreter",
+        "https://fallback.example/api/interpreter",
+    ]
