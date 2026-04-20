@@ -325,13 +325,13 @@ test("loads the published catalog and selected gym details", async ({ page }) =>
 
   await expect(
     page.getByRole("heading", {
-      name: /Search for gyms within a real-world radius/i,
+      name: /Search for gyms around any place/i,
     }),
   ).toBeVisible();
-  await expect(page.getByText("API live: yes")).toBeVisible();
-  await expect(page.getByText("Database readiness")).toBeVisible();
+  await expect(page.getByText("Search service: ready")).toBeVisible();
+  await expect(page.getByText("Data readiness")).toBeVisible();
   await expect(page.getByRole("button", { name: /Downtown Strength/i })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Selected Gym" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Gym Details" })).toBeVisible();
   await expect(
     page.getByRole("heading", { level: 3, name: "Downtown Strength" }),
   ).toBeVisible();
@@ -342,12 +342,13 @@ test("refreshes the published catalog with a server-backed specialty filter", as
 }) => {
   await page.goto("/");
 
-  await page.locator("form").first().getByLabel("Specialty").selectOption("powerlifting");
-  await page.getByRole("button", { name: "Refresh published catalog" }).click();
+  await page.getByRole("button", { name: "Curated gyms", exact: true }).click();
+  await page.locator("form").getByLabel("Gym style").selectOption("powerlifting");
+  await page.getByRole("button", { name: "Show curated gyms" }).click();
 
   await expect(page.getByRole("button", { name: /Downtown Strength/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /Riverfront Barbell/i })).toHaveCount(0);
-  await expect(page.getByText("Lead specialty").locator("..")).toContainText(
+  await expect(page.getByText("Top gym style").locator("..")).toContainText(
     "Powerlifting",
   );
 });
@@ -360,22 +361,23 @@ test("runs live search without exposing latitude or longitude inputs", async ({
   await expect(page.getByLabel("Latitude")).toHaveCount(0);
   await expect(page.getByLabel("Longitude")).toHaveCount(0);
 
-  await page.getByLabel("Near").fill("Franklin, TN");
-  await page.getByLabel("Within").fill("5");
-  await page.getByRole("button", { name: "Run live search" }).click();
+  await page.getByRole("button", { name: "Search around a place" }).click();
+  const liveForm = page.locator("form").filter({ has: page.getByRole("button", { name: "Find nearby gyms" }) });
+  await liveForm.getByPlaceholder("Nashville, TN").fill("Franklin, TN");
+  await liveForm.getByPlaceholder("10").fill("5");
+  await page.getByRole("button", { name: "Find nearby gyms" }).click();
 
-  await expect(page.getByRole("button", { name: "Live Search", exact: true })).toBeEnabled();
   await expect(page.getByRole("button", { name: /Franklin Strength Club/i })).toBeVisible();
   await expect(
     page.getByRole("heading", { level: 3, name: "Franklin Strength Club" }),
   ).toBeVisible();
-  await expect(page.getByText(/Last resolved search origin:/i)).toContainText("Franklin, TN");
+  await expect(page.getByText(/Searching around Franklin, TN/i)).toBeVisible();
   await expect(page.locator(".results-context-banner strong")).toHaveText(
-    "Live Search within 5 mi of Franklin, TN",
+    "2 gyms within 5 mi of Franklin, TN",
   );
   await expect(
     page
       .locator(".detail-facts .stat-card")
-      .filter({ hasText: "SourceOSM primary · TomTom verified" }),
+      .filter({ hasText: "ListingNearby live result" }),
   ).toBeVisible();
 });

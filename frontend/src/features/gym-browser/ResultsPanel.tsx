@@ -13,7 +13,6 @@ type ResultsPanelProps = {
   liveRadiusLabel: string;
   liveSearchSummary: string;
   onQueryChange: (value: string) => void;
-  onModeChange: (mode: Mode) => void;
   onSelectGym: (gymId: string) => void;
 };
 
@@ -23,61 +22,48 @@ export function ResultsPanel(props: ResultsPanelProps) {
 
   return (
     <Panel
-      title="Result Grid"
-      subtitle="Switch between the curated published catalog and the live world search surface."
-      accent="Browser Client"
+      title="Gyms"
+      subtitle={
+        props.mode === "published"
+          ? "Browse the current curated GymDB results."
+          : `See gyms within ${props.liveRadiusLabel} of ${props.livePlaceLabel}.`
+      }
+      accent="Results"
     >
       <div className="results-context-banner">
         <strong>
           {props.mode === "published"
-            ? "Published Catalog"
-            : `Live Search within ${props.liveRadiusLabel} of ${props.livePlaceLabel}`}
+            ? `${activeRows.length} curated gyms`
+            : `${activeRows.length} gyms within ${props.liveRadiusLabel} of ${props.livePlaceLabel}`}
         </strong>
         <span>
           {props.mode === "published"
-            ? "These results come from the current GymDB published dataset."
+            ? "This list uses the current curated GymDB catalog."
             : props.liveSearchSummary}
         </span>
       </div>
-      <div className="toolbar-row">
+      <div className="toolbar-row toolbar-row-single">
         <input
           className="search-input"
           value={props.query}
           onChange={(event) => props.onQueryChange(event.target.value)}
           placeholder={
             props.mode === "published"
-              ? "Filter the published dataset by gym name, city, address, or specialty"
-              : "Filter live results by gym name, city, or address"
+              ? "Filter curated gyms by name, area, address, or style"
+              : "Filter live results by gym name, area, or address"
           }
         />
-        <div className="mode-chip-row">
-          <button
-            className={props.mode === "published" ? "chip active" : "chip"}
-            type="button"
-            onClick={() => props.onModeChange("published")}
-          >
-            Published Catalog
-          </button>
-          <button
-            className={props.mode === "live" ? "chip active" : "chip"}
-            type="button"
-            onClick={() => props.onModeChange("live")}
-            disabled={!props.visibleLive.length}
-          >
-            Live Search
-          </button>
-        </div>
       </div>
 
       <div className="result-list">
         {props.loading ? (
-          <div className="empty-state">Loading live backend data...</div>
+          <div className="empty-state">Finding gyms for you...</div>
         ) : null}
         {!props.loading && !activeRows.length ? (
           <div className="empty-state">
             {props.mode === "published"
-              ? "No published gyms matched these filters."
-              : `No live gyms matched ${props.liveSearchSummary}. Try widening the radius or broadening the search.`}
+              ? "No curated gyms matched these filters. Try broadening the filters or switching back to place search."
+              : `No gyms matched ${props.liveSearchSummary}. Try widening the radius or searching a nearby place.`}
           </div>
         ) : null}
         {!props.loading
@@ -106,7 +92,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
                     {gym.phone ? <span className="mini-chip">Phone</span> : null}
                     {gym.is247 ? <span className="mini-chip">24/7</span> : null}
                     {gym.sourceKind === "live" ? (
-                      <span className="mini-chip">Live result</span>
+                      <span className="mini-chip">Nearby match</span>
                     ) : null}
                   </div>
                 </div>

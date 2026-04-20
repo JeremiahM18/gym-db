@@ -16,13 +16,13 @@ type GeoCanvasPanelProps = {
 export function GeoCanvasPanel(props: GeoCanvasPanelProps) {
   return (
     <Panel
-      title="Geo Canvas"
+      title="Map"
       subtitle={
         props.mode === "live"
-          ? `Live pins for gyms within ${props.liveRadiusLabel ?? "your chosen radius"} of ${props.livePlaceLabel ?? "your selected place"}.`
-          : "A spatial projection of the current published result set with selectable gym pins."
+          ? `Pins for gyms within ${props.liveRadiusLabel ?? "your chosen radius"} of ${props.livePlaceLabel ?? "your selected place"}.`
+          : "A map view of the curated gyms in the current result list."
       }
-      accent="Spatial Surface"
+      accent="Search Area"
     >
       <GeoMap
         gyms={props.gyms}

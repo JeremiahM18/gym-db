@@ -89,7 +89,7 @@ small {
 
 .app-frame {
   position: relative;
-  width: min(1400px, calc(100% - 2rem));
+  width: min(1580px, calc(100% - 2rem));
   margin: 0 auto;
   padding: 2rem 0 4rem;
 }
@@ -334,11 +334,28 @@ label span,
   color: #ffd0cf;
 }
 
-.workspace-grid {
+.discovery-shell {
   display: grid;
-  grid-template-columns: 0.95fr 1.05fr;
+  grid-template-columns: minmax(20rem, 0.9fr) minmax(24rem, 1fr) minmax(24rem, 1.05fr);
   gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  align-items: start;
+}
+
+.search-rail,
+.results-rail,
+.detail-rail {
+  min-width: 0;
+}
+
+.search-rail,
+.results-rail,
+.detail-rail .panel {
+  height: 100%;
+}
+
+.detail-rail {
+  display: grid;
+  gap: 1.5rem;
 }
 
 .panel {
@@ -383,10 +400,16 @@ label span,
   gap: 0.9rem;
 }
 
-.nearby-grid {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--panel-border);
+.source-switcher {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
+.live-search-form,
+.published-search-form {
+  margin-top: 0.25rem;
 }
 
 .live-search-summary {
@@ -397,6 +420,11 @@ label span,
   border-radius: 20px;
   border: 1px solid rgba(71, 197, 190, 0.28);
   background: rgba(71, 197, 190, 0.1);
+}
+
+.catalog-summary {
+  border-color: rgba(233, 157, 63, 0.28);
+  background: rgba(233, 157, 63, 0.1);
 }
 
 .live-search-summary-label {
@@ -515,6 +543,10 @@ select:focus {
   margin-bottom: 1rem;
 }
 
+.toolbar-row-single {
+  justify-content: stretch;
+}
+
 .results-context-banner {
   display: grid;
   gap: 0.28rem;
@@ -559,6 +591,12 @@ select:focus {
 .fact-list {
   display: grid;
   gap: 0.75rem;
+}
+
+.result-list {
+  max-height: 60rem;
+  overflow: auto;
+  padding-right: 0.2rem;
 }
 
 .result-card,
@@ -629,6 +667,7 @@ select:focus {
 .geo-map {
   width: 100%;
   height: auto;
+  min-height: 18rem;
   border-radius: 28px;
   border: 1px solid var(--panel-border);
   background:
@@ -780,7 +819,7 @@ select:focus {
 
 @media (max-width: 1080px) {
   .hero,
-  .workspace-grid,
+  .discovery-shell,
   .detail-columns,
   .geo-legend-row {
     grid-template-columns: 1fr;

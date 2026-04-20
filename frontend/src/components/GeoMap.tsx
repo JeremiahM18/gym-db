@@ -22,7 +22,7 @@ export function GeoMap(props: GeoMapProps) {
   );
 
   if (!points.length) {
-    return <div className="map-empty">Run a query to populate the geo panel.</div>;
+    return <div className="map-empty">Search for a place to see gyms on the map.</div>;
   }
 
   const bounds = getBounds(props.gyms);
@@ -55,16 +55,16 @@ export function GeoMap(props: GeoMapProps) {
       </svg>
       <div className="geo-legend-row">
         <div className="geo-legend-card">
-          <span>Latitude span</span>
-          <strong>{bounds.minLat.toFixed(2)} to {bounds.maxLat.toFixed(2)}</strong>
-        </div>
-        <div className="geo-legend-card">
-          <span>Longitude span</span>
-          <strong>{bounds.minLon.toFixed(2)} to {bounds.maxLon.toFixed(2)}</strong>
-        </div>
-        <div className="geo-legend-card">
-          <span>Rendered pins</span>
+          <span>Gyms shown</span>
           <strong>{points.length}</strong>
+        </div>
+        <div className="geo-legend-card">
+          <span>Map range</span>
+          <strong>{(bounds.maxLat - bounds.minLat).toFixed(2)} degrees north to south</strong>
+        </div>
+        <div className="geo-legend-card">
+          <span>Tip</span>
+          <strong>Click a pin to open that gym</strong>
         </div>
       </div>
     </div>

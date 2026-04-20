@@ -283,64 +283,69 @@ export function App() {
 
         <StatusStrip
           health={health}
-          apiBaseUrl={import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}
         />
 
         {error ? <div className="error-banner">{error}</div> : null}
 
-        <div className="workspace-grid">
-          <QueryControlsPanel
-            filters={filters}
-            liveSearch={liveSearch}
-            loading={loading}
-            liveRadiusLabel={liveRadiusLabel}
-            liveSearchSummary={liveSearchSummary}
-            onPublishedSubmit={handlePublishedSubmit}
-            onLiveSubmit={handleLiveSubmit}
-            setFilters={setFilters}
-            setLiveSearch={setLiveSearch}
-          />
+        <div className="discovery-shell">
+          <aside className="search-rail">
+            <QueryControlsPanel
+              mode={mode}
+              filters={filters}
+              liveSearch={liveSearch}
+              loading={loading}
+              liveRadiusLabel={liveRadiusLabel}
+              liveSearchSummary={liveSearchSummary}
+              onModeChange={(nextMode) => {
+                setMode(nextMode);
+                setSelectedGymId(
+                  nextMode === "published"
+                    ? visiblePublished[0]?.id ?? null
+                    : visibleLive[0]?.id ?? null,
+                );
+              }}
+              onPublishedSubmit={handlePublishedSubmit}
+              onLiveSubmit={handleLiveSubmit}
+              setFilters={setFilters}
+              setLiveSearch={setLiveSearch}
+            />
+          </aside>
 
-          <ResultsPanel
-            query={query}
-            mode={mode}
-            loading={loading}
-            selectedGymId={selectedGymId}
-            visiblePublished={visiblePublished}
-            visibleLive={visibleLive}
-            livePlaceLabel={livePlaceLabel}
-            liveRadiusLabel={liveRadiusLabel}
-            liveSearchSummary={liveSearchSummary}
-            onQueryChange={setQuery}
-            onModeChange={(nextMode) => {
-              setMode(nextMode);
-              setSelectedGymId(
-                nextMode === "published"
-                  ? visiblePublished[0]?.id ?? null
-                  : visibleLive[0]?.id ?? null,
-              );
-            }}
-            onSelectGym={setSelectedGymId}
-          />
+          <section className="results-rail">
+            <ResultsPanel
+              query={query}
+              mode={mode}
+              loading={loading}
+              selectedGymId={selectedGymId}
+              visiblePublished={visiblePublished}
+              visibleLive={visibleLive}
+              livePlaceLabel={livePlaceLabel}
+              liveRadiusLabel={liveRadiusLabel}
+              liveSearchSummary={liveSearchSummary}
+              onQueryChange={setQuery}
+              onSelectGym={setSelectedGymId}
+            />
+          </section>
+
+          <section className="detail-rail">
+            <SelectedGymPanel
+              detailLoading={detailLoading}
+              mode={mode}
+              selectedGym={selectedGym}
+              selectedActionLinks={selectedActionLinks}
+            />
+            <GeoCanvasPanel
+              mode={mode}
+              gyms={activeRows}
+              selectedGymId={selectedGymId}
+              onSelectGym={setSelectedGymId}
+              nearbyLat={mode === "live" ? liveOrigin?.lat : undefined}
+              nearbyLon={mode === "live" ? liveOrigin?.lon : undefined}
+              livePlaceLabel={mode === "live" ? livePlaceLabel : undefined}
+              liveRadiusLabel={mode === "live" ? liveRadiusLabel : undefined}
+            />
+          </section>
         </div>
-
-        <GeoCanvasPanel
-          mode={mode}
-          gyms={activeRows}
-          selectedGymId={selectedGymId}
-          onSelectGym={setSelectedGymId}
-          nearbyLat={mode === "live" ? liveOrigin?.lat : undefined}
-          nearbyLon={mode === "live" ? liveOrigin?.lon : undefined}
-          livePlaceLabel={mode === "live" ? livePlaceLabel : undefined}
-          liveRadiusLabel={mode === "live" ? liveRadiusLabel : undefined}
-        />
-
-        <SelectedGymPanel
-          detailLoading={detailLoading}
-          mode={mode}
-          selectedGym={selectedGym}
-          selectedActionLinks={selectedActionLinks}
-        />
       </main>
     </div>
   );

@@ -14,31 +14,32 @@ type SelectedGymPanelProps = {
 export function SelectedGymPanel(props: SelectedGymPanelProps) {
   const subtitle =
     props.mode === "published"
-      ? "Curated catalog detail with explainable inference, operator facts, and public contact surface."
-      : "OSM-first live search detail, with GymDB inference plus TomTom verification and enrichment when available.";
+      ? "A closer look at the currently selected curated gym."
+      : "Contact details, amenities, and distance for the selected nearby gym.";
 
   if (props.detailLoading) {
     return (
-      <Panel title="Selected Gym" subtitle={subtitle} accent="Explainability">
-        <div className="empty-state">Loading selected gym...</div>
+      <Panel title="Gym Details" subtitle={subtitle} accent="Selected Gym">
+        <div className="empty-state">Loading gym details...</div>
       </Panel>
     );
   }
 
   if (!props.selectedGym) {
     return (
-      <Panel title="Selected Gym" subtitle={subtitle} accent="Explainability">
-        <div className="empty-state">Select a gym to inspect the current result.</div>
+      <Panel title="Gym Details" subtitle={subtitle} accent="Selected Gym">
+        <div className="empty-state">
+          Pick a gym from the list to see its contact details, amenities, and fit.
+        </div>
       </Panel>
     );
   }
 
   return (
-    <Panel title="Selected Gym" subtitle={subtitle} accent="Explainability">
+    <Panel title="Gym Details" subtitle={subtitle} accent="Selected Gym">
       <div className="detail-grid">
         <div className="detail-headline">
           <div>
-            <p className="eyebrow">{props.selectedGym.id}</p>
             <h3>{props.selectedGym.name}</h3>
             <p className="detail-summary">
               {props.selectedGym.cityState}
@@ -70,17 +71,17 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
 
         <div className="detail-facts">
           <StatCard
-            label="Source"
-            value={props.selectedGym.sourceLabel}
+            label="Listing"
+            value={props.selectedGym.sourceKind === "published" ? "Curated GymDB" : "Nearby live result"}
             tone="cool"
           />
           <StatCard
-            label="City"
+            label="Area"
             value={props.selectedGym.cityState}
             tone="warm"
           />
           <StatCard
-            label="Search distance"
+            label="Distance"
             value={
               props.selectedGym.distanceM != null
                 ? formatMilesFromMeters(props.selectedGym.distanceM)
@@ -88,8 +89,14 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
             }
           />
           <StatCard
-            label="Inference engine"
-            value={props.selectedGym.inferenceEngine ?? "n/a"}
+            label="Match quality"
+            value={
+              props.selectedGym.confidenceScore != null
+                ? formatConfidence(props.selectedGym.confidenceScore)
+                : props.selectedGym.is247
+                  ? "24/7"
+                  : "Available"
+            }
           />
         </div>
 
@@ -130,13 +137,13 @@ export function SelectedGymPanel(props: SelectedGymPanelProps) {
                   </span>
                 ))
               ) : (
-                <p className="detail-copy">No extra amenity signals were published.</p>
+                <p className="detail-copy">No extra amenities were listed for this gym yet.</p>
               )}
             </div>
             <p className="detail-copy">
               {props.selectedGym.sourceKind === "published"
-                ? "Published catalog entries include GymDB inference and curation metadata."
-                : "Live search entries are OpenStreetMap gyms first, then GymDB inference is applied and TomTom is used to verify or enrich matching records."}
+                ? "Curated gyms include the tighter GymDB read on quality, fit, and amenities."
+                : "Nearby results are ranked by distance and then enriched when stronger public details are available."}
             </p>
           </section>
         </div>

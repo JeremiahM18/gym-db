@@ -17,17 +17,16 @@ export function HeroSection(props: HeroSectionProps) {
   return (
     <section className="hero">
       <div>
-        <p className="eyebrow">GymDB Full-Stack Search</p>
-        <h1>Search for gyms within a real-world radius, then compare them against the curated catalog when you want verified operator detail.</h1>
+        <p className="eyebrow">Find the Right Gym</p>
+        <h1>Search for gyms around any place, then compare the best matches without losing the map.</h1>
         <p className="hero-copy">
-          Live Search is now OpenStreetMap-first: pick a place, choose a radius, and see gyms by
-          distance with GymDB inference on top. TomTom resolves the place and then verifies or
-          enriches matching gyms when it can.
+          Start with a city, neighborhood, landmark, or ZIP code. Choose a radius, browse nearby
+          gyms, and compare hours, amenities, and contact details in one workspace.
         </p>
         <p className="hero-live-summary">
           {props.mode === "live"
-            ? `Live now: ${props.liveSearchSummary}.`
-            : "Use Live Search when you want the real world. Use Published Catalog when you want the curated GymDB snapshot."}
+            ? `Searching now: ${props.liveSearchSummary}.`
+            : "Use curated gyms when you want the tighter GymDB view of the current catalog."}
         </p>
         <div className="hero-actions">
           {props.selectedActionLinks.slice(0, 3).map((link) => (
@@ -37,21 +36,21 @@ export function HeroSection(props: HeroSectionProps) {
       </div>
       <div className="hero-grid">
         <StatCard
-          label="Mode"
-          value={props.mode === "published" ? "Published Catalog" : "Live Search"}
+          label="View"
+          value={props.mode === "published" ? "Curated gyms" : "Live nearby search"}
           tone="warm"
         />
-        <StatCard label="Visible gyms" value={String(props.activeRowCount)} tone="cool" />
+        <StatCard label="Gyms showing" value={String(props.activeRowCount)} tone="cool" />
         <StatCard
-          label={props.mode === "published" ? "Avg confidence" : "Source"}
-          value={props.mode === "published" ? props.averageConfidence : "TomTom"}
+          label={props.mode === "published" ? "Average quality" : "Best match"}
+          value={props.mode === "published" ? props.averageConfidence : props.topSpecialty}
         />
         <StatCard
-          label="Search radius"
-          value={props.mode === "live" ? props.liveRadiusLabel : "Published"}
+          label="Radius"
+          value={props.mode === "live" ? props.liveRadiusLabel : "Curated"}
         />
         <StatCard
-          label={props.mode === "published" ? "Lead specialty" : "Search origin"}
+          label={props.mode === "published" ? "Top gym style" : "Search area"}
           value={props.mode === "published" ? props.topSpecialty : props.livePlaceLabel}
         />
       </div>
