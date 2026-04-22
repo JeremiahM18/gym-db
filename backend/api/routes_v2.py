@@ -11,6 +11,7 @@ from api.background_tasks import background_overpass_enrich
 from api.deps import enforce_live_search_rate_limit, get_gym_store, get_tomtom_client
 from api.embeddings_views import serialize_gym_embedding_v2
 from api.normalizers import serialize_domain_gym, serialize_gym, translate_store_error
+from gymdb.application.coverage import apply_osm_confirmation
 from api.schemas_v2 import (
     GeocodeResponseV2,
     GymEmbeddingV2,
@@ -280,6 +281,9 @@ async def live_search_gyms_v2(
             "match_status": MatchStatus.TOMTOM_ONLY.value,
             "external_refs": {},
         }
+
+    if cache_is_fresh and cached_osm is not None:
+        apply_osm_confirmation(gyms, cached_osm.elements)
 
     for gym in gyms:
         compute_confidence(gym)

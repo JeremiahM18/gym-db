@@ -245,3 +245,59 @@ def test_live_search_is_rate_limited(client, override_auth, monkeypatch):
     assert second.status_code == 429
     assert second.headers["Retry-After"] == "60"
     assert "rate limited" in second.text
+
+
+def test_live_search_applies_osm_confirmation_from_fresh_cache(
+    client, override_auth, monkeypatch
+):
+    """When a fresh OSM cache entry covers the search area, gyms that match an
+    OSM element by name should be promoted to OSM_CONFIRMED provenance."""
+    from gymdb.infrastructure.live_search_cache import LiveSearchCacheEntry
+    from pathlib import Path
+    import time as _time
+
+    osm_elements = [
+        {
+            "type": "node",
+            "id": 99,
+            "lat": _FRANKLIN_GYM.lat,
+            "lon": _FRANKLIN_GYM.lon,
+            "tags": {
+                "leisure": "fitness_centre",
+                "name": _FRANKLIN_GYM.name,
+                "opening_hours": "Mo-Su 06:00-22:00",
+            },
+        }
+    ]
+    fresh_cache = LiveSearchCacheEntry(
+        cache_path=Path("/fake/cache.json"),
+        cached_at_epoch_s=_time.time(),
+        elements=osm_elements,
+    )
+
+    client.app.dependency_overrides[get_settings] = lambda: APISettings(
+        tomtom_api_key="test-key",
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.geocode",
+        lambda self, query, limit=1, country_set=None: [_FRANKLIN_ORIGIN],
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.search_gyms",
+        lambda self, lat, lon, radius_m, limit=100, country_set=None: [_FRANKLIN_GYM],
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.load_cached_elements",
+        lambda cache_root, lat, lon, radius_m: fresh_cache,
+    )
+
+    try:
+        resp = client.get("/v2/live/search?place=Franklin%2C%20TN&q=gym")
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
+
+    assert resp.status_code == 200
+    result = resp.json()["results"][0]
+    assert result["source_provenance"]["match_status"] == "osm_confirmed"
+    assert "osm" in result["source_provenance"]["confirmed_by"]
+    assert result["tags"].get("opening_hours") == "Mo-Su 06:00-22:00"
