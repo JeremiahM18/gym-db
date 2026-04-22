@@ -6,6 +6,12 @@ from typing import Any
 
 from gymdb.domain.models import Gym
 from gymdb.domain.processing import haversine_meters, normalize_name
+from gymdb.domain.provenance import (
+    OSM_ENRICH_KEYS,
+    OSM_MATCH_DISTANCE_METERS,
+    ConfirmedBy,
+    MatchStatus,
+)
 from gymdb.infrastructure.tomtom_client import TomTomPlace
 
 MATCH_DISTANCE_METERS = 250.0
@@ -218,3 +224,87 @@ def apply_tomtom_coverage(
         }
 
     return matches, summarize_matches(matches)
+
+
+def apply_osm_confirmation(
+    gyms: list[Gym],
+    osm_elements: list[dict[str, Any]],
+) -> None:
+    """
+    Cross-validate TomTom-primary gyms against cached OSM elements.
+
+    For each gym whose match_status is TOMTOM_ONLY, find the closest OSM element
+    within OSM_MATCH_DISTANCE_METERS:
+    - Exact normalised name match → OSM_CONFIRMED, confirmed_by=[ConfirmedBy.OSM]
+    - Any element within distance (name mismatch) → OSM_NEARBY
+    - No element within distance → unchanged (stays TOMTOM_ONLY)
+
+    OSM tag keys in OSM_ENRICH_KEYS are merged onto the gym if not already present.
+    This function mutates gyms in place and returns None.
+    """
+    if not osm_elements:
+        return
+
+    # Pre-normalise OSM element names and extract lat/lon once.
+    prepared: list[tuple[str, float, float, dict[str, Any]]] = []
+    for el in osm_elements:
+        tags = el.get("tags")
+        if not isinstance(tags, dict):
+            continue
+        raw_lat = el.get("lat")
+        raw_lon = el.get("lon")
+        if not isinstance(raw_lat, (int, float)) or not isinstance(raw_lon, (int, float)):
+            continue
+        name = str(tags.get("name") or "")
+        prepared.append((normalize_name(name), float(raw_lat), float(raw_lon), tags))
+
+    for gym in gyms:
+        provenance = gym.source_provenance or {}
+        if provenance.get("match_status") != MatchStatus.TOMTOM_ONLY.value:
+            continue
+
+        gym_norm = gym.norm_name
+        best_status: str | None = None
+        best_distance: float = float("inf")
+        best_tags: dict[str, Any] | None = None
+
+        for osm_norm, osm_lat, osm_lon, osm_tags in prepared:
+            distance = haversine_meters(gym.lat, gym.lon, osm_lat, osm_lon)
+            if distance > OSM_MATCH_DISTANCE_METERS:
+                continue
+
+            if osm_norm == gym_norm:
+                # Exact name — OSM_CONFIRMED; always prefer over OSM_NEARBY.
+                if (
+                    best_status != MatchStatus.OSM_CONFIRMED.value
+                    or distance < best_distance
+                ):
+                    best_status = MatchStatus.OSM_CONFIRMED.value
+                    best_distance = distance
+                    best_tags = osm_tags
+            elif best_status != MatchStatus.OSM_CONFIRMED.value:
+                # Name mismatch but spatially close — OSM_NEARBY.
+                if distance < best_distance:
+                    best_status = MatchStatus.OSM_NEARBY.value
+                    best_distance = distance
+                    best_tags = osm_tags
+
+        if best_status is None:
+            continue
+
+        confirmed_by = (
+            [ConfirmedBy.OSM.value]
+            if best_status == MatchStatus.OSM_CONFIRMED.value
+            else []
+        )
+        gym.source_provenance = {
+            **provenance,
+            "confirmed_by": confirmed_by,
+            "match_status": best_status,
+        }
+
+        # Merge OSM enrichment tags; never overwrite existing values.
+        if best_tags:
+            for key in OSM_ENRICH_KEYS:
+                if key in best_tags and key not in gym.tags:
+                    gym.tags[key] = best_tags[key]
