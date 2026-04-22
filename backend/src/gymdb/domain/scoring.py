@@ -1,6 +1,12 @@
 from __future__ import annotations
 
 from gymdb.domain.models import Gym
+from gymdb.domain.provenance import (
+    CONFIDENCE_FLOOR,
+    PROVENANCE_BOOST,
+    TOMTOM_CORROBORATED_HARD_CAP,
+    MatchStatus,
+)
 
 GENERIC_NAMES = {
     "gym",
@@ -144,6 +150,29 @@ def _external_validation_score(gym: Gym) -> float:
     return 0.0
 
 
+def _apply_provenance_tier(score: float, gym: Gym) -> float:
+    """
+    Apply source-provenance confidence floors, boosts, and hard caps.
+
+    Only activates for MatchStatus enum values (tomtom_only, tomtom_corroborated,
+    osm_nearby, osm_confirmed).  Legacy ingest strings ("matched", "name_mismatch",
+    "unconfirmed") fall through unchanged so existing test fixtures keep passing.
+    """
+    raw_status = (gym.source_provenance or {}).get("match_status", "")
+    try:
+        status = MatchStatus(raw_status)
+    except ValueError:
+        return score
+
+    score += PROVENANCE_BOOST[status]
+    score = max(score, CONFIDENCE_FLOOR[status])
+
+    if status is MatchStatus.TOMTOM_CORROBORATED:
+        score = min(score, TOMTOM_CORROBORATED_HARD_CAP)
+
+    return score
+
+
 def compute_confidence(gym: Gym) -> float:
     tags = gym.tags
     score = 0.0
@@ -156,6 +185,7 @@ def compute_confidence(gym: Gym) -> float:
     score += _metadata_score(tags)
     score += _name_score(gym)
     score += _external_validation_score(gym)
+    score = _apply_provenance_tier(score, gym)
 
     gym.confidence_score = round(min(score, 1.0), 2)
     return gym.confidence_score
