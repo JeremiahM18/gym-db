@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from requests import RequestException
+
+logger = logging.getLogger(__name__)
 
 from api.auth.dependencies import require_user
 from api.background_tasks import background_overpass_enrich
 from api.deps import enforce_live_search_rate_limit, get_gym_store, get_tomtom_client
 from api.embeddings_views import serialize_gym_embedding_v2
 from api.normalizers import serialize_domain_gym, serialize_gym, translate_store_error
-from gymdb.application.coverage import apply_osm_confirmation
+from gymdb.application.coverage import apply_osm_confirmation, apply_tomtom_brand_corroboration
 from api.schemas_v2 import (
     GeocodeResponseV2,
     GymEmbeddingV2,
@@ -304,6 +307,23 @@ async def live_search_gyms_v2(
         osm_nearby=_nearby,
         tomtom_only=len(gyms) - _confirmed - _nearby,
     )
+
+    # TomTom brand corroboration — bounded secondary signal, non-broad queries only.
+    # Runs after OSM confirmation so OSM tiers are never overwritten.
+    if normalize_name(search_query) not in _BROAD_LIVE_SEARCH_TERMS:
+        try:
+            async with asyncio.timeout(settings.live_search_upstream_timeout_seconds):
+                brand_places = await asyncio.to_thread(
+                    tomtom_client.search,
+                    query=search_query,
+                    lat=origin.lat,
+                    lon=origin.lon,
+                    radius_m=radius_m,
+                    limit=25,
+                )
+            apply_tomtom_brand_corroboration(gyms, brand_places)
+        except (RequestException, TimeoutError) as exc:
+            logger.warning("live_search: TomTom brand search failed — %s", exc)
 
     for gym in gyms:
         compute_confidence(gym)

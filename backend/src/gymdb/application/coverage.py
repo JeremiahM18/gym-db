@@ -308,3 +308,45 @@ def apply_osm_confirmation(
             for key in OSM_ENRICH_KEYS:
                 if key in best_tags and key not in gym.tags:
                     gym.tags[key] = best_tags[key]
+
+
+def apply_tomtom_brand_corroboration(
+    gyms: list[Gym],
+    brand_results: list[TomTomPlace],
+) -> None:
+    """
+    Apply TomTom brand search as a bounded secondary corroboration signal.
+
+    For each TOMTOM_ONLY gym that has at least one brand_result within
+    OSM_MATCH_DISTANCE_METERS, upgrade to TOMTOM_CORROBORATED and record
+    ConfirmedBy.TOMTOM_BRAND in confirmed_by.
+
+    OSM_NEARBY and OSM_CONFIRMED gyms are never touched — cross-source
+    confirmation (independent data source) always outranks internal
+    corroboration (same TomTom database, different endpoint).
+
+    The confidence cap for TOMTOM_CORROBORATED (hard max 0.68) is enforced
+    downstream by compute_confidence / _apply_provenance_tier — not here.
+
+    This function mutates gyms in place and returns None.
+    """
+    if not brand_results:
+        return
+
+    for gym in gyms:
+        provenance = gym.source_provenance or {}
+        if provenance.get("match_status") != MatchStatus.TOMTOM_ONLY.value:
+            # OSM_NEARBY and OSM_CONFIRMED must not be overwritten.
+            continue
+
+        best_distance = min(
+            haversine_meters(gym.lat, gym.lon, result.lat, result.lon)
+            for result in brand_results
+        )
+
+        if best_distance <= OSM_MATCH_DISTANCE_METERS:
+            gym.source_provenance = {
+                **provenance,
+                "confirmed_by": [ConfirmedBy.TOMTOM_BRAND.value],
+                "match_status": MatchStatus.TOMTOM_CORROBORATED.value,
+            }
