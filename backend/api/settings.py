@@ -33,11 +33,7 @@ class APISettings(GymDBSettings):
     enable_dev_auth_bypass: bool = False
     live_search_rate_limit: int = 8
     live_search_window_seconds: int = 60
-    live_search_cache_root: Path = BACKEND_ROOT / "data/live_search_cache"
-    live_search_cache_ttl_seconds: int = 86_400
     live_search_upstream_timeout_seconds: int = 20
-    live_search_overpass_timeout_seconds: int = 8
-    live_search_overpass_max_attempts: int = 1
 
     # Browser clients
     cors_allowed_origins: list[str] = [
