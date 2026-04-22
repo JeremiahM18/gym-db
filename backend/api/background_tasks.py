@@ -4,6 +4,7 @@ import logging
 
 from gymdb.infrastructure.live_search_cache import write_cached_elements
 from gymdb.infrastructure.overpass_client import OverpassUnavailableError, fetch_gyms
+from gymdb.observe.metrics import record_enrich_outcome
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +35,11 @@ def background_overpass_enrich(
         )
     except OverpassUnavailableError as exc:
         logger.warning("background_overpass_enrich: Overpass unavailable — %s", exc)
+        record_enrich_outcome(success=False)
         return
     except Exception as exc:
         logger.warning("background_overpass_enrich: unexpected error — %s", exc)
+        record_enrich_outcome(success=False)
         return
 
     try:
@@ -55,5 +58,7 @@ def background_overpass_enrich(
             lon,
             radius_m,
         )
+        record_enrich_outcome(success=True)
     except Exception as exc:
         logger.warning("background_overpass_enrich: cache write failed — %s", exc)
+        record_enrich_outcome(success=False, write_failed=True)

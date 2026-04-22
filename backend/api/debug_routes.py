@@ -8,7 +8,7 @@ from api.deps import get_gym_store
 from gymdb.domain.constants import INFERRED
 from gymdb.gyms.protocol import GymStoreProtocol
 from gymdb.observe.audit import diff_inference
-from gymdb.observe.metrics import snapshot_metrics
+from gymdb.observe.metrics import snapshot_live_search_metrics, snapshot_metrics
 from gymdb.observe.summaries import summarize_inference
 
 router = APIRouter(
@@ -85,6 +85,9 @@ def debug_metrics():
 
     Safe to call without DB or dataset access.
     """
-    return {"inference_hits": snapshot_metrics()}
+    return {
+        "inference_hits": snapshot_metrics(),
+        "live_search": snapshot_live_search_metrics(),
+    }
 
 

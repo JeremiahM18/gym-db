@@ -29,6 +29,11 @@ from gymdb.domain.processing import (
 )
 from gymdb.domain.provenance import MatchStatus
 from gymdb.domain.scoring import compute_confidence
+from gymdb.observe.metrics import (
+    record_cache_probe,
+    record_enrich_dispatched,
+    record_osm_confirmation_outcomes,
+)
 from gymdb.gyms.protocol import GymStoreProtocol
 from gymdb.gyms.queries import get_gym_by_id, list_gyms
 from gymdb.infrastructure.live_search_cache import load_cached_elements
@@ -250,6 +255,7 @@ async def live_search_gyms_v2(
         cached_osm is not None
         and cached_osm.age_seconds < settings.live_search_cache_ttl_seconds
     )
+    record_cache_probe(cache_exists=cached_osm is not None, is_fresh=cache_is_fresh)
 
     try:
         async with asyncio.timeout(settings.live_search_upstream_timeout_seconds):
@@ -285,6 +291,20 @@ async def live_search_gyms_v2(
     if cache_is_fresh and cached_osm is not None:
         apply_osm_confirmation(gyms, cached_osm.elements)
 
+    _confirmed = sum(
+        1 for g in gyms
+        if (g.source_provenance or {}).get("match_status") == MatchStatus.OSM_CONFIRMED.value
+    )
+    _nearby = sum(
+        1 for g in gyms
+        if (g.source_provenance or {}).get("match_status") == MatchStatus.OSM_NEARBY.value
+    )
+    record_osm_confirmation_outcomes(
+        osm_confirmed=_confirmed,
+        osm_nearby=_nearby,
+        tomtom_only=len(gyms) - _confirmed - _nearby,
+    )
+
     for gym in gyms:
         compute_confidence(gym)
         apply_inference(gym)
@@ -310,6 +330,7 @@ async def live_search_gyms_v2(
             timeout_seconds=settings.live_search_overpass_timeout_seconds,
             max_attempts=settings.live_search_overpass_max_attempts,
         )
+        record_enrich_dispatched()
 
     return {
         "api_version": "v2",
