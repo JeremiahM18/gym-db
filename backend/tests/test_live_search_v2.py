@@ -1,8 +1,18 @@
+import pytest
 from requests import RequestException
 
 from api.main import app
 from api.settings import APISettings, get_settings
 from gymdb.infrastructure.tomtom_client import TomTomPlace
+
+
+@pytest.fixture(autouse=True)
+def _noop_background_enrich(monkeypatch):
+    """Prevent background Overpass calls from reaching the real network in tests."""
+    monkeypatch.setattr(
+        "api.routes_v2.background_overpass_enrich",
+        lambda **kwargs: None,
+    )
 
 _FRANKLIN_ORIGIN = TomTomPlace(
     id="place-1",

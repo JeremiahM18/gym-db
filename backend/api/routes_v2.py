@@ -3,10 +3,11 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from requests import RequestException
 
 from api.auth.dependencies import require_user
+from api.background_tasks import background_overpass_enrich
 from api.deps import enforce_live_search_rate_limit, get_gym_store, get_tomtom_client
 from api.embeddings_views import serialize_gym_embedding_v2
 from api.normalizers import serialize_domain_gym, serialize_gym, translate_store_error
@@ -25,9 +26,11 @@ from gymdb.domain.processing import (
     haversine_meters,
     normalize_name,
 )
+from gymdb.domain.provenance import MatchStatus
 from gymdb.domain.scoring import compute_confidence
 from gymdb.gyms.protocol import GymStoreProtocol
 from gymdb.gyms.queries import get_gym_by_id, list_gyms
+from gymdb.infrastructure.live_search_cache import load_cached_elements
 from gymdb.infrastructure.tomtom_client import TomTomClient, TomTomPlace
 
 # v2 API contract is considered stable
@@ -192,6 +195,7 @@ async def live_search_gyms_v2(
     ),
     radius_m: int = Query(25_000, ge=500, le=400_000),
     limit: int = Query(25, ge=1, le=50),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     _: None = Depends(enforce_live_search_rate_limit),
     tomtom_client: TomTomClient | None = Depends(get_tomtom_client),
     settings: APISettings = Depends(get_settings),
@@ -232,6 +236,20 @@ async def live_search_gyms_v2(
     origin = origins[0]
     search_query = q.strip() or "gym"
 
+    # Check whether a fresh OSM cache entry already covers this search area.
+    # The cached elements are not yet used for confirmation (Step 8); this probe
+    # determines whether we need to schedule a background Overpass fetch.
+    cached_osm = load_cached_elements(
+        settings.live_search_cache_root,
+        lat=origin.lat,
+        lon=origin.lon,
+        radius_m=radius_m,
+    )
+    cache_is_fresh = (
+        cached_osm is not None
+        and cached_osm.age_seconds < settings.live_search_cache_ttl_seconds
+    )
+
     try:
         async with asyncio.timeout(settings.live_search_upstream_timeout_seconds):
             places = await asyncio.to_thread(
@@ -252,14 +270,14 @@ async def live_search_gyms_v2(
             detail="TomTom gym search timed out.",
         ) from exc
 
-    elements = [_tomtom_place_to_element(place) for place in places]
+    elements = [_tomtom_place_to_element(p) for p in places]
     gyms = deduplicate(elements)
     for gym in gyms:
         gym.id = compute_gym_id(gym.norm_name, gym.lat, gym.lon)
         gym.source_provenance = {
             "primary": "tomtom",
             "confirmed_by": [],
-            "match_status": "tomtom_primary",
+            "match_status": MatchStatus.TOMTOM_ONLY.value,
             "external_refs": {},
         }
 
@@ -274,6 +292,20 @@ async def live_search_gyms_v2(
         key=lambda gym: haversine_meters(origin.lat, origin.lon, gym.lat, gym.lon)
     )
     limited_gyms = filtered_gyms[:limit]
+
+    # Schedule Overpass enrichment after the response is sent, unless the cache
+    # is already fresh for this search area.
+    if not cache_is_fresh:
+        background_tasks.add_task(
+            background_overpass_enrich,
+            lat=origin.lat,
+            lon=origin.lon,
+            radius_m=radius_m,
+            origin_name=origin.address or origin.name,
+            cache_root=settings.live_search_cache_root,
+            timeout_seconds=settings.live_search_overpass_timeout_seconds,
+            max_attempts=settings.live_search_overpass_max_attempts,
+        )
 
     return {
         "api_version": "v2",
