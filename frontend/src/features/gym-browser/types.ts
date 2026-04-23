@@ -18,6 +18,16 @@ export type LiveSearchState = {
   resolvedLabel: string;
 };
 
+export type LiveSearchSessionState = {
+  searchId: string;
+  status: string;
+  enrichmentStatus: string;
+  revision: number;
+  updatedAt: string;
+  expiresAt: string;
+  pollAfterMs: number | null;
+};
+
 export type ActionLink = {
   label: string;
   href: string;

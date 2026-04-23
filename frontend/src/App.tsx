@@ -5,6 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 import {
   defaultFilters,
@@ -12,6 +13,7 @@ import {
   type ActionLink,
   type BrowserGym,
   type FiltersState,
+  type LiveSearchSessionState,
   type LiveSearchState,
   type Mode,
 } from "./features/gym-browser/types";
@@ -34,10 +36,12 @@ import {
 import {
   getGym,
   getHealth,
+  getLiveSearchSession,
   listGyms,
   liveSearchGyms,
   toUserFacingErrorMessage,
   type HealthSnapshot,
+  type LiveGymSearchResponseV2,
 } from "./lib/api";
 
 type LiveOrigin = {
@@ -45,6 +49,101 @@ type LiveOrigin = {
   lon: number;
   label: string;
 } | null;
+
+type LiveResponseOptions = {
+  activateMode: boolean;
+  syncControls: boolean;
+  updateSelection: boolean;
+  preferredSelectedGymId?: string | null;
+};
+
+type LiveResponseSetters = {
+  setMode: Dispatch<SetStateAction<Mode>>;
+  setLiveResults: Dispatch<SetStateAction<BrowserGym[]>>;
+  setSelectedGymId: Dispatch<SetStateAction<string | null>>;
+  setLiveSearch: Dispatch<SetStateAction<LiveSearchState>>;
+  setLiveOrigin: Dispatch<SetStateAction<LiveOrigin>>;
+  setLiveSession: Dispatch<SetStateAction<LiveSearchSessionState | null>>;
+};
+
+function buildLiveSessionState(
+  response: LiveGymSearchResponseV2,
+): LiveSearchSessionState {
+  return {
+    searchId: response.search_id,
+    status: response.status,
+    enrichmentStatus: response.enrichment_status,
+    revision: response.revision,
+    updatedAt: response.updated_at,
+    expiresAt: response.expires_at,
+    pollAfterMs: response.poll_after_ms ?? null,
+  };
+}
+
+function mapLiveResponse(response: LiveGymSearchResponseV2): BrowserGym[] {
+  return response.results
+    .map(buildLiveBrowserGym)
+    .sort((left, right) => {
+      if (left.distanceM == null && right.distanceM == null) {
+        return left.name.localeCompare(right.name);
+      }
+      if (left.distanceM == null) {
+        return 1;
+      }
+      if (right.distanceM == null) {
+        return -1;
+      }
+      return left.distanceM - right.distanceM;
+    });
+}
+
+function applyLiveResponse(
+  response: LiveGymSearchResponseV2,
+  nextLiveSearch: LiveSearchState,
+  options: LiveResponseOptions,
+  setters: LiveResponseSetters,
+) {
+  const mappedLive = mapLiveResponse(response);
+  const resolvedLabel = response.origin.address || response.origin.name;
+
+  startTransition(() => {
+    if (options.activateMode) {
+      setters.setMode("live");
+    }
+    setters.setLiveResults(mappedLive);
+    if (options.updateSelection) {
+      setters.setSelectedGymId((current) => {
+        const preferredSelectedGymId = options.preferredSelectedGymId ?? current;
+        if (
+          preferredSelectedGymId
+          && mappedLive.some((gym) => gym.id === preferredSelectedGymId)
+        ) {
+          return preferredSelectedGymId;
+        }
+        return mappedLive[0]?.id ?? null;
+      });
+    }
+    if (options.syncControls) {
+      setters.setLiveSearch((current) => ({
+        ...current,
+        ...nextLiveSearch,
+        query: response.query,
+        resolvedLabel,
+      }));
+    } else {
+      setters.setLiveSearch((current) => ({
+        ...current,
+        resolvedLabel,
+      }));
+    }
+    setters.setLiveOrigin({
+      lat: response.origin.lat,
+      lon: response.origin.lon,
+      label: resolvedLabel,
+    });
+    setters.setLiveSession(buildLiveSessionState(response));
+  });
+}
 
 export function App() {
   const [mode, setMode] = useState<Mode>("live");
@@ -60,6 +159,9 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthSnapshot | null>(null);
   const [liveOrigin, setLiveOrigin] = useState<LiveOrigin>(null);
+  const [liveSession, setLiveSession] = useState<LiveSearchSessionState | null>(
+    null,
+  );
 
   const deferredQuery = useDeferredValue(query);
   const liveRadiusMiles = parseNumber(liveSearch.radiusMiles);
@@ -106,40 +208,30 @@ export function App() {
           setPublishedResults(publishedGyms);
 
           if (liveResult.status === "fulfilled") {
-            const mappedLive = liveResult.value.results
-              .map(buildLiveBrowserGym)
-              .sort((left, right) => {
-                if (left.distanceM == null && right.distanceM == null) {
-                  return left.name.localeCompare(right.name);
-                }
-                if (left.distanceM == null) {
-                  return 1;
-                }
-                if (right.distanceM == null) {
-                  return -1;
-                }
-                return left.distanceM - right.distanceM;
-              });
-
-            setMode("live");
-            setLiveResults(mappedLive);
-            setSelectedGymId(mappedLive[0]?.id ?? publishedGyms[0]?.id ?? null);
-            setLiveSearch({
-              ...defaultLiveSearch,
-              query: liveResult.value.query,
-              resolvedLabel:
-                liveResult.value.origin.address || liveResult.value.origin.name,
-            });
-            setLiveOrigin({
-              lat: liveResult.value.origin.lat,
-              lon: liveResult.value.origin.lon,
-              label: liveResult.value.origin.address || liveResult.value.origin.name,
-            });
+            applyLiveResponse(
+              liveResult.value,
+              defaultLiveSearch,
+              {
+                activateMode: true,
+                syncControls: true,
+                updateSelection: true,
+                preferredSelectedGymId: publishedGyms[0]?.id ?? null,
+              },
+              {
+                setMode,
+                setLiveResults,
+                setSelectedGymId,
+                setLiveSearch,
+                setLiveOrigin,
+                setLiveSession,
+              },
+            );
             return;
           }
 
           setMode("published");
           setSelectedGymId(publishedGyms[0]?.id ?? null);
+          setLiveSession(null);
 
           if (publishedGyms.length === 0) {
             setError(
@@ -233,6 +325,76 @@ export function App() {
     return () => controller.abort();
   }, [filters.region, mode, publishedResults, selectedGymId, liveResults]);
 
+  useEffect(() => {
+    if (!liveSession || liveSession.status !== "enriching") {
+      return;
+    }
+
+    const controller = new AbortController();
+    const pollDelayMs = Math.max(liveSession.pollAfterMs ?? 2000, 500);
+    const timeoutId = window.setTimeout(() => {
+      void getLiveSearchSession(liveSession.searchId, controller.signal)
+        .then((response) => {
+          if (controller.signal.aborted) {
+            return;
+          }
+          applyLiveResponse(
+            response,
+            liveSearch,
+            {
+              activateMode: false,
+              syncControls: false,
+              updateSelection: mode === "live",
+              preferredSelectedGymId: selectedGymId,
+            },
+            {
+              setMode,
+              setLiveResults,
+              setSelectedGymId,
+              setLiveSearch,
+              setLiveOrigin,
+              setLiveSession,
+            },
+          );
+        })
+        .catch((pollError: unknown) => {
+          if (controller.signal.aborted) {
+            return;
+          }
+
+          if (
+            pollError instanceof DOMException
+            && pollError.name === "AbortError"
+          ) {
+            return;
+          }
+
+          startTransition(() => {
+            setLiveSession((current) =>
+              current
+                ? {
+                    ...current,
+                    status: "ready",
+                    enrichmentStatus: "failed",
+                    pollAfterMs: null,
+                  }
+                : current,
+            );
+          });
+        });
+    }, pollDelayMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [
+    liveSearch,
+    liveSession,
+    mode,
+    selectedGymId,
+  ]);
+
   const visiblePublished = useMemo(
     () => filterGymsByQuery(publishedResults, deferredQuery),
     [publishedResults, deferredQuery],
@@ -255,6 +417,11 @@ export function App() {
     mode === "live"
       ? `${liveSearch.query.trim() || "gym"} within ${liveRadiusLabel} of ${livePlaceLabel}`
       : `Use Live Search to find gyms within a chosen radius of any place.`;
+  const liveSearchIsRefreshing = liveSession?.status === "enriching";
+  const liveSearchWasEnriched =
+    liveSession?.enrichmentStatus === "completed" &&
+    (liveSession?.revision ?? 0) > 0;
+  const liveSearchEnrichmentFailed = liveSession?.enrichmentStatus === "failed";
   const selectedActionLinks = useMemo<ActionLink[]>(
     () => buildSelectedActionLinks(selectedGym),
     [selectedGym],
@@ -271,6 +438,7 @@ export function App() {
         setMode("published");
         setPublishedResults(mapped);
         setSelectedGymId(mapped[0]?.id ?? null);
+        setLiveSession(null);
       });
     } catch (loadError) {
       setError(
@@ -311,36 +479,23 @@ export function App() {
 
     try {
       const response = await liveSearchGyms(placeQuery, searchQuery, nextRadiusMeters);
-      const mapped = response.results
-        .map(buildLiveBrowserGym)
-        .sort((left, right) => {
-          if (left.distanceM == null && right.distanceM == null) {
-            return left.name.localeCompare(right.name);
-          }
-          if (left.distanceM == null) {
-            return 1;
-          }
-          if (right.distanceM == null) {
-            return -1;
-          }
-          return left.distanceM - right.distanceM;
-        });
-      startTransition(() => {
-        setMode("live");
-        setLiveResults(mapped);
-        setSelectedGymId(mapped[0]?.id ?? null);
-        setLiveSearch((current) => ({
-          ...current,
-          ...nextLiveSearch,
-          query: response.query,
-          resolvedLabel: response.origin.address || response.origin.name,
-        }));
-        setLiveOrigin({
-          lat: response.origin.lat,
-          lon: response.origin.lon,
-          label: response.origin.address || response.origin.name,
-        });
-      });
+      applyLiveResponse(
+        response,
+        nextLiveSearch,
+        {
+          activateMode: true,
+          syncControls: true,
+          updateSelection: true,
+        },
+        {
+          setMode,
+          setLiveResults,
+          setSelectedGymId,
+          setLiveSearch,
+          setLiveOrigin,
+          setLiveSession,
+        },
+      );
     } catch (loadError) {
       setError(
         toUserFacingErrorMessage(
@@ -378,6 +533,10 @@ export function App() {
 
         <StatusStrip
           health={health}
+          mode={mode}
+          liveSearchIsRefreshing={liveSearchIsRefreshing}
+          liveSearchWasEnriched={liveSearchWasEnriched}
+          liveSearchEnrichmentFailed={liveSearchEnrichmentFailed}
         />
 
         {error ? (
@@ -447,6 +606,9 @@ export function App() {
               liveRadiusLabel={liveRadiusLabel}
               liveSearchSummary={liveSearchSummary}
               hasLiveSearchRun={hasLiveSearchRun}
+              liveSearchIsRefreshing={liveSearchIsRefreshing}
+              liveSearchWasEnriched={liveSearchWasEnriched}
+              liveSearchEnrichmentFailed={liveSearchEnrichmentFailed}
               onQueryChange={setQuery}
               onExpandLiveRadius={() =>
                 setLiveSearch((current) => ({

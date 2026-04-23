@@ -441,14 +441,24 @@ export function buildLiveBrowserGym(gym: LiveGymOutV2): BrowserGym {
   const tomTomRef = getTomTomRef(gym);
   const address = getAddress(gym) ?? tomTomRef?.city ?? null;
   const cityState = getCityState(gym);
-  const confirmedByTomTom = (gym.source_provenance.confirmed_by ?? []).includes("tomtom");
   const matchStatus = gym.source_provenance.match_status;
   const amenityChips = getAmenityChips(gym);
+  let sourceLabel = "Live search · TomTom place match";
 
-  if (confirmedByTomTom) {
-    amenityChips.unshift("TomTom verified");
-  } else if (matchStatus === "name_mismatch") {
-    amenityChips.unshift("TomTom enriched");
+  if (matchStatus === "osm_confirmed") {
+    sourceLabel = "Live search · OSM confirmed";
+    amenityChips.unshift("OSM confirmed");
+  } else if (matchStatus === "osm_nearby") {
+    sourceLabel = "Live search · OSM nearby";
+    amenityChips.unshift("OSM nearby");
+  } else if (matchStatus === "tomtom_corroborated") {
+    sourceLabel = "Live search · brand corroborated";
+    amenityChips.unshift("Brand corroborated");
+  } else if (matchStatus === "matched") {
+    sourceLabel = "Live search · TomTom validated";
+    amenityChips.unshift("TomTom validated");
+  } else {
+    amenityChips.unshift("TomTom live result");
   }
 
   return {
@@ -472,9 +482,7 @@ export function buildLiveBrowserGym(gym: LiveGymOutV2): BrowserGym {
     amenityChips,
     distanceM: gym.distance_m ?? null,
     sourceKind: "live",
-    sourceLabel: confirmedByTomTom
-      ? "OSM primary · TomTom verified"
-      : "OSM primary · TomTom enriched",
+    sourceLabel,
     inferenceEngine: gym.inference_meta.engine,
   };
 }

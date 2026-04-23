@@ -13,6 +13,9 @@ type ResultsPanelProps = {
   livePlaceLabel: string;
   liveRadiusLabel: string;
   liveSearchSummary: string;
+  liveSearchIsRefreshing: boolean;
+  liveSearchWasEnriched: boolean;
+  liveSearchEnrichmentFailed: boolean;
   onQueryChange: (value: string) => void;
   onExpandLiveRadius: () => void;
   onSwitchToLiveMode: () => void;
@@ -52,6 +55,28 @@ export function ResultsPanel(props: ResultsPanelProps) {
               : "Enter a city, neighborhood, landmark, or ZIP code to search around that place."}
         </span>
       </div>
+      {props.mode === "live" && props.hasLiveSearchRun ? (
+        <div className="results-context-banner results-context-banner-secondary">
+          <strong>
+            {props.liveSearchIsRefreshing
+              ? "Refreshing these same results with OpenStreetMap details."
+              : props.liveSearchWasEnriched
+                ? "Updated with OpenStreetMap details."
+                : props.liveSearchEnrichmentFailed
+                  ? "Showing the initial TomTom results."
+                  : "Live search snapshot ready."}
+          </strong>
+          <span>
+            {props.liveSearchIsRefreshing
+              ? "You can keep browsing this list while extra business details and stronger location confirmation arrive in place."
+              : props.liveSearchWasEnriched
+                ? "This list was improved in place with stronger confirmation and any newly available public business metadata."
+                : props.liveSearchEnrichmentFailed
+                  ? "The search still completed successfully, but the extra public-data pass did not return in time."
+                  : "These nearby results come from the current live search snapshot."}
+          </span>
+        </div>
+      ) : null}
       <div className="toolbar-row toolbar-row-single">
         <input
           className="search-input"

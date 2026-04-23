@@ -678,6 +678,15 @@ select:focus {
   line-height: 1.45;
 }
 
+.results-context-banner-secondary {
+  margin-top: -0.15rem;
+  margin-bottom: 1rem;
+  border-color: rgba(71, 197, 190, 0.22);
+  background:
+    linear-gradient(135deg, rgba(71, 197, 190, 0.12), rgba(255, 255, 255, 0.03)),
+    radial-gradient(circle at top right, rgba(240, 208, 122, 0.08), transparent 44%);
+}
+
 .search-input {
   flex: 1;
 }

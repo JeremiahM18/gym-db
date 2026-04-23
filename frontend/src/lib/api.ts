@@ -225,6 +225,16 @@ export async function liveSearchGyms(
   );
 }
 
+export async function getLiveSearchSession(
+  searchId: string,
+  signal?: AbortSignal,
+): Promise<LiveGymSearchResponseV2> {
+  return bindAbort(
+    LiveSearchService.getLiveSearchSessionV2V2LiveSearchSearchIdGet(searchId),
+    signal,
+  );
+}
+
 export async function geocodeLocation(
   query: string,
   signal?: AbortSignal,
