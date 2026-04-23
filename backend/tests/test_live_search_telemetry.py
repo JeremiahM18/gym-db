@@ -1,19 +1,15 @@
 """
 Tests for live-search telemetry instrumentation.
 
-Counter state is module-global, so each test replaces _live_search with a
-fresh Counter via monkeypatch to avoid inter-test bleed.
+The shared ops-state store is isolated per test by the global test fixture in
+conftest, so every test starts from a clean snapshot.
 """
 
 from __future__ import annotations
 
 import time as _time
-from collections import Counter
 from pathlib import Path
 
-import pytest
-
-import gymdb.observe.metrics as metrics_mod
 from api.main import app
 from api.settings import APISettings, get_settings
 from gymdb.infrastructure.live_search_cache import LiveSearchCacheEntry
@@ -26,13 +22,6 @@ from gymdb.observe.metrics import (
     record_osm_confirmation_outcomes,
     snapshot_live_search_metrics,
 )
-
-
-@pytest.fixture(autouse=True)
-def _fresh_live_search_counter(monkeypatch):
-    """Reset the live-search counter before every test in this module."""
-    monkeypatch.setattr(metrics_mod, "_live_search", Counter())
-
 
 # ---------------------------------------------------------------------------
 # record_cache_probe

@@ -1,3 +1,7 @@
+import shutil
+import uuid
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
@@ -11,6 +15,8 @@ from gymdb.domain.inference import apply_inference
 from gymdb.domain.models import Gym
 from gymdb.infrastructure.db.db_engine import get_engine, reset_engine
 from gymdb.infrastructure.db.models.job_receipt import metadata as receipt_metadata
+from gymdb.infrastructure.settings import settings as infra_settings
+from gymdb.observe.metrics import reset_metrics
 
 
 class FakeGymStore:
@@ -85,10 +91,19 @@ def client():
 
 
 @pytest.fixture(autouse=True)
-def reset_test_rate_limiter():
+def isolate_ops_state(monkeypatch):
+    root = Path(".tmp") / f"ops-state-{uuid.uuid4().hex}"
+    root.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(infra_settings, "ops_state_path", root / "ops_state.sqlite3")
+
+    reset_metrics()
     reset_rate_limiter()
-    yield
-    reset_rate_limiter()
+    try:
+        yield
+    finally:
+        reset_metrics()
+        reset_rate_limiter()
+        shutil.rmtree(root, ignore_errors=True)
 
 
 @pytest.fixture()

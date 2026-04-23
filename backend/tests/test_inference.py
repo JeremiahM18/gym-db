@@ -1,6 +1,7 @@
 from gymdb.domain.constants import IS_24_7, LIFTER_FRIENDLY, PREMIUM_SCORE, SPECIALTY
 from gymdb.domain.inference import apply_inference
 from gymdb.domain.models import Gym
+from gymdb.observe.metrics import snapshot_metrics
 
 
 def make_gym(tags):
@@ -102,3 +103,16 @@ def test_contradiction_detection_flags_unconfirmed_24_hour_name():
     assert IS_24_7 in contradictions
     assert gym.inferred[IS_24_7].value is False
     assert gym.inferred[IS_24_7].confidence < 0.4
+
+
+def test_apply_inference_records_inference_metrics():
+    gym = make_gym({"opening_hours": "24/7"})
+
+    apply_inference(gym)
+
+    metrics = snapshot_metrics()
+
+    assert metrics["premium_score"] == 1
+    assert metrics[IS_24_7] == 1
+    assert metrics[LIFTER_FRIENDLY] == 1
+    assert metrics[SPECIALTY] == 1

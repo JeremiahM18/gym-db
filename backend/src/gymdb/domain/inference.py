@@ -16,6 +16,7 @@ from gymdb.domain.models import Gym
 from gymdb.domain.processing import compute_gym_id
 from gymdb.infer.engine import run_inference
 from gymdb.infer.meta import InferenceMeta
+from gymdb.observe.metrics import record_inference_hits
 
 RULESET_VERSION = "1.1.0"
 
@@ -81,4 +82,5 @@ def apply_inference(gym: Gym) -> None:
         field_confidence=diagnostics.field_confidence,
         contradictions=diagnostics.contradictions,
     )
+    record_inference_hits(gym.inferred)
     gym.inference_meta = meta.model_dump(mode="json")

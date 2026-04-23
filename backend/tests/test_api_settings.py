@@ -7,8 +7,10 @@ def test_api_settings_default_paths_resolve_from_backend_root():
 
     assert settings.registry_path == BACKEND_ROOT / "data/registry.json"
     assert settings.dataset_root == BACKEND_ROOT / "data"
+    assert settings.ops_state_path == BACKEND_ROOT / "data/ops_state.sqlite3"
     assert settings.registry_path.is_absolute()
     assert settings.dataset_root.is_absolute()
+    assert settings.ops_state_path.is_absolute()
 
 
 def test_shared_settings_env_files_resolve_from_backend_root():

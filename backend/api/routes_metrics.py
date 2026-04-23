@@ -27,10 +27,8 @@ def live_search_metrics():
     """
     Lightweight observability endpoint.
     Reports cache probe, enrichment dispatch/outcome, and OSM confirmation tier
-    distribution across all live-search requests since process start.
+    distribution recorded in the shared local ops-state store.
     """
     return {
         "live_search": snapshot_live_search_metrics(),
     }
-
-

@@ -23,6 +23,7 @@ class GymDBSettings(BaseSettings):
     overpass_timeout_seconds: int = 60
     overpass_max_attempts: int = 3
     overpass_backoff_seconds: float = 2.0
+    ops_state_path: Path = BACKEND_ROOT / "data/ops_state.sqlite3"
     tomtom_api_key: str | None = None
     tomtom_base_url: str = "https://api.tomtom.com"
     require_tomtom_publish_validation: bool = True
