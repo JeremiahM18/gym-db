@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "GymDB API",
-    "description": "Gym intelligence built on OpenStreetMap",
+    "description": "Gym discovery API",
     "version": "1.0.0"
   },
   "paths": {
@@ -1771,7 +1771,7 @@
     },
     {
       "name": "live-search",
-      "description": "Live world search with OpenStreetMap as the primary source and TomTom for place resolution plus enrichment"
+      "description": "TomTom-backed live search with OSM enrichment"
     },
     {
       "name": "review",
