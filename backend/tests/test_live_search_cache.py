@@ -6,6 +6,7 @@ import uuid
 from pathlib import Path
 
 from gymdb.infrastructure.live_search_cache import (
+    cache_path_for_search,
     load_cached_elements,
     prime_cache_from_dataset,
 )
@@ -146,5 +147,30 @@ def test_prime_cache_from_dataset_preserves_existing_cache_by_default():
         assert second_path == first_cache.cache_path
         assert second_cache is not None
         assert second_cache.elements == first_cache.elements
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+def test_load_cached_elements_ignores_corrupt_cache_payload():
+    root = _workspace_temp_root("corrupt_payload")
+    try:
+        cache_root = root / "cache"
+        cache_root.mkdir(parents=True, exist_ok=True)
+        cache_path = cache_path_for_search(
+            cache_root,
+            lat=36.1663493,
+            lon=-86.7790541,
+            radius_m=16093,
+        )
+        cache_path.write_text("{not valid json", encoding="utf-8")
+
+        cached = load_cached_elements(
+            cache_root,
+            lat=36.1663493,
+            lon=-86.7790541,
+            radius_m=16093,
+        )
+
+        assert cached is None
     finally:
         shutil.rmtree(root, ignore_errors=True)

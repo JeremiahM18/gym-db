@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 from gymdb.infrastructure.live_search_cache import write_cached_elements
 from gymdb.infrastructure.overpass_client import OverpassUnavailableError, fetch_gyms
@@ -15,7 +16,7 @@ def background_overpass_enrich(
     lon: float,
     radius_m: int,
     origin_name: str,
-    cache_root,
+    cache_root: Path,
     timeout_seconds: int,
     max_attempts: int,
 ) -> None:
@@ -37,18 +38,24 @@ def background_overpass_enrich(
         logger.warning("background_overpass_enrich: Overpass unavailable — %s", exc)
         record_enrich_outcome(success=False)
         return
-    except Exception as exc:
-        logger.warning("background_overpass_enrich: unexpected error — %s", exc)
+    except Exception:
+        logger.exception("background_overpass_enrich: unexpected error")
         record_enrich_outcome(success=False)
         return
 
+    origin = {
+        "name": origin_name,
+        "address": origin_name,
+        "lat": lat,
+        "lon": lon,
+    }
     try:
         write_cached_elements(
             cache_root,
             lat=lat,
             lon=lon,
             radius_m=radius_m,
-            origin={"name": origin_name, "address": origin_name, "lat": lat, "lon": lon},
+            origin=origin,
             elements=elements,
         )
         logger.debug(
@@ -59,6 +66,6 @@ def background_overpass_enrich(
             radius_m,
         )
         record_enrich_outcome(success=True)
-    except Exception as exc:
-        logger.warning("background_overpass_enrich: cache write failed — %s", exc)
+    except Exception:
+        logger.exception("background_overpass_enrich: cache write failed")
         record_enrich_outcome(success=False, write_failed=True)

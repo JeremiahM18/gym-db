@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -52,13 +55,24 @@ def load_cached_elements(
     if not cache_path.exists():
         return None
 
-    payload = json.loads(cache_path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(cache_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.warning(
+            "Ignoring unreadable live-search cache file %s: %s",
+            cache_path,
+            exc,
+        )
+        return None
+
     elements = payload.get("elements")
     cached_at_epoch_s = payload.get("cached_at_epoch_s")
 
     if not isinstance(elements, list):
         return None
     if not isinstance(cached_at_epoch_s, int | float):
+        return None
+    if any(not isinstance(element, dict) for element in elements):
         return None
 
     return LiveSearchCacheEntry(

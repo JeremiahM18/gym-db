@@ -7,14 +7,11 @@ from typing import Any
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from requests import RequestException
 
-logger = logging.getLogger(__name__)
-
 from api.auth.dependencies import require_user
 from api.background_tasks import background_overpass_enrich
 from api.deps import enforce_live_search_rate_limit, get_gym_store, get_tomtom_client
 from api.embeddings_views import serialize_gym_embedding_v2
 from api.normalizers import serialize_domain_gym, serialize_gym, translate_store_error
-from gymdb.application.coverage import apply_osm_confirmation, apply_tomtom_brand_corroboration
 from api.schemas_v2 import (
     GeocodeResponseV2,
     GymEmbeddingV2,
@@ -23,6 +20,10 @@ from api.schemas_v2 import (
     LiveGymSearchResponseV2,
 )
 from api.settings import APISettings, get_settings
+from gymdb.application.coverage import (
+    apply_osm_confirmation,
+    apply_tomtom_brand_corroboration,
+)
 from gymdb.domain.inference import apply_inference
 from gymdb.domain.processing import (
     compute_gym_id,
@@ -32,15 +33,17 @@ from gymdb.domain.processing import (
 )
 from gymdb.domain.provenance import MatchStatus
 from gymdb.domain.scoring import compute_confidence
+from gymdb.gyms.protocol import GymStoreProtocol
+from gymdb.gyms.queries import get_gym_by_id, list_gyms
+from gymdb.infrastructure.live_search_cache import load_cached_elements
+from gymdb.infrastructure.tomtom_client import TomTomClient, TomTomPlace
 from gymdb.observe.metrics import (
     record_cache_probe,
     record_enrich_dispatched,
     record_osm_confirmation_outcomes,
 )
-from gymdb.gyms.protocol import GymStoreProtocol
-from gymdb.gyms.queries import get_gym_by_id, list_gyms
-from gymdb.infrastructure.live_search_cache import load_cached_elements
-from gymdb.infrastructure.tomtom_client import TomTomClient, TomTomPlace
+
+logger = logging.getLogger(__name__)
 
 # v2 API contract is considered stable
 # Changes require schema + test updates
@@ -88,6 +91,14 @@ def _matches_live_query(gym, query: str) -> bool:
     ]
     search_blob = normalize_name(" ".join(search_parts))
     return normalized_query in search_blob
+
+
+def _count_match_status(gyms: list[Any], status: MatchStatus) -> int:
+    return sum(
+        1
+        for gym in gyms
+        if (gym.source_provenance or {}).get("match_status") == status.value
+    )
 
 
 @router.get("/gyms", response_model=GymsListResponseV2)
@@ -196,6 +207,7 @@ async def geocode_location_v2(
     tags=["live-search"],
 )
 async def live_search_gyms_v2(
+    background_tasks: BackgroundTasks,
     place: str = Query(..., min_length=2, description="City, neighborhood, or place"),
     q: str = Query(
         "gym",
@@ -204,7 +216,6 @@ async def live_search_gyms_v2(
     ),
     radius_m: int = Query(25_000, ge=500, le=400_000),
     limit: int = Query(25, ge=1, le=50),
-    background_tasks: BackgroundTasks = BackgroundTasks(),
     _: None = Depends(enforce_live_search_rate_limit),
     tomtom_client: TomTomClient | None = Depends(get_tomtom_client),
     settings: APISettings = Depends(get_settings),
@@ -294,14 +305,8 @@ async def live_search_gyms_v2(
     if cache_is_fresh and cached_osm is not None:
         apply_osm_confirmation(gyms, cached_osm.elements)
 
-    _confirmed = sum(
-        1 for g in gyms
-        if (g.source_provenance or {}).get("match_status") == MatchStatus.OSM_CONFIRMED.value
-    )
-    _nearby = sum(
-        1 for g in gyms
-        if (g.source_provenance or {}).get("match_status") == MatchStatus.OSM_NEARBY.value
-    )
+    _confirmed = _count_match_status(gyms, MatchStatus.OSM_CONFIRMED)
+    _nearby = _count_match_status(gyms, MatchStatus.OSM_NEARBY)
     record_osm_confirmation_outcomes(
         osm_confirmed=_confirmed,
         osm_nearby=_nearby,
@@ -329,9 +334,7 @@ async def live_search_gyms_v2(
         compute_confidence(gym)
         apply_inference(gym)
 
-    filtered_gyms = [
-        gym for gym in gyms if _matches_live_query(gym, search_query)
-    ]
+    filtered_gyms = [gym for gym in gyms if _matches_live_query(gym, search_query)]
     filtered_gyms.sort(
         key=lambda gym: haversine_meters(origin.lat, origin.lon, gym.lat, gym.lon)
     )
