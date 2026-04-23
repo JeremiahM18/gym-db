@@ -656,7 +656,8 @@ select:focus {
   justify-content: stretch;
 }
 
-.results-context-banner {
+.results-context-banner,
+.results-enrichment-banner {
   display: grid;
   gap: 0.28rem;
   margin-bottom: 0.8rem;
@@ -668,17 +669,19 @@ select:focus {
     radial-gradient(circle at top right, rgba(95, 209, 202, 0.06), transparent 40%);
 }
 
-.results-context-banner strong {
+.results-context-banner strong,
+.results-enrichment-banner strong {
   color: #fff8eb;
 }
 
-.results-context-banner span {
+.results-context-banner span,
+.results-enrichment-banner span {
   color: var(--ink-soft);
   font-size: 0.92rem;
   line-height: 1.45;
 }
 
-.results-context-banner-secondary {
+.results-enrichment-banner {
   margin-top: -0.15rem;
   margin-bottom: 1rem;
   border-color: rgba(71, 197, 190, 0.22);

@@ -56,7 +56,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
         </span>
       </div>
       {props.mode === "live" && props.hasLiveSearchRun ? (
-        <div className="results-context-banner results-context-banner-secondary">
+        <div className="results-enrichment-banner">
           <strong>
             {props.liveSearchIsRefreshing
               ? "Refreshing these same results with OpenStreetMap details."

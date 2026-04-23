@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 from requests import RequestException
 
-from api.background_tasks import background_overpass_enrich
 from api.auth.dependencies import require_user
+from api.background_tasks import background_overpass_enrich
 from api.main import app
 from api.settings import APISettings, get_settings
 from gymdb.infrastructure.live_search_cache import LiveSearchCacheEntry
