@@ -32,10 +32,10 @@ export function ResultsPanel(props: ResultsPanelProps) {
       title="Gyms"
       subtitle={
         props.mode === "published"
-          ? "Review the tighter shortlist."
+          ? "Browse the published shortlist."
           : props.hasLiveSearchRun
             ? `See gyms within ${props.liveRadiusLabel} of the place you chose: ${props.livePlaceLabel}.`
-            : "Gyms around the place you choose will appear here."
+            : "Nearby results appear here."
       }
       accent="Results"
     >
@@ -49,7 +49,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
         </strong>
         <span>
           {props.mode === "published"
-            ? "Use this tighter view when you want a cleaner shortlist to compare."
+            ? "Published catalog results."
             : props.hasLiveSearchRun
               ? props.liveSearchSummary
               : "Enter a city, neighborhood, landmark, or ZIP code to search around that place."}
@@ -59,21 +59,21 @@ export function ResultsPanel(props: ResultsPanelProps) {
         <div className="results-enrichment-banner">
           <strong>
             {props.liveSearchIsRefreshing
-              ? "Refreshing these same results with OpenStreetMap details."
+              ? "Refreshing with OpenStreetMap details."
               : props.liveSearchWasEnriched
-                ? "Updated with OpenStreetMap details."
+                ? "OpenStreetMap details added."
                 : props.liveSearchEnrichmentFailed
-                  ? "Showing the initial TomTom results."
-                  : "Live search snapshot ready."}
+                  ? "Showing the TomTom snapshot."
+                  : "Live search loaded."}
           </strong>
           <span>
             {props.liveSearchIsRefreshing
-              ? "You can keep browsing this list while extra business details and stronger location confirmation arrive in place."
+              ? "You can keep browsing while OSM confirmation and metadata load."
               : props.liveSearchWasEnriched
-                ? "This list was improved in place with stronger confirmation and any newly available public business metadata."
+                ? "These results were updated in place with OSM confirmation and metadata."
                 : props.liveSearchEnrichmentFailed
-                  ? "The search still completed successfully, but the extra public-data pass did not return in time."
-                  : "These nearby results come from the current live search snapshot."}
+                  ? "The search succeeded, but the OSM follow-up did not complete."
+                  : "These are the current live-search results."}
           </span>
         </div>
       ) : null}

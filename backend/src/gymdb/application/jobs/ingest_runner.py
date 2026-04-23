@@ -11,17 +11,7 @@ from gymdb.application.jobs.receipt_store import JobReceiptStoreDB
 
 
 class IngestRunner:
-    """
-    Orchestrates a single ingest run against a durable receipt store.
-
-    Responsibilities:
-    - assign a stable job_id
-    - persist the running → succeeded/failed lifecycle to Postgres
-    - optionally write an FS receipt artifact (opt-in, non-authoritative)
-    - surface failures via the returned receipt rather than raising
-
-    The caller owns the receipt_store connection and transaction boundary.
-    """
+    """Run one ingest job and persist its receipt lifecycle."""
 
     @staticmethod
     def run(

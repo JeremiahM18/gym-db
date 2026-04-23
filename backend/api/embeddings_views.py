@@ -20,10 +20,7 @@ def serialize_gym_embedding_v2(gym: dict, *, region: str) -> dict:
 
 
 def build_gym_embedding_text(gym: dict) -> str:
-    """
-    Deterministic, stable text representation of a gym.
-    This string is what gets embedded.
-    """
+    """Build the text used for a gym embedding."""
     parts: list[str] = []
 
     parts.append(f"Gym name: {gym['name']}")
@@ -39,7 +36,6 @@ def build_gym_embedding_text(gym: dict) -> str:
 
         value = result.get("value")
         confidence = result.get("confidence")
-
 
         parts.append(
             f"Inferred {readable_key}: {value} "

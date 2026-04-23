@@ -9,14 +9,7 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 
 
 class APISettings(GymDBSettings):
-    """
-    API-specific configuration.
-
-    Owns:
-    - auth configuration
-    - operational feature flags
-    - API-facing filesystem and browser configuration
-    """
+    """API settings."""
 
     # Filesystem / registry
     registry_path: Path = BACKEND_ROOT / "data/registry.json"
@@ -51,11 +44,5 @@ class APISettings(GymDBSettings):
 
 @lru_cache
 def get_settings() -> APISettings:
-    """
-    Cached API settings dependency.
-
-    NOTE:
-    In tests, override this dependency avoid leaking env state:
-        app.dependency_overrides[get_settings] = lambda: APISettings(...)
-    """
+    """Return cached API settings."""
     return APISettings()

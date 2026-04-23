@@ -49,9 +49,6 @@ from gymdb.observe.metrics import (
 
 logger = logging.getLogger(__name__)
 
-# v2 API contract is considered stable
-# Changes require schema + test updates
-
 router = APIRouter(prefix="/v2", tags=["gyms"], dependencies=[Depends(require_user)])
 
 
@@ -307,9 +304,7 @@ async def live_search_gyms_v2(
     origin = origins[0]
     search_query = q.strip() or "gym"
 
-    # Check whether a fresh OSM cache entry already covers this search area.
-    # The cached elements are not yet used for confirmation (Step 8); this probe
-    # determines whether we need to schedule a background Overpass fetch.
+    # Probe the local OSM cache before deciding whether to queue Overpass.
     cached_osm = load_cached_elements(
         settings.live_search_cache_root,
         lat=origin.lat,
@@ -364,8 +359,7 @@ async def live_search_gyms_v2(
         tomtom_only=len(gyms) - _confirmed - _nearby,
     )
 
-    # TomTom brand corroboration — bounded secondary signal, non-broad queries only.
-    # Runs after OSM confirmation so OSM tiers are never overwritten.
+    # Brand search is a weaker secondary signal and only runs for specific queries.
     if normalize_name(search_query) not in _BROAD_LIVE_SEARCH_TERMS:
         try:
             async with asyncio.timeout(settings.live_search_upstream_timeout_seconds):
@@ -391,8 +385,7 @@ async def live_search_gyms_v2(
     )
     limited_gyms = filtered_gyms[:limit]
 
-    # Schedule Overpass enrichment after the response is sent, unless the cache
-    # is already fresh for this search area.
+    # Queue Overpass only when the local cache is missing or stale.
     live_response = _build_live_search_response(
         search_query=search_query,
         place=place,

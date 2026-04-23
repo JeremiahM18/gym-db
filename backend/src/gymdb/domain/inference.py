@@ -1,9 +1,5 @@
 """
-Public inference entrypoint.
-
-Provides a stable API for running inference and stamping
-inference metadata. All inference logic is delegated to
- the inference engine.
+Inference entrypoint.
 """
 
 import hashlib
@@ -22,11 +18,7 @@ RULESET_VERSION = "1.1.0"
 
 
 def _canonicalize_tags(tags: dict[str, Any]) -> dict[str, str]:
-    """
-    Convert gym tags into a JSON-serializable, deterministic form.
-
-    Removes non-primitive values.
-    """
+    """Convert tags into a deterministic string map."""
     clean: dict[str, str] = {}
 
     for key, value in tags.items():
@@ -42,11 +34,7 @@ def _compute_deterministic_hash(
     tags: dict[str, Any],
     inference_version: str,
 ) -> str:
-    """
-    Compute a deterministic hash for inference reproducibility.
-
-    Same inputs + same version => same hash.
-    """
+    """Compute the inference hash for a gym and ruleset version."""
     payload = {
         "gym_id": gym_id,
         "tags": _canonicalize_tags(tags),
@@ -57,12 +45,7 @@ def _compute_deterministic_hash(
 
 
 def apply_inference(gym: Gym) -> None:
-    """
-    Apply inference to a Gym entity.
-
-    This is a stable public entrypoint. All inference logic
-    is delegated to the inference engine.
-    """
+    """Run inference and stamp inference metadata on a gym."""
     gym_id = gym.id or compute_gym_id(gym.norm_name, gym.lat, gym.lon)
     gym.id = gym_id
 

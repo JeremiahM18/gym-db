@@ -59,14 +59,14 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
   return (
     <Panel
       title="Search"
-      subtitle="Search around the place you enter. Use curated picks when you want a tighter shortlist."
+      subtitle="Search by place and radius, or switch to the curated catalog."
       accent="Find Gyms"
     >
       <div className="search-intro">
         <strong>
           {props.mode === "live"
-            ? "Search around the place you choose."
-            : "Curated picks is the tighter follow-up view."}
+            ? "Search around a place."
+            : "Browse the curated catalog."}
         </strong>
         {props.mode === "live" ? (
           <p>This uses the Place field below, not your current location.</p>
@@ -94,7 +94,7 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
           <div className="live-search-summary">
             <span className="live-search-summary-label">Live Search</span>
             <strong>{props.liveSearchSummary}</strong>
-            <p>We search around the place in the Place field and rank gyms by distance.</p>
+            <p>Results are ranked by distance from the selected place.</p>
           </div>
           <label>
             <span>Gym type or brand</span>
@@ -202,8 +202,8 @@ export function QueryControlsPanel(props: QueryControlsPanelProps) {
       ) : (
         <form className="controls-grid published-search-form" onSubmit={props.onPublishedSubmit}>
           <div className="live-search-summary catalog-summary">
-            <span className="live-search-summary-label">Curated GymDB View</span>
-            <strong>Compare the tighter shortlist</strong>
+            <span className="live-search-summary-label">Curated Catalog</span>
+            <strong>Browse the published shortlist</strong>
           </div>
           <label>
             <span>Listing quality</span>

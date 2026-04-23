@@ -6,10 +6,7 @@ from gymdb.infrastructure.storage import RECEIPTS_ROOT, ensure_storage_tree
 
 
 def maybe_write_fs_receipt(receipt: JobReceipt) -> None:
-    """
-    Optionally write a filesystem receipt artifact.
-    This is NOT a source of truth. DB is authoritative.
-    """
+    """Optionally write a filesystem copy of a receipt."""
     if not os.getenv("WRITE_FS_RECEIPTS"):
         return
 

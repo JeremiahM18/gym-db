@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 import sqlite3
 from collections import Counter
+from collections.abc import Mapping
 from threading import Lock
-from typing import Mapping
 
 from gymdb.domain.constants import InferenceResultData
 from gymdb.infer.result import InferenceResult
@@ -62,7 +62,7 @@ def _log_fallback_once(context: str) -> None:
     if context in _logged_fallback_contexts:
         return
     _logged_fallback_contexts.add(context)
-    logger.exception("Falling back to in-memory metrics for %s", context)
+    logger.exception("Using in-memory metrics fallback for %s", context)
 
 
 def _inference_value(result: InferenceResult | InferenceResultData) -> object | None:
@@ -97,12 +97,6 @@ def snapshot_metrics() -> dict[str, int]:
 
     with _fallback_lock:
         return _merge_counter_snapshot(persisted, _inference_hits_fallback)
-
-
-# ---------------------------------------------------------------------------
-# Live search telemetry
-# All functions are side-effect only — pure counter increments, no I/O.
-# ---------------------------------------------------------------------------
 
 
 def record_cache_probe(*, cache_exists: bool, is_fresh: bool) -> None:

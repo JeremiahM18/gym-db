@@ -542,7 +542,7 @@ export function App() {
         {error ? (
           <div className="error-banner">
             <div>
-              <strong>Something needs attention</strong>
+              <strong>Request failed</strong>
               <p>{error}</p>
             </div>
             <div className="error-banner-actions">

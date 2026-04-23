@@ -20,16 +20,10 @@ from api.routes_v2 import router as v2_router
 from api.settings import get_settings
 from gymdb.infrastructure.live_search_cache import prime_cache_from_dataset
 
-# Application lifecycle
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Application startup / shutdown lifecycle.
-
-    All side-effectful initialization MUST happen here.
-    """
+    """Run startup and shutdown hooks."""
     logging.getLogger("gymdb").info("GymDB API starting up")
     logger = logging.getLogger("gymdb")
 
@@ -69,17 +63,14 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="GymDB API",
     version="1.0.0",
-    description="Gym intelligence built on OpenStreetMap",
+    description="Gym discovery API",
     response_model_exclude_none=True,
     lifespan=lifespan,
     openapi_tags=[
         {"name": "gyms", "description": "Gym discovery and filtering"},
         {
             "name": "live-search",
-            "description": (
-                "Live world search with OpenStreetMap as the primary source "
-                "and TomTom for place resolution plus enrichment"
-            ),
+            "description": "TomTom-backed live search with OSM enrichment",
         },
         {"name": "review", "description": "Coverage and review workflows"},
         {"name": "embeddings", "description": "Vector embeddings"},
@@ -105,11 +96,7 @@ async def http_exception_handler(
     request: Request,
     exc: HTTPException,
 ):
-    """
-    Global HTTP exception handler.
-
-    This enforces a stable error response shape for all API consumers.
-    """
+    """Return the standard API error shape."""
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -131,9 +118,7 @@ async def unhandled_exception_handler(
     request: Request,
     exc: Exception,
 ):
-    """
-    Catch-all handler for unexpected server errors.
-    """
+    """Handle unexpected server errors."""
     logging.getLogger("gymdb").exception(
         "Unhandled exception",
         extra={"path": request.url.path},
@@ -150,20 +135,13 @@ async def unhandled_exception_handler(
     )
 
 
-# Logging
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s %(message)s",
 )
 
-# Middleware
-
 app.middleware("http")(request_logging_middleware)
 
-# Routers
-
-# Public API
 app.include_router(nearby_router)
 app.include_router(v2_router)
 app.include_router(review_router)
@@ -172,7 +150,6 @@ app.include_router(
     include_in_schema=False,
 )
 
-# Internal / ops (fully gated)
 app.include_router(
     status_router,
     prefix="/internal",
@@ -183,7 +160,6 @@ app.include_router(
     include_in_schema=False,
 )
 
-# Infra
 app.include_router(health_router)
 app.include_router(
     debug_router,
