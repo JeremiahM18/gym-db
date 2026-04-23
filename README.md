@@ -1,231 +1,141 @@
 # GymDB
 
-GymDB is a full-stack geospatial data platform for discovering, normalizing, enriching, and serving gym location data.
+GymDB is a full-stack gym discovery product and data platform. It combines a FastAPI backend, a PostGIS-backed published catalog, a TomTom-backed live-search flow, deterministic inference, provenance-aware enrichment, and a React browser client.
 
-The project combines a FastAPI backend, OpenStreetMap-first live gym search with TomTom verification and enrichment, PostGIS-backed spatial querying, deterministic inference, provenance-aware review workflows, and a React browser client built around nearby-first, map-first discovery.
+The project has two user-facing search surfaces:
 
-GymDB is designed to behave like a real product and a trustworthy data platform at the same time: fast place search for users, stable contracts and explainable enrichment for downstream clients.
+- published catalog browsing over `/v2/gyms`
+- live place search over `/v2/live/search`
 
-## What Problem It Solves
+Those surfaces solve different problems and are implemented differently on purpose.
 
-There is no single clean, authoritative database of gyms.
+## Product Surface
 
-Public sources such as OpenStreetMap are useful, but they are noisy:
+### Published catalog
 
-- the same gym can appear multiple times
-- names and tags are inconsistent
-- business metadata is often missing or incomplete
-- nearby search needs real geospatial correctness, not rough math
-- downstream apps need stable contracts, not shifting response shapes
+The published catalog is the stable, curated browse surface.
 
-GymDB exists to turn messy location data into a trustworthy platform that downstream clients can browse, query, audit, and build on.
+- backed by checked-in dataset artifacts under `backend/data/`
+- queryable through `/v2/gyms`
+- supports region, specialty, tier, confidence, and nearby-style filtering
+- suitable for deterministic browsing, review, and downstream integrations
 
-## Why It Works
+### Live search
 
-- Backend-first architecture with clear boundaries between domain, application, infrastructure, database, and API layers
-- Real geospatial querying with PostgreSQL + PostGIS
-- Deterministic, explainable inference instead of opaque heuristics
-- Stable versioned API contracts with generated frontend client bindings
-- Review workflows for matched, mismatched, and unconfirmed coverage results
-- Job receipts and operational auditability for ingest runs
-- CI-backed quality gates across backend and frontend
+Live search is the nearby-first product flow for a user who wants gyms around a place right now.
 
-## Implemented Today
+Current behavior:
 
-GymDB already includes:
+- TomTom resolves the place query
+- TomTom returns the initial nearby gym snapshot
+- GymDB deduplicates, scores, and annotates those results
+- if a fresh local OSM cache is available, OSM confirmation is applied immediately
+- if not, GymDB returns the TomTom-backed snapshot right away, creates a `search_id`, and schedules background Overpass enrichment
+- the frontend polls `/v2/live/search/{search_id}` so the same results can improve in place without another TomTom call
 
-- a FastAPI public API under `/v2`
-- an OpenStreetMap-first live gym search surface under `/v2/live/search`
-- a separate internal job surface for controlled ingestion and job receipt inspection
-- deterministic dataset publication and read-model access
-- PostGIS nearby search using exact radius filtering and indexed candidate ordering
-- rule-based inference with reasons, confidence scoring, and contradiction diagnostics
-- TomTom-backed publish validation that gates ingest when external verification is unavailable
-- coverage review endpoints for audit-style inspection of source agreement
-- a React/Vite frontend that exercises the public API and shows inference details visually
-- database schema and migration scripts for canonical gyms and job receipts
-- backend tests covering API contracts, inference, determinism, nearby search, review flows, deduplication, persistence, and error handling
+OSM is therefore an enrichment and corroboration source in the live-search flow, not the primary online lookup for the initial response.
 
-## Tech Stack
+## Core Capabilities
 
-- Python 3.13
-- FastAPI
-- Pydantic v2
-- SQLAlchemy
-- PostgreSQL 16 + PostGIS
-- React 19
-- TypeScript
-- Vite
-- ESLint
-- Pytest
-- Ruff
-- MyPy
-- GitHub Actions
+- FastAPI public API under `/v2`
+- TomTom-backed place resolution and initial live search
+- OSM confirmation and metadata enrichment for live results
+- PostGIS nearby querying for the published catalog
+- deterministic rule-based inference with confidence and reasons
+- provenance-aware coverage and review workflows
+- job receipt persistence for ingest operations
+- generated frontend SDK from the checked-in OpenAPI snapshot
+- backend and frontend CI gates for linting, typing, tests, and contract drift
 
 ## Architecture
 
 ```text
-OpenStreetMap / Secondary Public Sources
-                |
-                v
-      Ingest + Normalize + Deduplicate
-                |
-                v
-   Deterministic Inference + Coverage Review
-                |
-                +-----------------------------+
-                |                             |
-                v                             v
- PostgreSQL/PostGIS                    Published JSON datasets
-  - canonical facts                    SQLite read-model sidecars
-  - spatial indexes                    dataset manifests
-  - job receipts                              |
-                |                             |
-                +-------------+---------------+
-                              |
-                              v
-                     FastAPI Public API (/v2)
-                              |
-                              v
-                     React Browser Client
+                            +-------------------------+
+                            |        Frontend         |
+                            | React + generated SDK   |
+                            +------------+------------+
+                                         |
+                                         v
+                         +---------------+----------------+
+                         |        FastAPI public API      |
+                         | /v2/gyms, /v2/live/search, ... |
+                         +---------------+----------------+
+                                         |
+                  +----------------------+----------------------+
+                  |                                             |
+                  v                                             v
+      +-----------+-----------+                    +------------+-------------+
+      | Published catalog     |                    | Live search session      |
+      | PostgreSQL + PostGIS  |                    | TomTom snapshot + OSM    |
+      | dataset artifacts     |                    | enrichment in background  |
+      +-----------+-----------+                    +------------+-------------+
+                  |                                             |
+                  v                                             v
+      checked-in / generated datasets                local cache + session files
+      under backend/data/                            under backend/data/
 ```
-
-## Public API Examples
-
-The public API is versioned and treated as a contract.
-
-### List gyms
-
-```bash
-curl -H "Authorization: Bearer <token>" \
-  "http://localhost:8000/v2/gyms?region=tn_nashville&min_conf=0.6&specialty=powerlifting&limit=20"
-```
-
-### Run live gym search
-
-```bash
-curl -H "Authorization: Bearer <token>" \
-  "http://localhost:8000/v2/live/search?place=Franklin%2C%20TN&q=gym&radius_m=25000"
-```
-
-### Get one gym with inference details
-
-```bash
-curl -H "Authorization: Bearer <token>" \
-  "http://localhost:8000/v2/gyms/gym_123?region=tn_nashville"
-```
-
-### Review source coverage
-
-```bash
-curl -H "Authorization: Bearer <token>" \
-  "http://localhost:8000/v2/review/coverage?status=unconfirmed&contradictions_only=true"
-```
-
-If you explicitly enable `ENABLE_DEV_AUTH_BYPASS=true` locally, you can exercise the frontend and public endpoints without Cognito during development.
-
-## Frontend Product Surface
-
-The frontend is the main product experience for GymDB. It is built around a nearby-first flow:
-
-- start with a place
-- choose a radius
-- compare gyms in a dense list
-- keep the map visible while you inspect details
-
-It supports:
-
-- a shipped Nashville, TN default slice so the app opens with real gyms in a 10-mile radius before the user runs a new search
-- nearby-first live gym search over `/v2/live/search`, using OpenStreetMap as the primary gym source and TomTom for place resolution plus enrichment
-- curated shortlist browsing over `/v2/gyms` when you want a tighter GymDB view
-- place-based search without exposing raw latitude/longitude fields in the browser
-- filtering by tier, specialty, 24/7 access, and lifter friendliness in the curated surface
-- fast inspection of live results with distance, address, hours, phone, website, and outbound actions
-- drill-in inspection of curated published inference details and confidence
-- source-backed actions like website, phone, Google Maps, and OpenStreetMap
-- a map-first layout that keeps the search center, results, and selected gym in view together
-- service liveness and readiness visibility from the browser
-
-## Database Story
-
-The database is a first-class part of the system, not just a persistence afterthought.
-
-Current database design includes:
-
-- PostgreSQL + PostGIS for durable geospatial storage
-- canonical gym storage with spatial indexes
-- exact nearby lookup support using spatial SQL
-- deterministic schema evolution through checked-in SQL files
-- operational job receipt persistence
-- a dedicated local runtime role for the app instead of using the bootstrap database user directly
-
-GymDB also deliberately separates durable operational facts in PostgreSQL from published read-only dataset artifacts and SQLite sidecars under `backend/data/`.
 
 ## Repository Layout
 
 ```text
 gym-db/
   backend/
-    api/                 FastAPI entrypoints, auth, versioned routes
-    src/gymdb/domain/    Deterministic business logic and models
+    api/                 FastAPI routes, auth, dependencies
+    src/gymdb/domain/    business logic and models
     src/gymdb/application/
     src/gymdb/infrastructure/
-    src/gymdb/infer/     Rule engine primitives and inference helpers
-    src/gymdb/observe/   Metrics, audit, and summaries
-    tests/               Backend tests and contract coverage
-    docs/                Inference and API contract notes
+    src/gymdb/infer/     inference engine primitives
+    src/gymdb/observe/   metrics, audit, summaries
+    tests/               backend tests
+    docs/                contract and design notes
+    data/                datasets, cache, runtime artifacts
   database/
-    schema/              SQL schema and migration scripts
-    bootstrap/           Local/dev bootstrap SQL
+    schema/              SQL schema and migrations
   frontend/
-    src/                 React browser client
+    src/                 React application
+    e2e/                 Playwright browser tests
+  scripts/               repo-level bootstrap and helper scripts
 ```
 
-## Quality and Verification
+## Public API
 
-The repo includes:
+The public API is versioned and treated as a contract.
 
-- backend tests for API contracts, inference, determinism, query logic, nearby search, receipts, and review flows
-- backend coverage reporting so regressions show both failures and blind spots
-- strict linting and typing setup in the backend
-- frontend linting, generated-client drift checks, and mocked browser E2E checks
-- CI that runs backend and frontend quality gates
-- a PostGIS-backed CI service so geospatial behavior is validated in a realistic environment
-- migration verification in CI so schema changes cannot drift from a fresh database
-- pre-commit / pre-push hooks for local guardrails before code reaches CI
+Primary routes:
 
-Backend quality commands:
+- `GET /v2/gyms`
+- `GET /v2/gyms/{gym_id}`
+- `GET /v2/gyms/geo/nearby`
+- `GET /v2/geocode`
+- `GET /v2/live/search`
+- `GET /v2/live/search/{search_id}`
+
+Example calls:
 
 ```bash
-cd backend
-python -m pytest --cov=api --cov=src/gymdb --cov-report=term-missing
-ruff check .
-mypy src/gymdb api
+curl -H "Authorization: Bearer <token>" \
+  "http://localhost:8000/v2/gyms?region=tn_nashville&specialty=powerlifting&limit=20"
 ```
-
-Frontend quality commands:
 
 ```bash
-cd frontend
-npm run lint
-npm run build
-npm run test:e2e
-npm run verify:api-client
-npm run generate:api
+curl -H "Authorization: Bearer <token>" \
+  "http://localhost:8000/v2/live/search?place=Franklin%2C%20TN&q=gym&radius_m=25000"
 ```
-
-The API client generation script exports the backend OpenAPI schema from the checked-out FastAPI app and regenerates the frontend SDK locally, so the frontend contract stays aligned with the repo instead of a separately running server. CI now also verifies both sides of that contract with visible diffs: the checked-in `backend/openapi.json` must match the live FastAPI app, and the checked-in frontend SDK must match the checked-in schema.
-
-Developer hooks:
 
 ```bash
-cd backend
-python -m pip install -r requirements-dev.txt
-pre-commit install
-pre-commit install --hook-type pre-push
+curl -H "Authorization: Bearer <token>" \
+  "http://localhost:8000/v2/live/search/<search_id>"
 ```
 
-## Run Locally
+Contract notes:
+
+- the checked-in backend OpenAPI snapshot lives at `backend/openapi.json`
+- the frontend generated client is derived from that snapshot
+- CI verifies both the OpenAPI snapshot and the generated client for drift
+
+See `backend/docs/api_status.md` for the detailed contract notes.
+
+## Local Development
 
 ### 1. Start PostgreSQL + PostGIS
 
@@ -233,23 +143,20 @@ pre-commit install --hook-type pre-push
 docker compose up -d postgres
 ```
 
-Docker Compose auto-applies all files in `database/schema/` on the **first** start (when the volume is empty).
-For subsequent schema changes on an existing volume, use the migration runner:
+On a fresh volume, Docker applies the checked-in SQL files automatically. On an existing volume, apply pending migrations with:
 
 ```bash
 ./scripts/migrate.sh
 ```
 
-`migrate.sh` defaults to the local bootstrap database user (`gymdb`) because schema changes and `_migrations` bookkeeping require elevated database permissions. The backend runtime role remains `gymdb_app`.
-
-For a completely fresh local database after schema or role changes, recreate the volume:
+To rebuild the local database from scratch:
 
 ```bash
 docker compose down -v
 docker compose up -d postgres
 ```
 
-### 2. Configure the backend
+### 2. Set up the backend
 
 ```powershell
 cd backend
@@ -259,71 +166,47 @@ pip install -r requirements-dev.txt
 Copy-Item .env.example .env
 ```
 
-Or bootstrap the local env files automatically from the repo root:
+Or bootstrap local env files from the repo root:
 
 ```powershell
 .\scripts\bootstrap-local.ps1
 ```
 
-The checked-in `backend/.env.example` keeps dev auth bypass off by default. If you want to work locally without Cognito, turn it on explicitly in your untracked `backend/.env`. A minimal local example looks like:
+Minimum backend settings for local development:
 
 ```env
 ENABLE_DEV_AUTH_BYPASS=false
 POSTGRES_DSN=postgresql+psycopg://gymdb_app:gymdb_app_password@localhost:5432/gymdb
 REQUIRE_TOMTOM_PUBLISH_VALIDATION=true
-# Required for ingest / publish flows:
 TOMTOM_API_KEY=<your tomtom api key>
 ```
 
-For local-only development without Cognito, flip the flag in `backend/.env`:
+If you want to work locally without Cognito:
 
 ```env
 ENABLE_DEV_AUTH_BYPASS=true
 ```
 
-TomTom validation is now the default publish gate. You also need `TOMTOM_API_KEY` for the live-search surface because the browser resolves places through TomTom and uses it to verify or enrich OpenStreetMap gyms. If you only want to browse an already-published dataset and do not need live search, the key can stay unset.
-If Overpass is under load, the ingest client now retries automatically and can fail over to an alternate endpoint if you set `OVERPASS_FALLBACK_URL`. A smaller `--radius-miles` is still the fastest way to get an initial local dataset published.
-
-Then start the API:
+Start the API:
 
 ```bash
 python -m uvicorn api.main:app --reload
 ```
 
-If you want the local Postgres container to mirror the shipped Nashville default slice on an existing database, run:
+Useful backend helpers:
 
-```bash
-.\.venv\Scripts\python.exe .\scripts\sync_dataset_to_postgres.py
-```
+- `backend/scripts/export_openapi.py` refreshes `backend/openapi.json`
+- `backend/scripts/sync_dataset_to_postgres.py` syncs the shipped dataset into the local Postgres container
+- `python .\src\main.py --place "Franklin, TN" --radius-miles 12 --region-key franklin_tn --set-default-region` ingests and publishes a new region by place name
 
-Fresh Docker volumes also get the same Nashville slice automatically through the dev seed file in `database/schema/999_seed_dev.sql`.
-
-To publish a new city or place by name instead of hand-managing coordinates, use the ingest CLI with TomTom geocoding:
-
-```bash
-python .\src\main.py --place "Franklin, TN" --radius-miles 12 --region-key franklin_tn --set-default-region
-```
-
-That command will:
-
-- resolve the place through TomTom
-- ingest gyms around the resolved coordinates
-- write a dataset file under `backend/data/`
-- update `backend/data/registry.json`
-- materialize the SQLite read model for the new region
-
-If the API is already running, it will now pick up registry changes on subsequent requests instead of requiring a restart.
-
-### 3. Start the frontend
+### 3. Set up the frontend
 
 ```bash
 cd frontend
 npm install
 ```
 
-The frontend is standardized on Node 24 to match CI. If you use `nvm`, run `nvm use` from the repo root before installing frontend dependencies.
-If backend routes or schemas changed, run `npm run generate:api` after the backend virtualenv is set up so the frontend SDK is regenerated from the checked-out FastAPI app.
-If you want to run browser E2E checks locally, install the browser once with `npm run test:e2e:install`.
+The frontend is standardized on Node 24.
 
 Create `frontend/.env.local`:
 
@@ -333,35 +216,47 @@ VITE_API_BASE_URL=http://localhost:8000
 # VITE_API_TOKEN=<bearer token>
 ```
 
-Then run:
+Run the app:
 
 ```bash
 npm run dev
 ```
 
-## Contracts and Design Notes
+If the backend contract changed:
 
-- Backend API stability notes: [backend/docs/api_status.md](backend/docs/api_status.md)
-- Inference contract: [backend/docs/inference.md](backend/docs/inference.md)
-- Database design notes: [database/README_DATABASE.md](database/README_DATABASE.md)
+1. refresh the backend OpenAPI snapshot
+2. regenerate the frontend client
 
-## Local Security Model
+You can do both with the repo helper:
 
-For local development, GymDB now distinguishes between:
+```powershell
+.\scripts\generate-frontend-api.ps1
+```
 
-- the container bootstrap database user, which initializes schema objects
-- the app runtime role, `gymdb_app`, which the backend uses through `POSTGRES_DSN`
+## Quality Gates
 
-That is still a development setup, but it is cleaner than running the application as the bootstrap user and better reflects production-minded separation of concerns.
+Backend:
 
-## What This Project Demonstrates
+```bash
+cd backend
+python -m pytest --cov=api --cov=src/gymdb --cov-report=term-missing
+ruff check .
+mypy src/gymdb api
+```
 
-GymDB demonstrates:
+Frontend:
 
-- designing stable interfaces instead of ad hoc responses
-- treating data quality and provenance as product features
-- separating durable facts from derived interpretations
-- building geospatial and operational concerns into the architecture early
-- using tests and contracts to protect behavior over time
+```bash
+cd frontend
+npm run lint
+npm run build
+npm run test:e2e
+npm run verify:api-client
+```
 
-It is not finished, but it is now much closer to a real product than a backend showcase.
+## Additional Docs
+
+- API contract: `backend/docs/api_status.md`
+- Inference contract: `backend/docs/inference.md`
+- Database storage notes: `database/README_DATABASE.md`
+- Dataset and runtime artifact rules: `backend/data/README.md`

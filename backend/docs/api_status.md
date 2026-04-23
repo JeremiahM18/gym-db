@@ -1,26 +1,74 @@
 # API Status
 
 ## Public API v2
-Status: **FROZEN**
 
-The `/v2` API is considered stable and safe for external client generation.
-The public `/v2/gyms` route is the authoritative published-dataset browse surface, including nearby-style filtering through `lat`, `lon`, and `radius_m`.
-The public `/v2/live/search` route is the live world search surface, backed by TomTom for both place resolution and gym discovery via category search.
-The separate `/v2/gyms/geo/nearby` route is a lower-level PostGIS query surface and intentionally returns a slimmer distance-focused payload.
+Status: **stable**
 
-### Allowed Changes (No Version Bump)
-- Adding new optional fields
-- Adding new inference attributes
-- Adding new optional query parameters
-- Internal performance improvements
+The `/v2` API is the supported public surface. Changes are expected to preserve existing semantics unless a new version is introduced.
 
-### Breaking Changes (Require v3)
-- Removing fields
-- Renaming fields
-- Changing field types
-- Changing semantic meaning of existing fields
+## Public Routes
 
-Frontend clients may safely generate SDKs from the exported backend OpenAPI schema.
-The checked-in `backend/openapi.json` snapshot is treated as part of the contract and is verified in CI against the live FastAPI app.
-The checked-in frontend generated client is also verified in CI against that snapshot to prevent backend/frontend drift.
-`has_more` on list responses uses an exact `limit + 1` pagination probe so clients can trust the signal without a separate count query.
+### Published catalog
+
+- `GET /v2/gyms`
+- `GET /v2/gyms/{gym_id}`
+- `GET /v2/gyms/geo/nearby`
+- `GET /v2/gyms/embeddings`
+
+`/v2/gyms` is the primary published-dataset browse surface. `/v2/gyms/geo/nearby` is a narrower distance-first nearby endpoint.
+
+### Geocoding
+
+- `GET /v2/geocode`
+
+TomTom-backed place lookup for the browser and other clients.
+
+### Live search
+
+- `GET /v2/live/search`
+- `GET /v2/live/search/{search_id}`
+
+`/v2/live/search` returns the initial live-search snapshot. Current behavior:
+
+- TomTom resolves the place query
+- TomTom supplies the initial nearby results
+- GymDB deduplicates, scores, and annotates the snapshot
+- fresh cached OSM confirmation may be applied immediately
+- if enrichment is still pending, the response includes a `search_id` and session metadata
+
+`/v2/live/search/{search_id}` returns the current state of that same live-search session. It exists so clients can refresh the same result set without reissuing the original TomTom search.
+
+Current live-search response metadata includes:
+
+- `search_id`
+- `status`
+- `enrichment_status`
+- `revision`
+- `updated_at`
+- `expires_at`
+- `poll_after_ms`
+
+## Compatibility Rules
+
+Allowed without a version bump:
+
+- adding optional response fields
+- adding optional query parameters
+- adding new inference attributes
+- internal performance or storage changes that preserve semantics
+
+Require a version bump:
+
+- removing fields
+- renaming fields
+- changing field types
+- changing the semantic meaning of existing fields
+
+## Contract Artifacts
+
+- the checked-in OpenAPI snapshot is `backend/openapi.json`
+- the checked-in frontend SDK is generated from that snapshot
+- CI verifies that the FastAPI app still matches the snapshot
+- CI also verifies that the frontend SDK still matches the checked-in snapshot
+
+`has_more` on list responses is derived from an exact `limit + 1` probe, so clients can treat it as authoritative for pagination.

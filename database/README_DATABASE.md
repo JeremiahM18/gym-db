@@ -1,177 +1,101 @@
 # GymDB Database Layer
 
-> This directory documents the **physical storage contract** of GymDB.
-> Anything not explicitly described here is intentionally *not* persisted.
+This directory documents the physical storage layer for GymDB.
 
-This layer is built on **PostgreSQL + PostGIS** to support durable storage and deterministic geospatial querying.
+The database is responsible for durable facts, schema evolution, and geospatial query performance. It is not responsible for inference rules, provenance interpretation, or frontend-facing product behavior.
 
-The database is treated as a **first-class system component**, not an implementation detail. Design priorities include:
-- explicit schemas and migrations
-- deterministic query behavior
-- safe, forward-compatible evolution
-- clear separation between domain logic and persistence
+## Scope
 
-The database layer enforces **physical invariants only**. It does **not** contain domain logic, inference rules, or interpretation.
+The database stores:
 
----
+- canonical gym records and locations
+- spatial indexes for nearby querying
+- operational job receipts
+- schema migration history
 
-## Goals
+The database does not store:
 
-The database layer exists to:
-- provide fast, reliable geospatial lookup (nearby queries, distance ordering)
-- enforce canonical gym identity and location storage
-- support forward-compatible schema evolution through migrations
-- keep business logic out of SQL where possible *(SQL is used for retrieval, filtering, and spatial computation only)*
-
----
-
-## Technology Stack
-
-- **PostgreSQL**: relational storage
-- **PostGIS**: spatial indexing and distance calculations
-- **SQLAlchemy / query layer**: controlled, explicit query surface
-
----
-
-## Current State
-
-The database is intentionally small and explicitly defined through migrations.
-
-At this stage:
-- core tables exist to represent canonical gym records and locations
-- PostGIS is enabled and spatial indexes are in place
-- schema changes are applied exclusively through versioned migrations
-- seed data is used for local development and to ship the default Nashville demo slice
-
-The database does **not** store inferred attributes or domain interpretations.
-Those remain the responsibility of the domain and inference layers.
-Published dataset artifacts live on disk under `backend/data/` and are treated as a separate read-model concern.
-
----
-
-## Local Development Setup
-
-GymDB uses Docker for local database development.
-
-### Docker Compose
-
-```yaml
-services:
-  postgres:
-    image: postgis/postgis:16-3.4
-    container_name: gymdb-postgres
-    environment:
-      POSTGRES_DB: gymdb
-      POSTGRES_USER: gymdb
-      POSTGRES_PASSWORD: gymdb_password
-    ports:
-      - "5432:5432"
-    volumes:
-      - gymdb_pgdata:/var/lib/postgresql/data
-      - ./database/schema:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gymdb -d gymdb"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-volumes:
-  gymdb_pgdata:
-```
-Notes:
-- PostGIS is enabled via the official postgis/postgis image
-- the `schema/` directory contains migration and initialization scripts
-- data is persisted across restarts using a named volume
-
-## Data Model Overview
-
-The database stores **physical, verifiable facts only**.
-
-Currently represented concepts include:
-- `gyms`: canonical gym records
-  - stable identifier
-  - name and normalized name
-  - geographic location `geography(Point, 4326)`
-- spatial indexes to support deterministic nearby queries
-- `ops.job_receipts`: durable operational audit records
-
-The database intentionally does **not** store:
-- inference results
+- inference outputs
 - confidence scores
-- enriched or derived attributes
-- source interpretation logic
-- public dataset artifact files
+- derived provenance judgments
+- published JSON datasets
+- local runtime cache or session artifacts
 
-These remain derived, reproducible outputs of the domain layer or filesystem-backed read models.
+Those concerns live in the domain layer or under `backend/data/`.
 
----
+## Technology
 
-## Geospatial Querying
+- PostgreSQL 16
+- PostGIS
+- SQLAlchemy query layer in the backend
 
-Nearby capabilities are exposed through the API in two forms:
-- `GET /v2/gyms` with `lat`, `lon`, and `radius_m` for the canonical browser-facing contract
-- `GET /v2/gyms/geo/nearby` for a narrower distance-first nearby surface
+## Current Model
 
-Database design requirements:
-- store location as `geography(Point, 4326)` for geographic correctness
-- index location using a GIST index
-- add a geometry expression GIST index for KNN ordering on `location::geometry`
-- use exact geography radius filtering with index-assisted nearest-neighbor ordering
-- keep spatial calculations in SQL; keep inference and enrichment in Python
+Current schema coverage includes:
 
-This gives GymDB a strong systems story:
-- `ST_DWithin` enforces accurate radius membership on geography
-- `ST_Distance` returns exact geographic distance
-- `ORDER BY location::geometry <-> point_geometry` allows fast candidate ordering through the geometry expression index
+- `gyms`
+  - canonical identity
+  - normalized name
+  - `geography(Point, 4326)` location
+- spatial indexes for exact radius filtering and KNN-assisted ordering
+- `ops.job_receipts` for durable ingest audit records
 
----
+## Query Design
 
-## Migrations & Schema Evolution
+Published nearby behavior is exposed through:
 
-All schema changes must be applied through migrations.
+- `GET /v2/gyms` with `lat`, `lon`, and `radius_m`
+- `GET /v2/gyms/geo/nearby` for a slimmer distance-first surface
 
-Practices:
-- version migration files in the repository
-- apply migrations consistently in local, CI, and deployment environments
-- document breaking schema changes in the main backend README
-- avoid implicit or manual schema drift
+Design requirements:
 
-Schema stability is treated as part of the system's long-term contract.
+- use `geography(Point, 4326)` for geographic correctness
+- keep a GIST index on location
+- keep a geometry expression GIST index for KNN ordering on `location::geometry`
+- use SQL for spatial filtering and distance calculations
+- keep inference and enrichment logic out of SQL
 
-### Running migrations
+This allows:
 
-The repo includes `scripts/migrate.sh`, an ordered migration runner with applied-state tracking.
-It creates a `_migrations` table on first run and skips files already recorded there, so re-running is safe.
+- exact radius membership with `ST_DWithin`
+- exact distance with `ST_Distance`
+- fast candidate ordering with `ORDER BY location::geometry <-> point_geometry`
+
+## Migrations
+
+Schema changes are applied through checked-in SQL files in `database/schema/`.
+
+Local behavior:
+
+- a fresh Docker volume auto-applies the schema files on first startup
+- an existing volume requires the migration runner
+
+Run pending migrations:
 
 ```bash
-# Apply all pending migrations (local dev defaults)
 ./scripts/migrate.sh
+```
 
-# Apply to an explicit database
+Apply to an explicit database:
+
+```bash
 ./scripts/migrate.sh "postgresql://gymdb:gymdb_password@localhost:5432/gymdb"
+```
 
-# Include seed data (local only)
+Include seed data for local development:
+
+```bash
 ./scripts/migrate.sh --seed
 ```
 
-Note: Docker Compose auto-applies schema files from `docker-entrypoint-initdb.d` only on the **first** container start (when the volume is empty). For an existing volume, use `migrate.sh` to apply new migrations.
-The script defaults to the local bootstrap/admin database user so it can create `_migrations` and apply DDL safely. The application should continue to run as `gymdb_app`.
+The script defaults to the local bootstrap database user so it can apply DDL and maintain `_migrations`. The backend runtime role remains `gymdb_app`.
 
-The dev seed currently mirrors the shipped Nashville 10-mile default dataset so fresh Docker boots have a credible nearby state immediately. On an already-running local database, you can resync that same dataset into Postgres with:
+## Local Development Notes
 
-```bash
-cd backend
-.\.venv\Scripts\python.exe .\scripts\sync_dataset_to_postgres.py
-```
+- Docker Compose uses `postgis/postgis:16-3.4`
+- the dev seed mirrors the shipped Nashville default slice
+- you can resync that dataset into a running local Postgres instance with `backend/scripts/sync_dataset_to_postgres.py`
 
-CI also runs `migrate.sh` against a fresh PostGIS service and verifies that every non-seed migration file is recorded in `_migrations`. That keeps the checked-in schema order honest instead of trusting manual local runs.
+## Documentation Ownership
 
-## Design Principles
-- deterministic query results
-- explicit, auditable data transformations
-- clear boundaries between:
-  - API layer
-  - query/storage layer
-  - domain and inference logic
-  - filesystem-backed published datasets
-- safe, intentional schema evolution
+Breaking schema changes should be reflected in the repo-root `README.md` when they affect local setup, migrations, or public expectations.

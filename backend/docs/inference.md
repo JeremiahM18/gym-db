@@ -1,130 +1,80 @@
 # Inference Contract
 
-> **Contract status: FROZEN (v1)**
-> Breaking semantic changes require an explicit version bump and a documented migration note.
+Status: **stable**
 
-This document defines what inference **must** guarantee, not how it is implemented.
-
-Inference behavior is treated as a **stable contract** and is enforced by tests.
-Changes to inference semantics must be deliberate, versioned, and auditable.
-
----
+This document defines the public guarantees of GymDB inference. It describes the output contract and invariants, not the implementation details of the rule engine.
 
 ## Purpose
 
-Inference in GymDB enriches raw, stored facts with derived attributes while preserving:
-- determinism
-- explainability
-- auditability
-- safe long-term evolution
+Inference derives structured attributes from stored gym facts while remaining:
 
-Inference does not mutate stored facts and does not depend on runtime state.
+- deterministic
+- explainable
+- auditable
+- safe to rerun
 
----
+Inference does not mutate stored facts and does not depend on external runtime state.
 
-## Inference Output Structure
+## Output Shape
 
-All inference results are exposed under a structured inference map.
-
-Each inferred attribute MUST conform to the following schema:
+Each emitted inference result has this shape:
 
 ```json
 {
-    "value": <bool | int | string | null>,
-    "confidence": <float between 0.0 and 1.0>,
-    "reasons": <array of strings>
+  "value": "<bool | int | string>",
+  "confidence": 0.0,
+  "reasons": ["..."],
+  "source": "rule"
 }
 ```
-### Field Definitions
+
+Field meanings:
+
 - `value`
-  The inferred value. May be null if the rule cannot confidently infer.
+  The inferred value. GymDB currently emits `bool`, `int`, or `string` values.
+
 - `confidence`
-  A numeric signal representing strength of evidence.
-  Confidence is not a probability of correctness.
+  Strength of evidence, not probability of correctness.
+
 - `reasons`
-  Readable explanations describing why the inference was made.
+  Human-readable explanations for the inference decision.
 
----
+- `source`
+  The inference source identifier. The current rule engine emits `"rule"`.
 
-## Inference Invariants (Must Always Hold)
-- Every inference result includes:
-    - `value`
-    - `confidence`
-    - `reasons`
-- Inference output is deterministic:
-    - Identical inputs always produce identical outputs
-- Absence of signal does not imply absence of structure:
-    - Inference never returns partially-formed or malformed results
+## Invariants
 
-These invariants apply regardless of inference outcome.
-
----
-
-## Determinism Rules
-
-Inference must be deterministic across runs.
-
-This means:
-- No randomness
-- No dependency on system time
-- No dependency on external state
-- Stable iteration order when aggregating signals
-- Stable formatting and ordering of `reasons`
-
-Determinism is enforced via automated tests.
-
----
+- emitted inference entries are structurally complete
+- identical inputs produce identical outputs
+- `reasons` ordering is stable
+- inference keys may be absent when GymDB chooses not to emit a result
+- emitted values must be explainable by their reasons
 
 ## Confidence Semantics
 
-Confidence represents **strength of evidence**, not statistical likelihood.
+Confidence is a calibration signal for evidence strength.
 
-Typical interpretations:
-- `0.90-1.00`: Explicit, high-confidence signals
-- `0.60-0.89`: Strong heuristic signals
-- `0.30-0.59`: Weak or partial signals
-- `0.00-0.29`: Default or unknown
+Typical interpretation:
 
-Confidence values must be justifiable via reasons.
+- `0.90-1.00` explicit high-confidence signals
+- `0.60-0.89` strong heuristic signals
+- `0.30-0.59` weak or partial signals
+- `0.00-0.29` default or low-information signals
 
----
+## Compatibility
 
-## Rule Behavior
+Allowed without a version bump:
 
-Each inference rule:
-1. Consumes normalized input features
-2. Evaluates rule-specific signals
-3. Produces a structured inference result
-4. Does not mutate stored facts
-5. Can be safely re-run at any time
+- adding new inference attributes
+- improving calibration
+- adding additional reasons
 
-Rules are pure functions over input data.
+Require a version bump:
 
----
-
-## Evolution & Compatibility
-
-Inference logic may evolve over time.
-
-Allowed changes (non-breaking):
-- Adding new inference attributes
-- Improving confidence calibration
-- Adding additional reasons
-
-Breaking changes:
-- Changing semantic meaning of an inference value
-- Removing inference attributes
-- Reinterpreting confidence meaning
-
-Breaking changes must be explicitly versioned.
-
----
+- changing the meaning of an existing inference value
+- removing an existing inference attribute
+- changing the meaning of confidence
 
 ## Enforcement
 
-Inference guarantees are enforced by:
-- Determinism tests
-- API contract tests
-- Schema validation tests
-
-Inference behavior is considered incorrect if it violates this contract, even if tests pass.
+The contract is protected by backend tests, API contract coverage, and typed models. If implementation and documentation diverge, the implementation is wrong or the documentation is stale; both cases should be treated as defects.

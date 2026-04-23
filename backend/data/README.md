@@ -1,21 +1,30 @@
 # Backend Data
 
-This directory intentionally mixes a few small tracked fixtures with ignored runtime output.
+This directory contains two categories of files:
 
-Tracked in git:
-- `registry.json`: checked-in dataset registry configuration
-- `gyms_nashville.json`: the shipped Nashville default dataset used for demos and first-load product state
-- `registry_test.json`: tiny test registry fixture
-- `gyms_test.json`: tiny test dataset fixture
-- `.gitkeep`: preserves the directory in fresh clones
-- `README.md`: explains the fixture/runtime boundary
+- tracked dataset fixtures and shipped demo data
+- ignored local runtime artifacts
 
-Ignored from git:
-- local or regenerated datasets such as `gyms_raw.json`
-- generated dataset sidecars such as `*.sqlite3` and temporary lock files
-- generated dataset manifests such as `*.manifest.json`
-- warmed live-search cache files under `live_search_cache/`
-- runtime job snapshots under `jobs/`
-- operational artifacts under `artifacts/`, including local TomTom coverage audit outputs
+## Tracked
 
-The rule is simple: tiny fixtures and the intentionally shipped default Nashville dataset may be committed; local regenerated runtime data should not be.
+Tracked files are small, intentional, and safe to review in git. They include:
+
+- dataset registry files such as `registry.json`
+- shipped demo datasets such as the Nashville default slice
+- tiny test fixtures used by automated tests
+- this README
+
+## Ignored
+
+Ignored files are generated locally and should not be committed. They include:
+
+- regenerated datasets and manifests
+- SQLite sidecars and lock files
+- live-search cache files under `live_search_cache/`
+- live-search session files under `live_search_sessions/`
+- job snapshots under `jobs/`
+- local artifacts under `artifacts/`
+
+## Rule
+
+Commit only intentional fixtures and shipped demo data. Do not commit regenerated datasets, caches, sessions, manifests, SQLite files, or other runtime output.
