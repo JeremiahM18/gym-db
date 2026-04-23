@@ -36,6 +36,9 @@ class APISettings(GymDBSettings):
     live_search_upstream_timeout_seconds: int = 20
     live_search_cache_root: Path = BACKEND_ROOT / "data/live_search_cache"
     live_search_cache_ttl_seconds: int = 86_400
+    live_search_session_root: Path = BACKEND_ROOT / "data/live_search_sessions"
+    live_search_session_ttl_seconds: int = 900
+    live_search_poll_after_ms: int = 2_000
     live_search_overpass_timeout_seconds: int = 25
     live_search_overpass_max_attempts: int = 2
 
@@ -44,6 +47,7 @@ class APISettings(GymDBSettings):
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ]
+
 
 @lru_cache
 def get_settings() -> APISettings:

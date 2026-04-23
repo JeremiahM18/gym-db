@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -132,6 +133,13 @@ class LiveGymSearchResponseV2(BaseModel):
     api_version: str = Field(default="v2")
     query: str
     place_query: str
+    search_id: str
+    status: str
+    enrichment_status: str
+    revision: int
+    updated_at: datetime
+    expires_at: datetime
+    poll_after_ms: int | None = None
     count: int
     radius_m: int
     origin: LiveSearchOriginV2

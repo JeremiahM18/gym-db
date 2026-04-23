@@ -36,6 +36,10 @@ from gymdb.domain.scoring import compute_confidence
 from gymdb.gyms.protocol import GymStoreProtocol
 from gymdb.gyms.queries import get_gym_by_id, list_gyms
 from gymdb.infrastructure.live_search_cache import load_cached_elements
+from gymdb.infrastructure.live_search_sessions import (
+    create_live_search_session,
+    load_live_search_session,
+)
 from gymdb.infrastructure.tomtom_client import TomTomClient, TomTomPlace
 from gymdb.observe.metrics import (
     record_cache_probe,
@@ -99,6 +103,52 @@ def _count_match_status(gyms: list[Any], status: MatchStatus) -> int:
         for gym in gyms
         if (gym.source_provenance or {}).get("match_status") == status.value
     )
+
+
+def _build_live_search_response(
+    *,
+    search_query: str,
+    place: str,
+    radius_m: int,
+    origin: TomTomPlace,
+    gyms: list[Any],
+) -> dict[str, Any]:
+    return {
+        "api_version": "v2",
+        "query": search_query,
+        "place_query": place,
+        "count": len(gyms),
+        "radius_m": radius_m,
+        "origin": {
+            "id": origin.id,
+            "name": origin.name,
+            "lat": origin.lat,
+            "lon": origin.lon,
+            "address": origin.address,
+            "city": origin.city,
+            "country_code": origin.country_code,
+        },
+        "results": [
+            {
+                **serialize_domain_gym(gym),
+                "distance_m": haversine_meters(
+                    origin.lat,
+                    origin.lon,
+                    gym.lat,
+                    gym.lon,
+                ),
+            }
+            for gym in gyms
+        ],
+    }
+
+
+def _session_response(
+    *,
+    session,
+    settings: APISettings,
+) -> dict[str, Any]:
+    return session.to_api_response(poll_after_ms=settings.live_search_poll_after_ms)
 
 
 @router.get("/gyms", response_model=GymsListResponseV2)
@@ -208,6 +258,7 @@ async def geocode_location_v2(
 )
 async def live_search_gyms_v2(
     background_tasks: BackgroundTasks,
+    claims: dict[str, Any] = Depends(require_user),
     place: str = Query(..., min_length=2, description="City, neighborhood, or place"),
     q: str = Query(
         "gym",
@@ -342,6 +393,22 @@ async def live_search_gyms_v2(
 
     # Schedule Overpass enrichment after the response is sent, unless the cache
     # is already fresh for this search area.
+    live_response = _build_live_search_response(
+        search_query=search_query,
+        place=place,
+        radius_m=radius_m,
+        origin=origin,
+        gyms=limited_gyms,
+    )
+    session = create_live_search_session(
+        settings.live_search_session_root,
+        owner_sub=str(claims.get("sub") or "anonymous"),
+        response=live_response,
+        status="ready" if cache_is_fresh else "enriching",
+        enrichment_status="skipped" if cache_is_fresh else "pending",
+        ttl_seconds=settings.live_search_session_ttl_seconds,
+    )
+
     if not cache_is_fresh:
         background_tasks.add_task(
             background_overpass_enrich,
@@ -352,37 +419,29 @@ async def live_search_gyms_v2(
             cache_root=settings.live_search_cache_root,
             timeout_seconds=settings.live_search_overpass_timeout_seconds,
             max_attempts=settings.live_search_overpass_max_attempts,
+            search_id=session.search_id,
+            session_root=settings.live_search_session_root,
         )
         record_enrich_dispatched()
 
-    return {
-        "api_version": "v2",
-        "query": search_query,
-        "place_query": place,
-        "count": len(limited_gyms),
-        "radius_m": radius_m,
-        "origin": {
-            "id": origin.id,
-            "name": origin.name,
-            "lat": origin.lat,
-            "lon": origin.lon,
-            "address": origin.address,
-            "city": origin.city,
-            "country_code": origin.country_code,
-        },
-        "results": [
-            {
-                **serialize_domain_gym(gym),
-                "distance_m": haversine_meters(
-                    origin.lat,
-                    origin.lon,
-                    gym.lat,
-                    gym.lon,
-                ),
-            }
-            for gym in limited_gyms
-        ],
-    }
+    return _session_response(session=session, settings=settings)
+
+
+@router.get(
+    "/live/search/{search_id}",
+    response_model=LiveGymSearchResponseV2,
+    tags=["live-search"],
+)
+def get_live_search_session_v2(
+    search_id: str,
+    claims: dict[str, Any] = Depends(require_user),
+    settings: APISettings = Depends(get_settings),
+):
+    session = load_live_search_session(settings.live_search_session_root, search_id)
+    if session is None or session.owner_sub != str(claims.get("sub") or "anonymous"):
+        raise HTTPException(status_code=404, detail="Live search session not found.")
+
+    return _session_response(session=session, settings=settings)
 
 
 @router.get(

@@ -36,4 +36,24 @@ export class LiveSearchService {
             },
         });
     }
+    /**
+     * Get Live Search Session V2
+     * @param searchId
+     * @returns LiveGymSearchResponseV2 Successful Response
+     * @throws ApiError
+     */
+    public static getLiveSearchSessionV2V2LiveSearchSearchIdGet(
+        searchId: string,
+    ): CancelablePromise<LiveGymSearchResponseV2> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/v2/live/search/{search_id}',
+            path: {
+                'search_id': searchId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
 }

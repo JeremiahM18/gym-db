@@ -450,6 +450,54 @@
         }
       }
     },
+    "/v2/live/search/{search_id}": {
+      "get": {
+        "tags": [
+          "gyms",
+          "live-search"
+        ],
+        "summary": "Get Live Search Session V2",
+        "operationId": "get_live_search_session_v2_v2_live_search__search_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "search_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Search Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveGymSearchResponseV2"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v2/gyms/embeddings": {
       "get": {
         "tags": [
@@ -1438,6 +1486,43 @@
             "type": "string",
             "title": "Place Query"
           },
+          "search_id": {
+            "type": "string",
+            "title": "Search Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "enrichment_status": {
+            "type": "string",
+            "title": "Enrichment Status"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "poll_after_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Poll After Ms"
+          },
           "count": {
             "type": "integer",
             "title": "Count"
@@ -1461,6 +1546,12 @@
         "required": [
           "query",
           "place_query",
+          "search_id",
+          "status",
+          "enrichment_status",
+          "revision",
+          "updated_at",
+          "expires_at",
           "count",
           "radius_m",
           "origin",

@@ -4,6 +4,8 @@ from pathlib import Path
 import pytest
 from requests import RequestException
 
+from api.background_tasks import background_overpass_enrich
+from api.auth.dependencies import require_user
 from api.main import app
 from api.settings import APISettings, get_settings
 from gymdb.infrastructure.live_search_cache import LiveSearchCacheEntry
@@ -89,6 +91,11 @@ def test_live_search_returns_results(client, override_auth, monkeypatch):
 
     assert resp.status_code == 200
     data = resp.json()
+    assert data["search_id"]
+    assert data["status"] == "enriching"
+    assert data["enrichment_status"] == "pending"
+    assert data["poll_after_ms"] == 2000
+    assert data["revision"] == 0
     assert data["place_query"] == "Franklin, TN"
     assert data["query"] == "gym"
     assert data["count"] == 1
@@ -301,7 +308,133 @@ def test_live_search_applies_osm_confirmation_from_fresh_cache(
         app.dependency_overrides.pop(get_settings, None)
 
     assert resp.status_code == 200
-    result = resp.json()["results"][0]
+    payload = resp.json()
+    assert payload["status"] == "ready"
+    assert payload["enrichment_status"] == "skipped"
+    assert payload["poll_after_ms"] is None
+    result = payload["results"][0]
     assert result["source_provenance"]["match_status"] == "osm_confirmed"
     assert "osm" in result["source_provenance"]["confirmed_by"]
     assert result["tags"].get("opening_hours") == "Mo-Su 06:00-22:00"
+
+
+def test_live_search_session_poll_returns_same_snapshot_when_pending(
+    client, override_auth, monkeypatch
+):
+    client.app.dependency_overrides[get_settings] = lambda: APISettings(
+        tomtom_api_key="test-key",
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.geocode",
+        lambda self, query, limit=1, country_set=None: [_FRANKLIN_ORIGIN],
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.search_gyms",
+        lambda self, lat, lon, radius_m, limit=100, country_set=None: [_FRANKLIN_GYM],
+    )
+
+    try:
+        initial = client.get("/v2/live/search?place=Franklin%2C%20TN&q=gym")
+        search_id = initial.json()["search_id"]
+        follow_up = client.get(f"/v2/live/search/{search_id}")
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
+
+    assert initial.status_code == 200
+    assert follow_up.status_code == 200
+    assert follow_up.json() == initial.json()
+
+
+def test_live_search_session_is_scoped_to_the_authenticated_user(
+    client, override_auth, monkeypatch
+):
+    client.app.dependency_overrides[get_settings] = lambda: APISettings(
+        tomtom_api_key="test-key",
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.geocode",
+        lambda self, query, limit=1, country_set=None: [_FRANKLIN_ORIGIN],
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.search_gyms",
+        lambda self, lat, lon, radius_m, limit=100, country_set=None: [_FRANKLIN_GYM],
+    )
+
+    try:
+        initial = client.get("/v2/live/search?place=Franklin%2C%20TN&q=gym")
+        search_id = initial.json()["search_id"]
+        client.app.dependency_overrides[require_user] = lambda: {"sub": "other-user"}
+        follow_up = client.get(f"/v2/live/search/{search_id}")
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
+        app.dependency_overrides[require_user] = lambda: {"sub": "test-user"}
+
+    assert initial.status_code == 200
+    assert follow_up.status_code == 404
+    assert follow_up.json()["error"]["message"]["detail"] == (
+        "Live search session not found."
+    )
+
+
+def test_background_enrichment_updates_live_search_session_snapshot(
+    client, override_auth, monkeypatch
+):
+    client.app.dependency_overrides[get_settings] = lambda: APISettings(
+        tomtom_api_key="test-key",
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.geocode",
+        lambda self, query, limit=1, country_set=None: [_FRANKLIN_ORIGIN],
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.search_gyms",
+        lambda self, lat, lon, radius_m, limit=100, country_set=None: [_FRANKLIN_GYM],
+    )
+    monkeypatch.setattr(
+        "api.background_tasks.fetch_gyms",
+        lambda *args, **kwargs: [
+            {
+                "type": "node",
+                "id": 99,
+                "lat": _FRANKLIN_GYM.lat,
+                "lon": _FRANKLIN_GYM.lon,
+                "tags": {
+                    "leisure": "fitness_centre",
+                    "name": _FRANKLIN_GYM.name,
+                    "opening_hours": "Mo-Su 05:00-23:00",
+                },
+            }
+        ],
+    )
+
+    try:
+        initial = client.get("/v2/live/search?place=Franklin%2C%20TN&q=gym")
+        payload = initial.json()
+        search_id = payload["search_id"]
+        settings = APISettings(tomtom_api_key="test-key")
+
+        background_overpass_enrich(
+            lat=_FRANKLIN_ORIGIN.lat,
+            lon=_FRANKLIN_ORIGIN.lon,
+            radius_m=25000,
+            origin_name=_FRANKLIN_ORIGIN.address or _FRANKLIN_ORIGIN.name,
+            cache_root=settings.live_search_cache_root,
+            timeout_seconds=settings.live_search_overpass_timeout_seconds,
+            max_attempts=settings.live_search_overpass_max_attempts,
+            search_id=search_id,
+            session_root=settings.live_search_session_root,
+        )
+        updated = client.get(f"/v2/live/search/{search_id}")
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
+
+    assert initial.status_code == 200
+    assert updated.status_code == 200
+    updated_payload = updated.json()
+    assert updated_payload["status"] == "ready"
+    assert updated_payload["enrichment_status"] == "completed"
+    assert updated_payload["revision"] == 1
+    assert updated_payload["search_id"] == search_id
+    result = updated_payload["results"][0]
+    assert result["source_provenance"]["match_status"] == "osm_confirmed"
+    assert result["tags"]["opening_hours"] == "Mo-Su 05:00-23:00"

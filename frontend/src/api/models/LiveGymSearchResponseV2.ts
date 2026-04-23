@@ -8,6 +8,13 @@ export type LiveGymSearchResponseV2 = {
     api_version?: string;
     query: string;
     place_query: string;
+    search_id: string;
+    status: string;
+    enrichment_status: string;
+    revision: number;
+    updated_at: string;
+    expires_at: string;
+    poll_after_ms?: (number | null);
     count: number;
     radius_m: number;
     origin: LiveSearchOriginV2;

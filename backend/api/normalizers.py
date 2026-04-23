@@ -125,6 +125,26 @@ def serialize_domain_gym(gym: Gym) -> dict:
     )
 
 
+def hydrate_domain_gym(gym: dict[str, Any]) -> Gym:
+    hydrated = Gym(
+        name=str(gym["name"]),
+        norm_name=str(gym.get("norm_name") or normalize_name(str(gym["name"]))),
+        lat=float(gym["lat"]),
+        lon=float(gym["lon"]),
+        osm_refs=list(gym.get("osm_refs") or []),
+        tags=dict(gym.get("tags") or {}),
+    )
+    hydrated.id = str(gym["id"])
+    confidence_score = gym.get("confidence_score")
+    hydrated.confidence_score = (
+        float(confidence_score) if isinstance(confidence_score, int | float) else None
+    )
+    hydrated.source_provenance = normalize_source_provenance(
+        gym.get("source_provenance")
+    )
+    return hydrated
+
+
 def translate_store_error(exc: Exception) -> HTTPException:
     """Translate store-layer exceptions to HTTP responses."""
     if isinstance(exc, FileNotFoundError):
