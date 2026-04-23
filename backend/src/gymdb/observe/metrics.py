@@ -4,7 +4,10 @@ import logging
 import sqlite3
 from collections import Counter
 from threading import Lock
+from typing import Mapping
 
+from gymdb.domain.constants import InferenceResultData
+from gymdb.infer.result import InferenceResult
 from gymdb.infrastructure.ops_state_store import OpsStateStore
 from gymdb.infrastructure.settings import settings
 
@@ -62,14 +65,22 @@ def _log_fallback_once(context: str) -> None:
     logger.exception("Falling back to in-memory metrics for %s", context)
 
 
-def record_inference_hits(inferred: dict[str, object]) -> None:
+def _inference_value(result: InferenceResult | InferenceResultData) -> object | None:
+    if isinstance(result, InferenceResult):
+        return result.value
+    return result.get("value")
+
+
+def record_inference_hits(
+    inferred: Mapping[str, InferenceResult | InferenceResultData],
+) -> None:
     """
     Count which inference keys are produced.
     Accepts normalized inference dicts or InferenceResult-like objects.
     """
     deltas: dict[str, int] = {}
     for key, result in inferred.items():
-        value = result.value if hasattr(result, "value") else result.get("value")
+        value = _inference_value(result)
         if value is not None:
             deltas[key] = deltas.get(key, 0) + 1
 
