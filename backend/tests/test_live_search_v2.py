@@ -1,8 +1,12 @@
+import time as _time
+from pathlib import Path
+
 import pytest
 from requests import RequestException
 
 from api.main import app
 from api.settings import APISettings, get_settings
+from gymdb.infrastructure.live_search_cache import LiveSearchCacheEntry
 from gymdb.infrastructure.tomtom_client import TomTomPlace
 
 
@@ -13,6 +17,7 @@ def _noop_background_enrich(monkeypatch):
         "api.routes_v2.background_overpass_enrich",
         lambda **kwargs: None,
     )
+
 
 _FRANKLIN_ORIGIN = TomTomPlace(
     id="place-1",
@@ -90,7 +95,9 @@ def test_live_search_returns_results(client, override_auth, monkeypatch):
     assert data["origin"]["name"] == "Franklin, TN"
     assert data["results"][0]["name"] == "Franklin Strength Club"
     assert data["results"][0]["source_provenance"]["primary"] == "tomtom"
-    assert data["results"][0]["tags"]["website"] == "https://franklinstrength.example.com"
+    assert (
+        data["results"][0]["tags"]["website"] == "https://franklinstrength.example.com"
+    )
     assert data["results"][0]["distance_m"] > 0
 
 
@@ -252,9 +259,6 @@ def test_live_search_applies_osm_confirmation_from_fresh_cache(
 ):
     """When a fresh OSM cache entry covers the search area, gyms that match an
     OSM element by name should be promoted to OSM_CONFIRMED provenance."""
-    from gymdb.infrastructure.live_search_cache import LiveSearchCacheEntry
-    from pathlib import Path
-    import time as _time
 
     osm_elements = [
         {

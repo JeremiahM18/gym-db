@@ -75,5 +75,5 @@ def is_osm_involved(provenance: dict[str, Any]) -> bool:
 
 
 def is_internally_corroborated(provenance: dict[str, Any]) -> bool:
-    """True when TomTom brand search agreed with category search (same DB — weak signal)."""
+    """True when TomTom brand search agreed with category search."""
     return provenance.get("match_status") == MatchStatus.TOMTOM_CORROBORATED

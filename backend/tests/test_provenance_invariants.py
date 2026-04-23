@@ -5,6 +5,7 @@ These tests are the authoritative guard against band overlap.  Any change to
 CONFIDENCE_FLOOR, PROVENANCE_BOOST, or TOMTOM_CORROBORATED_HARD_CAP must keep
 every assertion in this file passing.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -12,7 +13,6 @@ import pytest
 from gymdb.domain.models import Gym
 from gymdb.domain.provenance import (
     CONFIDENCE_FLOOR,
-    PROVENANCE_BOOST,
     TOMTOM_CORROBORATED_HARD_CAP,
     ConfirmedBy,
     MatchStatus,
@@ -55,11 +55,17 @@ def test_tomtom_corroborated_hard_cap_is_below_osm_nearby_floor():
 
 
 def test_osm_nearby_floor_is_below_osm_confirmed_floor():
-    assert CONFIDENCE_FLOOR[MatchStatus.OSM_NEARBY] < CONFIDENCE_FLOOR[MatchStatus.OSM_CONFIRMED]
+    assert (
+        CONFIDENCE_FLOOR[MatchStatus.OSM_NEARBY]
+        < CONFIDENCE_FLOOR[MatchStatus.OSM_CONFIRMED]
+    )
 
 
 def test_tomtom_only_and_corroborated_share_floor():
-    assert CONFIDENCE_FLOOR[MatchStatus.TOMTOM_ONLY] == CONFIDENCE_FLOOR[MatchStatus.TOMTOM_CORROBORATED]
+    assert (
+        CONFIDENCE_FLOOR[MatchStatus.TOMTOM_ONLY]
+        == CONFIDENCE_FLOOR[MatchStatus.TOMTOM_CORROBORATED]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -162,8 +168,10 @@ def test_legacy_matched_provenance_still_scores_via_external_validation():
     score = compute_confidence(gym)
     # Must score via tag density + external validation, not provenance floors.
     # The TOMTOM_ONLY floor (0.40) must NOT apply here.
-    assert score >= 0.30   # old validation bonus applies
-    assert score < CONFIDENCE_FLOOR[MatchStatus.OSM_NEARBY]  # not floor-lifted to OSM tier
+    assert score >= 0.30  # old validation bonus applies
+    assert (
+        score < CONFIDENCE_FLOOR[MatchStatus.OSM_NEARBY]
+    )  # not floor-lifted to OSM tier
 
 
 # ---------------------------------------------------------------------------

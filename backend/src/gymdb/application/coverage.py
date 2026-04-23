@@ -253,7 +253,9 @@ def apply_osm_confirmation(
             continue
         raw_lat = el.get("lat")
         raw_lon = el.get("lon")
-        if not isinstance(raw_lat, (int, float)) or not isinstance(raw_lon, (int, float)):
+        if not isinstance(raw_lat, (int, float)) or not isinstance(
+            raw_lon, (int, float)
+        ):
             continue
         name = str(tags.get("name") or "")
         prepared.append((normalize_name(name), float(raw_lat), float(raw_lon), tags))

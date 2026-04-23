@@ -4,15 +4,21 @@ Tests for live-search telemetry instrumentation.
 Counter state is module-global, so each test replaces _live_search with a
 fresh Counter via monkeypatch to avoid inter-test bleed.
 """
+
 from __future__ import annotations
 
+import time as _time
 from collections import Counter
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 
 import gymdb.observe.metrics as metrics_mod
+from api.main import app
+from api.settings import APISettings, get_settings
+from gymdb.infrastructure.live_search_cache import LiveSearchCacheEntry
+from gymdb.infrastructure.overpass_client import OverpassUnavailableError
+from gymdb.infrastructure.tomtom_client import TomTomPlace
 from gymdb.observe.metrics import (
     record_cache_probe,
     record_enrich_dispatched,
@@ -120,9 +126,16 @@ def test_osm_confirmation_outcomes_accumulated():
 def test_snapshot_returns_all_keys_even_when_zero():
     snap = snapshot_live_search_metrics()
     expected_keys = {
-        "cache_hit", "cache_miss", "cache_stale",
-        "enrich_dispatched", "enrich_success", "enrich_failure", "enrich_write_failure",
-        "osm_confirmed", "osm_nearby", "tomtom_only",
+        "cache_hit",
+        "cache_miss",
+        "cache_stale",
+        "enrich_dispatched",
+        "enrich_success",
+        "enrich_failure",
+        "enrich_write_failure",
+        "osm_confirmed",
+        "osm_nearby",
+        "tomtom_only",
     }
     assert set(snap.keys()) == expected_keys
     assert all(v == 0 for v in snap.values())
@@ -138,7 +151,9 @@ def test_background_overpass_enrich_records_success_on_clean_run(monkeypatch):
 
     monkeypatch.setattr(
         "api.background_tasks.fetch_gyms",
-        lambda *a, **kw: [{"type": "node", "id": 1, "lat": 35.0, "lon": -86.0, "tags": {}}],
+        lambda *a, **kw: [
+            {"type": "node", "id": 1, "lat": 35.0, "lon": -86.0, "tags": {}}
+        ],
     )
     monkeypatch.setattr(
         "api.background_tasks.write_cached_elements",
@@ -146,7 +161,9 @@ def test_background_overpass_enrich_records_success_on_clean_run(monkeypatch):
     )
 
     background_overpass_enrich(
-        lat=35.0, lon=-86.0, radius_m=25000,
+        lat=35.0,
+        lon=-86.0,
+        radius_m=25000,
         origin_name="Franklin, TN",
         cache_root=Path("/fake"),
         timeout_seconds=5,
@@ -160,7 +177,6 @@ def test_background_overpass_enrich_records_success_on_clean_run(monkeypatch):
 
 def test_background_overpass_enrich_records_failure_on_overpass_error(monkeypatch):
     from api.background_tasks import background_overpass_enrich
-    from gymdb.infrastructure.overpass_client import OverpassUnavailableError
 
     monkeypatch.setattr(
         "api.background_tasks.fetch_gyms",
@@ -168,7 +184,9 @@ def test_background_overpass_enrich_records_failure_on_overpass_error(monkeypatc
     )
 
     background_overpass_enrich(
-        lat=35.0, lon=-86.0, radius_m=25000,
+        lat=35.0,
+        lon=-86.0,
+        radius_m=25000,
         origin_name="Franklin, TN",
         cache_root=Path("/fake"),
         timeout_seconds=5,
@@ -193,7 +211,9 @@ def test_background_overpass_enrich_records_write_failure(monkeypatch):
     )
 
     background_overpass_enrich(
-        lat=35.0, lon=-86.0, radius_m=25000,
+        lat=35.0,
+        lon=-86.0,
+        radius_m=25000,
         origin_name="Franklin, TN",
         cache_root=Path("/fake"),
         timeout_seconds=5,
@@ -213,22 +233,36 @@ def test_background_overpass_enrich_records_write_failure(monkeypatch):
 def test_live_search_records_cache_miss_on_first_request(
     client, override_auth, monkeypatch
 ):
-    from api.main import app
-    from api.settings import APISettings, get_settings
-    from gymdb.infrastructure.tomtom_client import TomTomPlace
-
     origin = TomTomPlace(
-        id="p1", name="Franklin, TN", lat=35.925, lon=-86.869,
-        address="Franklin, TN", city="Franklin", country_code="US", url=None, raw={},
+        id="p1",
+        name="Franklin, TN",
+        lat=35.925,
+        lon=-86.869,
+        address="Franklin, TN",
+        city="Franklin",
+        country_code="US",
+        url=None,
+        raw={},
     )
     gym_place = TomTomPlace(
-        id="g1", name="Test Gym", lat=35.920, lon=-86.862,
-        address="1 Main St", city="Franklin", country_code="US", url=None, raw={},
+        id="g1",
+        name="Test Gym",
+        lat=35.920,
+        lon=-86.862,
+        address="1 Main St",
+        city="Franklin",
+        country_code="US",
+        url=None,
+        raw={},
     )
 
-    client.app.dependency_overrides[get_settings] = lambda: APISettings(tomtom_api_key="k")
+    client.app.dependency_overrides[get_settings] = lambda: APISettings(
+        tomtom_api_key="k"
+    )
     monkeypatch.setattr("api.routes_v2.TomTomClient.geocode", lambda *a, **kw: [origin])
-    monkeypatch.setattr("api.routes_v2.TomTomClient.search_gyms", lambda *a, **kw: [gym_place])
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.search_gyms", lambda *a, **kw: [gym_place]
+    )
     monkeypatch.setattr("api.routes_v2.load_cached_elements", lambda *a, **kw: None)
     monkeypatch.setattr("api.routes_v2.background_overpass_enrich", lambda **kw: None)
 
@@ -246,34 +280,52 @@ def test_live_search_records_cache_miss_on_first_request(
 def test_live_search_records_osm_confirmation_outcomes(
     client, override_auth, monkeypatch
 ):
-    import time as _time
-    from api.main import app
-    from api.settings import APISettings, get_settings
-    from gymdb.infrastructure.live_search_cache import LiveSearchCacheEntry
-    from gymdb.infrastructure.tomtom_client import TomTomPlace
-
     origin = TomTomPlace(
-        id="p1", name="Franklin, TN", lat=35.925, lon=-86.869,
-        address="Franklin, TN", city="Franklin", country_code="US", url=None, raw={},
+        id="p1",
+        name="Franklin, TN",
+        lat=35.925,
+        lon=-86.869,
+        address="Franklin, TN",
+        city="Franklin",
+        country_code="US",
+        url=None,
+        raw={},
     )
     gym_place = TomTomPlace(
-        id="g1", name="Test Gym", lat=35.920, lon=-86.862,
-        address="1 Main St", city="Franklin", country_code="US", url=None, raw={},
+        id="g1",
+        name="Test Gym",
+        lat=35.920,
+        lon=-86.862,
+        address="1 Main St",
+        city="Franklin",
+        country_code="US",
+        url=None,
+        raw={},
     )
     fresh_cache = LiveSearchCacheEntry(
         cache_path=Path("/fake/cache.json"),
         cached_at_epoch_s=_time.time(),
-        elements=[{
-            "type": "node", "id": 99,
-            "lat": gym_place.lat, "lon": gym_place.lon,
-            "tags": {"leisure": "fitness_centre", "name": gym_place.name},
-        }],
+        elements=[
+            {
+                "type": "node",
+                "id": 99,
+                "lat": gym_place.lat,
+                "lon": gym_place.lon,
+                "tags": {"leisure": "fitness_centre", "name": gym_place.name},
+            }
+        ],
     )
 
-    client.app.dependency_overrides[get_settings] = lambda: APISettings(tomtom_api_key="k")
+    client.app.dependency_overrides[get_settings] = lambda: APISettings(
+        tomtom_api_key="k"
+    )
     monkeypatch.setattr("api.routes_v2.TomTomClient.geocode", lambda *a, **kw: [origin])
-    monkeypatch.setattr("api.routes_v2.TomTomClient.search_gyms", lambda *a, **kw: [gym_place])
-    monkeypatch.setattr("api.routes_v2.load_cached_elements", lambda *a, **kw: fresh_cache)
+    monkeypatch.setattr(
+        "api.routes_v2.TomTomClient.search_gyms", lambda *a, **kw: [gym_place]
+    )
+    monkeypatch.setattr(
+        "api.routes_v2.load_cached_elements", lambda *a, **kw: fresh_cache
+    )
     monkeypatch.setattr("api.routes_v2.background_overpass_enrich", lambda **kw: None)
 
     try:
