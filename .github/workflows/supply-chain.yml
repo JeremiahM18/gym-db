@@ -1,0 +1,91 @@
+name: Supply Chain
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-attest:
+    name: Build and Attest
+    runs-on: ubuntu-latest
+    permissions:
+      attestations: write
+      artifact-metadata: write
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+            backend/pyproject.toml
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build backend distribution
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+          python -m build --sdist --wheel
+
+      - name: Build frontend bundle
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Assemble release bundle
+        run: |
+          mkdir -p release/backend release/frontend
+          cp backend/dist/* release/backend/
+          cp -R frontend/dist release/frontend/dist
+          tar -czf release/gym-db-release-${GITHUB_SHA}.tgz -C release backend frontend
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: release/gym-db-release-${{ github.sha }}.spdx.json
+          upload-artifact: false
+
+      - name: Upload bundle and SBOM
+        uses: actions/upload-artifact@v7
+        with:
+          name: supply-chain-${{ github.sha }}
+          path: |
+            release/gym-db-release-${{ github.sha }}.tgz
+            release/gym-db-release-${{ github.sha }}.spdx.json
+          if-no-files-found: error
+
+      - name: Attest build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: release/gym-db-release-${{ github.sha }}.tgz
+
+      - name: Attest SBOM
+        uses: actions/attest@v4
+        with:
+          subject-path: release/gym-db-release-${{ github.sha }}.tgz
+          sbom-path: release/gym-db-release-${{ github.sha }}.spdx.json

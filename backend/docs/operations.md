@@ -95,6 +95,17 @@ Current live-search metrics include:
 
 These endpoints are useful for local operations and small deployments. For multi-host production, export the same signals to a centralized monitoring system.
 
+## Security Automation
+
+Repository automation now includes:
+
+- dependency audits in the main CI workflow
+- CodeQL scanning for Python, JavaScript/TypeScript, and GitHub Actions workflows
+- Gitleaks secret scanning
+- build artifact SBOM generation and signed attestations on `main`
+
+If CodeQL is unavailable for the repository type or plan, keep the workflow file committed and enable code scanning when the repository is eligible.
+
 ## Release Checklist
 
 Run before shipping:
@@ -119,6 +130,7 @@ Run before shipping:
 3. Confirm `GET /readyz` returns `200`.
 4. Confirm TomTom-backed live search succeeds with the target environment key.
 5. Confirm frontend is pointed at the intended API base URL.
+6. Confirm the latest security and supply-chain workflows completed successfully.
 
 ## Rollback Checklist
 
