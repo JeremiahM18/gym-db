@@ -1,5 +1,5 @@
 -e .
-pytest==9.0.2
+pytest==9.0.3
 pytest-cov==7.0.0
 httpx==0.28.1
 pytest-env==1.2.0
