@@ -1,6 +1,10 @@
 from fastapi import APIRouter
 
-from gymdb.observe.metrics import snapshot_live_search_metrics, snapshot_metrics
+from gymdb.observe.metrics import (
+    snapshot_http_metrics,
+    snapshot_live_search_metrics,
+    snapshot_metrics,
+)
 
 router = APIRouter(tags=["metrics"])
 
@@ -31,4 +35,15 @@ def live_search_metrics():
     """
     return {
         "live_search": snapshot_live_search_metrics(),
+    }
+
+
+@router.get(
+    "/metrics/http",
+    include_in_schema=False,
+)
+def http_metrics():
+    """Low-cardinality HTTP volume, error, and latency metrics."""
+    return {
+        "http": snapshot_http_metrics(),
     }

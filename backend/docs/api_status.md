@@ -6,6 +6,8 @@ Status: **stable**
 
 The `/v2` API is the supported public surface. Changes are expected to preserve existing semantics unless a new version is introduced.
 
+Operational endpoints such as `/healthz`, `/readyz`, and `/metrics/*` are intentionally outside this public contract.
+
 ## Public Routes
 
 ### Published catalog

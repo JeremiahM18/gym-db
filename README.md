@@ -257,6 +257,8 @@ npm run verify:api-client
 ## Additional Docs
 
 - API contract: `backend/docs/api_status.md`
+- Live-search session contract: `backend/docs/live_search_contract.md`
+- Operations and release runbook: `backend/docs/operations.md`
 - Inference contract: `backend/docs/inference.md`
 - Database storage notes: `database/README_DATABASE.md`
 - Dataset and runtime artifact rules: `backend/data/README.md`

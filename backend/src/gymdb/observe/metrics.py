@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 _inference_hits_fallback: Counter[str] = Counter()
 _live_search_fallback: Counter[str] = Counter()
+_http_fallback: Counter[str] = Counter()
 _fallback_lock = Lock()
 _logged_fallback_contexts: set[str] = set()
 
@@ -29,6 +30,18 @@ _LIVE_SEARCH_KEYS = (
     "osm_confirmed",
     "osm_nearby",
     "tomtom_only",
+)
+
+_HTTP_KEYS = (
+    "requests_total",
+    "requests_2xx",
+    "requests_4xx",
+    "requests_5xx",
+    "request_exceptions",
+    "latency_le_100ms",
+    "latency_le_300ms",
+    "latency_le_1000ms",
+    "latency_gt_1000ms",
 )
 
 
@@ -165,15 +178,59 @@ def snapshot_live_search_metrics() -> dict[str, int]:
         return _merge_counter_snapshot(persisted, _live_search_fallback)
 
 
+def record_http_request(*, status_code: int, elapsed_ms: float) -> None:
+    """Record coarse HTTP volume, error, and latency buckets."""
+    deltas = {"requests_total": 1}
+    if 200 <= status_code < 300:
+        deltas["requests_2xx"] = 1
+    elif 400 <= status_code < 500:
+        deltas["requests_4xx"] = 1
+    elif status_code >= 500:
+        deltas["requests_5xx"] = 1
+
+    if elapsed_ms <= 100:
+        deltas["latency_le_100ms"] = 1
+    elif elapsed_ms <= 300:
+        deltas["latency_le_300ms"] = 1
+    elif elapsed_ms <= 1000:
+        deltas["latency_le_1000ms"] = 1
+    else:
+        deltas["latency_gt_1000ms"] = 1
+
+    _record("http", deltas, _http_fallback)
+
+
+def record_http_exception() -> None:
+    """Record an unhandled exception from the request pipeline."""
+    _record("http", {"request_exceptions": 1}, _http_fallback)
+
+
+def snapshot_http_metrics() -> dict[str, int]:
+    """Snapshot current coarse HTTP service metrics."""
+    try:
+        persisted = _ops_store().snapshot_counters(
+            namespace="http",
+            expected_keys=_HTTP_KEYS,
+        )
+    except (OSError, sqlite3.Error):
+        _log_fallback_once("snapshot:http")
+        persisted = {key: 0 for key in _HTTP_KEYS}
+
+    with _fallback_lock:
+        return _merge_counter_snapshot(persisted, _http_fallback)
+
+
 def reset_metrics() -> None:
     with _fallback_lock:
         _inference_hits_fallback.clear()
         _live_search_fallback.clear()
+        _http_fallback.clear()
         _logged_fallback_contexts.clear()
 
     try:
         store = _ops_store()
         store.reset_counters(namespace="inference_hits")
         store.reset_counters(namespace="live_search")
+        store.reset_counters(namespace="http")
     except (OSError, sqlite3.Error):
         _log_fallback_once("reset:metrics")
