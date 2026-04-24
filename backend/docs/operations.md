@@ -102,8 +102,8 @@ Run before shipping:
 1. Apply database migrations in a clean database.
 2. Verify `backend/openapi.json` matches a fresh export.
 3. Verify the frontend generated client matches the checked-in OpenAPI snapshot.
-4. Run backend lint, typecheck, and tests.
-5. Run frontend lint, build, and e2e tests.
+4. Run backend lint, typecheck, tests, and dependency audit.
+5. Run frontend lint, build, e2e tests, and dependency audit.
 6. Confirm required environment variables for the target environment.
 7. Manually smoke-test:
    - `GET /healthz`
