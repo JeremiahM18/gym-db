@@ -5,6 +5,7 @@ def test_healthz(client):
     resp = client.get("/healthz")
     assert resp.status_code == 200
     assert resp.json()["status"] == "ok"
+    assert resp.json()["environment"] == "development"
 
 
 def test_cors_allows_local_frontend_origin(client):
@@ -42,6 +43,12 @@ def test_readiness_success(client):
     assert data["checks"]["database"] is True
     assert data["checks"]["postgis"] is True
     assert data["checks"]["schema"] is True
+    assert data["checks"]["registry"] is True
+    assert data["checks"]["dataset_root"] is True
+    assert data["checks"]["live_search_storage"] is True
+    assert data["checks"]["ops_state"] is True
+    assert data["capabilities"]["live_search"]["configured"] is False
+    assert data["environment"] == "development"
 
     client.app.dependency_overrides.clear()
 
@@ -81,5 +88,6 @@ def test_readiness_failure(client):
     detail = error["message"]
     assert detail["ready"] is False
     assert detail["checks"]["database"] is False
+    assert detail["checks"]["registry"] is True
 
     client.app.dependency_overrides.clear()

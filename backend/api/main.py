@@ -13,6 +13,7 @@ from api.health import router as health_router
 from api.internal_routes.internal import router as status_router
 from api.internal_routes.jobs import router as jobs_router
 from api.observability import request_logging_middleware
+from api.readiness import assert_startup_preflight
 from api.resources import create_registry
 from api.review_routes import router as review_router
 from api.routes_metrics import router as metrics_router
@@ -23,9 +24,10 @@ from gymdb.infrastructure.live_search_cache import prime_cache_from_dataset
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Run startup and shutdown hooks."""
-    logging.getLogger("gymdb").info("GymDB API starting up")
     logger = logging.getLogger("gymdb")
+    logger.info("GymDB API starting up")
+
+    app.state.startup_checks = assert_startup_preflight(settings)
 
     try:
         registry = create_registry(settings)
@@ -55,7 +57,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    logging.getLogger("gymdb").info("GymDB API shutting down")
+    logger.info("GymDB API shutting down")
 
 
 # Application

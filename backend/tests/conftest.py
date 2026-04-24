@@ -95,6 +95,7 @@ def isolate_ops_state(monkeypatch):
     root = Path(".tmp") / f"ops-state-{uuid.uuid4().hex}"
     root.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(infra_settings, "ops_state_path", root / "ops_state.sqlite3")
+    monkeypatch.setenv("OPS_STATE_PATH", str(root / "ops_state.sqlite3"))
     monkeypatch.setenv("LIVE_SEARCH_SESSION_ROOT", str(root / "live_search_sessions"))
     monkeypatch.setenv("LIVE_SEARCH_CACHE_ROOT", str(root / "live_search_cache"))
 
