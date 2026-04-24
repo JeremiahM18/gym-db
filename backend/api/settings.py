@@ -22,6 +22,7 @@ class APISettings(GymDBSettings):
     cognito_user_pool_id: str = "dev"
     cognito_app_client_id: str = "dev"
     cognito_issuer: str = "https://example.com"
+    cognito_jwks_cache_ttl_seconds: int = Field(default=300, ge=0)
 
     # Ops flags
     enable_internal: bool = False
