@@ -1,17 +1,23 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from api.auth.dependencies import require_admin
+from api.auth.internal import require_internal_enabled
 from gymdb.observe.metrics import (
     snapshot_http_metrics,
     snapshot_live_search_metrics,
     snapshot_metrics,
 )
 
-router = APIRouter(tags=["metrics"])
+router = APIRouter(
+    prefix="/internal/metrics",
+    tags=["internal"],
+    include_in_schema=False,
+    dependencies=[Depends(require_internal_enabled), Depends(require_admin)],
+)
 
 
 @router.get(
-    "/metrics/inference",
-    include_in_schema=False,
+    "/inference",
 )
 def inference_metrics():
     """
@@ -24,8 +30,7 @@ def inference_metrics():
 
 
 @router.get(
-    "/metrics/live-search",
-    include_in_schema=False,
+    "/live-search",
 )
 def live_search_metrics():
     """
@@ -39,8 +44,7 @@ def live_search_metrics():
 
 
 @router.get(
-    "/metrics/http",
-    include_in_schema=False,
+    "/http",
 )
 def http_metrics():
     """Low-cardinality HTTP volume, error, and latency metrics."""

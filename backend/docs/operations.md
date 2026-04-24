@@ -74,9 +74,11 @@ Readiness for traffic. This checks:
 
 Internal lightweight JSON metrics currently exposed:
 
-- `GET /metrics/http`
-- `GET /metrics/inference`
-- `GET /metrics/live-search`
+- `GET /internal/metrics/http`
+- `GET /internal/metrics/inference`
+- `GET /internal/metrics/live-search`
+
+These routes are internal-only and require internal mode plus admin authorization.
 
 Current HTTP metrics are intentionally low-cardinality:
 
