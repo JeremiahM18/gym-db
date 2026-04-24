@@ -1,3 +1,5 @@
+import logging
+
 from api.auth.dependencies import require_admin
 from api.deps import get_db
 from api.settings import APISettings, get_settings
@@ -13,11 +15,17 @@ def test_internal_disabled_returns_404(client):
     assert resp.status_code == 404
 
 
-def test_internal_enabled_non_admin_forbidden(client, override_auth):
+def test_internal_enabled_non_admin_forbidden(client, override_auth, caplog):
+    caplog.set_level(logging.WARNING, logger="gymdb.audit")
     client.app.dependency_overrides[get_settings] = _settings_with_internal(True)
     try:
         resp = client.get("/internal/status")
         assert resp.status_code == 403
+        assert any(
+            record.message == "admin_route_denied"
+            and getattr(record, "path", "") == "/internal/status"
+            for record in caplog.records
+        )
     finally:
         client.app.dependency_overrides.pop(get_settings, None)
 

@@ -140,6 +140,15 @@ Run before shipping:
 4. Verify `GET /healthz` and `GET /readyz` after rollback.
 5. Re-run a live-search smoke test.
 
+## Audit Logging
+
+Admin-only internal and debug routes emit structured audit logs for:
+
+- successful admin route access
+- denied admin route access
+
+Each entry includes the actor `sub`, groups, request path, method, query string, and request ID.
+
 ## First Checks During an Incident
 
 1. Check `GET /healthz` and `GET /readyz`.

@@ -1,16 +1,19 @@
-from api.auth.dependencies import require_admin
+import logging
+
+from api.auth.dependencies import require_user
 from api.deps import get_db
 from api.main import app
 from api.settings import APISettings, get_settings
 from tests.fakes import FakeDB
 
 
-def test_internal_status(client, monkeypatch):
+def test_internal_status(client, monkeypatch, caplog):
+    caplog.set_level(logging.INFO, logger="gymdb.audit")
     # Enable internal routes
     monkeypatch.setenv("ENABLE_INTERNAL", "true")
 
-    # Override admin auth
-    app.dependency_overrides[require_admin] = lambda: {
+    # Override user auth so require_admin still runs and emits audit logs.
+    app.dependency_overrides[require_user] = lambda: {
         "sub": "admin",
         "cognito:groups": ["admin"],
     }
@@ -34,6 +37,12 @@ def test_internal_status(client, monkeypatch):
     assert "database" in data
     assert "inference" in data
     assert data["database"]["reachable"] is True
+    assert any(
+        record.message == "admin_route_access"
+        and getattr(record, "path", "") == "/internal/status"
+        and getattr(record, "sub", "") == "admin"
+        for record in caplog.records
+    )
 
     app.dependency_overrides.clear()
 

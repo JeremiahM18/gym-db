@@ -11,6 +11,7 @@ logger = logging.getLogger("gymdb")
 
 async def request_logging_middleware(request: Request, call_next):
     request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+    request.state.request_id = request_id
     start = time.perf_counter()
 
     response = None

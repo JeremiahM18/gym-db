@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from starlette.requests import Request
 
 from api.auth.dependencies import require_admin, require_user
 from api.deps import get_gym_store
@@ -139,6 +140,15 @@ def test_require_user_dev_bypass_returns_minimal_claims():
 
 
 def test_require_admin_rejects_dev_bypass_claims():
+    request = Request(
+        {
+            "type": "http",
+            "method": "GET",
+            "path": "/internal/status",
+            "headers": [],
+            "query_string": b"",
+        }
+    )
     with pytest.raises(Exception) as exc_info:
         require_admin(
             claims={
@@ -146,7 +156,8 @@ def test_require_admin_rejects_dev_bypass_claims():
                 "email": "dev@gymdb.local",
                 "cognito:groups": [],
                 "dev": True,
-            }
+            },
+            request=request,
         )
 
     assert exc_info.value.status_code == 403
